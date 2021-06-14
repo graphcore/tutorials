@@ -1,0 +1,36 @@
+*.tar.gz
+
+**/weights
+**/images
+
+**/model
+**/data
+**/logs
+
+*.pyc
+__pycache__
+.cache
+*.csv
+*.json
+*.log
+*.so
+*.lock
+report.txt
+
+*.onnx
+
+.DS_Store
+
+.idea
+.project
+.pydevproject
+
+# Remove VIM temp files
+*.swp
+
+# C++ examples build into the "build" directory
+**/build/
+.vscode
+
+# Virtual environments
+*virtualenv/
