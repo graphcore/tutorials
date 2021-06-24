@@ -48,6 +48,10 @@ parser.add_argument('--use-float16-partials',
                     action='store_true',
                     help='Use FP16 partials in matmuls and convs')
 
+parser.add_argument('--disable-stochastic-rounding',
+                    action='store_true',
+                    help='Turn off stochastic rounding (which is on by default)')
+
 args = parser.parse_args()
 
 chosen_precision = tf.float32 if args.chosen_precision_str == 'float32' else tf.float16
@@ -87,7 +91,7 @@ batches_per_epoch = len(x_train) // args.batch_size
 
 # Ordinary residual block
 # We use the identity function for the skip connection
-def residual_block(inputs, filters):
+def ordinary_residual_block(inputs, filters):
 
     conv1_layer = tf.keras.layers.Conv2D(filters=filters,
                                          kernel_size=(3, 3),
@@ -102,7 +106,7 @@ def residual_block(inputs, filters):
                                          kernel_size=(3, 3),
                                          strides=(1, 1),
                                          padding='same',
-                                         activation=tf.nn.relu,
+                                         activation=tf.keras.activations.linear,
                                          data_format="channels_last")
 
     conv2_output = conv2_layer(conv1_output)
@@ -115,7 +119,7 @@ def residual_block(inputs, filters):
 
 
 # Residual block with a downsample convolution
-# We use a 1x1 conv with stride 2 for the skip connection
+# We use a 2x2 conv with stride 2 for the skip connection
 def downsample_residual_block(inputs, filters):
 
     conv1_layer = tf.keras.layers.Conv2D(filters=filters,
@@ -131,16 +135,16 @@ def downsample_residual_block(inputs, filters):
                                          kernel_size=(3, 3),
                                          strides=(1, 1),
                                          padding='same',
-                                         activation=tf.nn.relu,
+                                         activation=tf.keras.activations.linear,
                                          data_format="channels_last")
 
     conv2_output = conv2_layer(conv1_output)
 
     skip_connection_conv = tf.keras.layers.Conv2D(filters=filters,
-                                                  kernel_size=(1, 1),
+                                                  kernel_size=(2, 2),
                                                   strides=(2, 2),
                                                   padding='same',
-                                                  activation=tf.nn.relu,
+                                                  activation=tf.keras.activations.linear,
                                                   data_format="channels_last")
 
     skip_connection_output = skip_connection_conv(inputs)
@@ -151,58 +155,66 @@ def downsample_residual_block(inputs, filters):
 
     return output
 
+
 # Create the model using the Keras functional API
 # We use batch normalisation between blocks
 
-inputs = tf.keras.Input(shape=(32, 32, 3), dtype=chosen_precision)
+def create_model():
 
-# First layer is 3x3 convolution with 16 filters
-first_conv_layer = tf.keras.layers.Conv2D(filters=16,
-                                          kernel_size=(3, 3),
-                                          strides=(1, 1),
-                                          padding='same',
-                                          activation=tf.nn.relu,
-                                          data_format="channels_last")
+    inputs = tf.keras.Input(shape=(32, 32, 3), dtype=chosen_precision)
 
-block_output = first_conv_layer(inputs)
+    # First layer is 3x3 convolution with 16 filters
+    first_conv_layer = tf.keras.layers.Conv2D(filters=16,
+                                              kernel_size=(3, 3),
+                                              strides=(1, 1),
+                                              padding='same',
+                                              activation=tf.nn.relu,
+                                              data_format="channels_last")
 
-blocks_per_section = (args.number_of_layers - 2) // 6
+    block_output = first_conv_layer(inputs)
 
-# Apply first set of residual blocks
-for _ in range(blocks_per_section):
+    blocks_per_section = (args.number_of_layers - 2) // 6
 
+    # Apply first set of residual blocks
+    for _ in range(blocks_per_section):
+
+        block_output = tf.keras.layers.BatchNormalization()(block_output)
+        block_output = ordinary_residual_block(block_output, filters=16)
+
+    # Downsample from 32x32 with 16 filters to 16x16 with 32 filters
     block_output = tf.keras.layers.BatchNormalization()(block_output)
-    block_output = residual_block(block_output, filters=16)
+    block_output = downsample_residual_block(block_output, filters=32)
 
-# Downsample from 32x32 with 16 filters to 16x16 with 32 filters
-block_output = tf.keras.layers.BatchNormalization()(block_output)
-block_output = downsample_residual_block(block_output, filters=32)
+    # Apply second set of residual blocks
+    for _ in range(blocks_per_section - 1):
 
-# Apply second set of residual blocks
-for _ in range(blocks_per_section - 1):
+        block_output = tf.keras.layers.BatchNormalization()(block_output)
+        block_output = ordinary_residual_block(block_output, filters=32)
 
+    # Downsample from 16x16 with 32 filters to 8x8 with 64 filters
     block_output = tf.keras.layers.BatchNormalization()(block_output)
-    block_output = residual_block(block_output, filters=32)
+    block_output = downsample_residual_block(block_output, filters=64)
 
-# Downsample from 16x16 with 32 filters to 8x8 with 64 filters
-block_output = tf.keras.layers.BatchNormalization()(block_output)
-block_output = downsample_residual_block(block_output, filters=64)
+    # Apply third set of residual blocks
+    for _ in range(blocks_per_section - 1):
 
-# Apply third set of residual blocks
-for _ in range(blocks_per_section - 1):
+        block_output = tf.keras.layers.BatchNormalization()(block_output)
+        block_output = ordinary_residual_block(block_output, filters=64)
 
-    block_output = tf.keras.layers.BatchNormalization()(block_output)
-    block_output = residual_block(block_output, filters=64)
+    # Finish with global average pool and dense layer
+    global_average_pool = tf.keras.layers.GlobalAveragePooling2D()(block_output)
 
-# Finish with global average pool and dense layer
-global_average_pool = tf.keras.layers.GlobalAveragePooling2D()(block_output)
+    reshape = tf.keras.layers.Reshape((64,))(global_average_pool)
 
-reshape = tf.keras.layers.Reshape((64,))(global_average_pool)
+    outputs = tf.keras.layers.Dense(10)(reshape)
 
-outputs = tf.keras.layers.Dense(10)(reshape)
+    # With all ops defined, create the model from the inputs and outputs
+    model = tf.keras.Model(inputs=inputs, outputs=outputs)
 
-# With all ops defined, create the model from the inputs and outputs
-model = tf.keras.Model(inputs=inputs, outputs=outputs)
+    return model
+
+# Create the model
+model = create_model()
 
 
 # Define the body of the training loop, to pass to `ipu.loops.repeat`
@@ -242,28 +254,22 @@ def train_one_epoch():
 
 # Configure device with 1 IPU and compile
 
-ipu_configuration = ipu.utils.create_ipu_config()
+ipu_configuration = ipu.config.IPUConfig()
 
-ipu_configuration = ipu.utils.auto_select_ipus(opts=ipu_configuration, num_ipus=1)
+ipu_configuration.auto_select_ipus = 1
 
-# Enable stochastic rounding
-# We also explicitly enable all floating-point exceptions
-ipu_configuration = ipu.utils.set_floating_point_behaviour_options(opts=ipu_configuration,
-                                                                   esr=True,
-                                                                   nanoo=True,
-                                                                   oflo=True, inv=True, div0=True)
+# Enable stochastic rounding (unless disabled)
+esr = not args.disable_stochastic_rounding
+
+ipu_configuration.floating_point_behaviour.esr = esr
 
 if args.use_float16_partials:
 
-    ipu_configuration = ipu.utils.set_matmul_options(
-        opts=ipu_configuration,
-        matmul_options={'partialsType': 'half'})
+    ipu_configuration.matmuls.poplar_options = {'partialsType': 'half'}
 
-    ipu_configuration = ipu.utils.set_convolution_options(
-        opts=ipu_configuration,
-        convolution_options={'partialsType': 'half'})
+    ipu_configuration.convolutions.poplar_options = {'partialsType': 'half'}
 
-ipu.utils.configure_ipu_system(config=ipu_configuration)
+ipu_configuration.configure_ipu_system()
 
 with ipu.scopes.ipu_scope('/device:IPU:0'):
     train_one_epoch_on_ipu = ipu.ipu_compiler.compile(train_one_epoch)

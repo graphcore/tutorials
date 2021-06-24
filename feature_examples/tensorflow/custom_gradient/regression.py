@@ -67,9 +67,9 @@ with ipu.scopes.ipu_scope("/device:IPU:0"):
     fetches = ipu.ipu_compiler.compile(regression, [inputs, targets])
     fetches_custom = ipu.ipu_compiler.compile(regression_custom, [inputs, targets])
 
-cfg = ipu.utils.create_ipu_config()
-cfg = ipu.utils.auto_select_ipus(cfg, 1)
-ipu.utils.configure_ipu_system(cfg)
+cfg = ipu.config.IPUConfig()
+cfg.auto_select_ipus = 1
+cfg.configure_ipu_system()
 ipu.utils.move_variable_initialization_to_cpu()
 
 # Run the optimisation with the built in op and the

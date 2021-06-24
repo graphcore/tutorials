@@ -127,9 +127,8 @@ Using The PopVision Analysis API in C++ or Python
 ..................................................
 
 This section explains how the PopVision analysis API (libpva) can be used to
-query information from a profile file using C++ or Python. Please note, this is
-a preview release of the PopVision analysis API and may change before final
-release.
+query information from a profile file using C++ or Python. 
+
 
 libpva is used to query ``profile.pop`` files, so copy your ``profile.pop`` file
 created in the previous section to the ``tut4_profiling/libpva`` directory and
@@ -323,28 +322,17 @@ so for this section we'll assume you're using hardware.
     terminate called after throwing an instance of 'poplar::graph_memory_allocation_error'
       what():  Out of memory on tile 1: 674752 bytes used but tiles only have 638976 bytes of memory
 
-  And the folder ``/report_OOM`` contains an incomplete set of files.
+  And the folder ``/report_OOM`` contains a set of profile files.
 
-* Usefully, one of the debug Poplar engine options allows us to finish the compilation with OOM (and profile that compilation):
+Note: As of the 2.1 release of the Poplar SDK, the value of the Poplar engine option “debug.allowOutOfMemory” is set to true by default. 
+This allows the compilation to finish when OOM is encountered, generating the profile file containing the memory trace that can be analysed. 
+It is important to note that although a usable set of profiling files is generated, the compilation won't succeed and execution won't happen. 
+This means that even if you use "autoReport.all":"true", you won't get an execution trace.
+If the "debug.allowOutOfMemory" option is set to false, then when the program execution fails with an OOM error, the compilation will be halted, 
+and no profile file will be created that can be analysed.
 
-  .. code-block:: bash
-
-    POPLAR_ENGINE_OPTIONS='{"debug.allowOutOfMemory":"true"}'
-
-  We can then investigate what happened to cause the OOM. Re-run with:
-
-  .. code-block:: bash
-
-    $ POPLAR_ENGINE_OPTIONS='{"autoReport.all":"true","autoReport.directory":"./report_OOM","debug.allowOutOfMemory":"true"}' ./tut4
-
-  Even though it will fail with an OOM error, we will now have a usable set of profile files in folder ``/report_OOM``.
-
-* Open the report in ``/report_OOM`` with PopVision Graph Analyser and you will see the memory trace is complete.
-  We could now inspect what has caused us to go OOM and fix it.
-
-It is important to note that although running with `"debug.allowOutOfMemory":"true"`
-allows a usable set of profiling files to be generated, the compilation won't succeed and execution won't happen.
-This means that even if you use `"autoReport.all":"true"` you won't get an execution trace.
+When you open the report in ``/report_OOM`` with the PopVision Graph Analyser you will see that the memory 
+trace is complete. We could now investigate what has caused the program to go OOM and fix it.
 
 
 Using PopVision Graph Analyser - Different tabs in the application

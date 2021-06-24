@@ -4,11 +4,11 @@ Tutorial 3: writing vertex code
 In this tutorial we will look at how compute steps are built up from running
 pieces of work (the *vertices* of the compute graph) in parallel as *compute sets*. The
 process for constructing compute sets described here is the same method that the
-Poplibs libraries use.
+PopLibs libraries use.
 
 Make a copy of the file ``tut3_vertices/start_here/tut3.cpp`` and open it in an
 editor. This file has an outline program like tutorial 2, but does not use the
-Poplibs libraries. Instead, we will write the device code for the vertices in
+PopLibs libraries. Instead, we will write the device code for the vertices in
 C++.
 
 The program initially adds two 4-element vectors to the graph (``v1`` and

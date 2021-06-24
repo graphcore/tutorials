@@ -3,8 +3,8 @@ Tutorials
 
 These tutorials provide hands-on programming exercises to enable you to
 familiarise yourself with creating and running programs using Poplar and
-Poplibs. They are intended to complement the `Poplar and Poplibs User Guide
-<https://www.graphcore.ai/docs/poplar-and-poplibs-user-guide>`_.
+PopLibs. They are intended to complement the `Poplar and PopLibs User Guide
+<https://docs.graphcore.ai/projects/poplar-user-guide/>`_.
 It is assumed that you have already downloaded and installed Poplar, and that
 you are familiar with C++ and command-line compilation tools.
 
@@ -24,7 +24,7 @@ if you do not have access to IPU hardware.
 Each of the tutorials contains its own README file with full instructions.
 
 * Tutorial 1: programs and variables
-* Tutorial 2: using Poplibs
+* Tutorial 2: using PopLibs
 * Tutorial 3: writing vertex code
 * Tutorial 4: profiling output
 * Tutorial 5: a basic machine learning example

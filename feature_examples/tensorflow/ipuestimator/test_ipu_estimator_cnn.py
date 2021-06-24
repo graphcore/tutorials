@@ -52,13 +52,6 @@ class TestIPUEstimatorCNN():
         self._ipu_estimator_cnn_test_helper(model_dir='/tmp/tmpje829e90/')
         self._ipu_estimator_cnn_test_helper(model_dir='/tmp/tmpje829e90/', test_only='')
 
-    @pytest.mark.ipus(1)
-    @pytest.mark.category1
-    def test_profile(self):
-        self._ipu_estimator_cnn_test_helper(model_dir='/tmp/tmpid930d30/', profile='')
-        assert os.path.exists('/tmp/tmpid930d30/train_report.txt'), "Train report wasn't generated"
-        assert os.path.exists('/tmp/tmpid930d30/eval_report.txt'), "Eval report wasn't generated"
-
     def _ipu_estimator_cnn_test_helper(self, **kwargs):
         """Helper function for running tests of varying arguments"""
 

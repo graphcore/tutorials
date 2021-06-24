@@ -18,7 +18,7 @@ from tensorflow.python.ipu import rnn_ops
 
 def lstm(opts, inputs):
     if opts.popnn:
-        # PopnnLSTM uses a direct poplibs implementation
+        # PopnnLSTM uses a direct PopLibs implementation
         lstm_cell = rnn_ops.PopnnLSTM(opts.hidden_size, dtype=inputs.dtype)
         # The input is [timesteps, batch_size, input_size],
         # where input_size is equal to hidden_size
@@ -83,7 +83,7 @@ def add_args(parser):
     parser.add_argument("--no-train", action='store_false', dest='train',
                         help="No loss or optimisation pass will be computed")
     parser.add_argument("--popnn", action='store_true',
-                        help="Use tf.python.ipu.rnn_ops.PopnnLSTM to target poplibs implementation directly")
+                        help="Use tf.python.ipu.rnn_ops.PopnnLSTM to target PopLibs implementation directly")
     parser.set_defaults(train=False, batches_per_step=1000, steps=5)
     return parser
 

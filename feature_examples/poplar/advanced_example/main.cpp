@@ -125,7 +125,7 @@ void executeGraphProgram(poplar::Device &device, poplar::Executable &exe,
   engine.run(CUSTOM_PROG);
   engine.run(READ_RESULTS);
 
-  // Run program using Poplibs reduction:
+  // Run program using PopLibs reduction:
   engine.connectStream("read_z",  zResult2.data());
   engine.run(WRITE_INPUTS);
   engine.run(REDUCTION_PROG);

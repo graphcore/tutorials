@@ -8,7 +8,7 @@ features of Poplar than the tutorials. This includes:
 
 * Moving I/O into separate Poplar programs
 * Use of multiple programs
-* Use of Poplibs
+* Use of PopLibs
 * Saving and restoring of Poplar executables
 * Skipping graph and program construction when restoring executables
 * Enabling Profiling

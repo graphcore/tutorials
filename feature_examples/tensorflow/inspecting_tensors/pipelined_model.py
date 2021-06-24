@@ -213,10 +213,10 @@ if __name__ == "__main__":
     init_op = tf.global_variables_initializer()
 
     # Configure the IPU device
-    cfg = ipu.utils.create_ipu_config()
+    cfg = ipu.config.IPUConfig()
     # Auto select as many IPUs as we want to pipeline across
-    cfg = ipu.utils.auto_select_ipus(cfg, 2)
-    ipu.utils.configure_ipu_system(cfg)
+    cfg.auto_select_ipus = 2
+    cfg.configure_ipu_system()
 
     with tf.Session() as sess:
         # Initialize

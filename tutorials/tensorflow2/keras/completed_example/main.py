@@ -41,9 +41,9 @@ if not args.use_ipu:
     model.evaluate(x_test, y_test)
 else:
     # Standard IPU TensorFlow setup.
-    ipu_config = ipu.utils.create_ipu_config()
-    ipu_config = ipu.utils.auto_select_ipus(ipu_config, 2)
-    ipu.utils.configure_ipu_system(ipu_config)
+    ipu_config = ipu.config.IPUConfig()
+    ipu_config.auto_select_ipus = 2
+    ipu_config.configure_ipu_system()
 
     # Create an execution strategy.
     strategy = ipu.ipu_strategy.IPUStrategy()

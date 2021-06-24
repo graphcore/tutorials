@@ -159,8 +159,8 @@ def model_function(input_image_batch):
 # Define the body of the training loop, to pass to `ipu.loops.repeat`
 def training_loop_body(loss_running_total, x, y):
 
-    # Apply the model function to the inputs
-    # Using the chosen variable getter as our custom getter
+    # Apply the model function to the inputs, using
+    #      the chosen variable getter as our custom getter
     with tf.variable_scope('all_vars', use_resource=True,
                            custom_getter=fp32_parameter_getter):
         logits = model_function(x)
@@ -206,28 +206,23 @@ def train_one_epoch():
 
 # Configure device with 1 IPU and compile
 
-ipu_configuration = ipu.utils.create_ipu_config()
+ipu_configuration = ipu.config.IPUConfig()
 
-ipu_configuration = ipu.utils.auto_select_ipus(opts=ipu_configuration,
-                                               num_ipus=1)
+ipu_configuration.auto_select_ipus = 1
 
-# Explicitly enable all floating-point exceptions and disable stochastic rounding
-ipu_configuration = ipu.utils.set_floating_point_behaviour_options(opts=ipu_configuration,
-                                                                   esr=False,
-                                                                   nanoo=True,
-                                                                   oflo=True, inv=True, div0=True)
+# Enable all floating-point exceptions
+ipu_configuration.floating_point_behaviour.nanoo = True
+ipu_configuration.floating_point_behaviour.oflo = True
+ipu_configuration.floating_point_behaviour.inv = True
+ipu_configuration.floating_point_behaviour.div0 = True
 
 if args.use_float16_partials:
 
-    ipu_configuration = ipu.utils.set_matmul_options(
-        opts=ipu_configuration,
-        matmul_options={'partialsType': 'half'})
+    ipu_configuration.matmul.poplar_options = {'partialsType': 'half'}
 
-    ipu_configuration = ipu.utils.set_convolution_options(
-        opts=ipu_configuration,
-        convolution_options={'partialsType': 'half'})
+    ipu_configuration.convolutions.poplar_options = {'partialsType': 'half'}
 
-ipu.utils.configure_ipu_system(config=ipu_configuration)
+ipu_configuration.configure_ipu_system()
 
 with ipu.scopes.ipu_scope('/device:IPU:0'):
     train_one_epoch_on_ipu = ipu.ipu_compiler.compile(train_one_epoch)

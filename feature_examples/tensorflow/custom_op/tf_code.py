@@ -27,9 +27,9 @@ def add_op(x, y):
 
 
 if __name__ == '__main__':
-    cfg = ipu.utils.create_ipu_config()
-    cfg = ipu.utils.auto_select_ipus(cfg, 1)
-    ipu.utils.configure_ipu_system(cfg)
+    cfg = ipu.config.IPUConfig()
+    cfg.auto_select_ipus = 1
+    cfg.configure_ipu_system()
 
     with tf.device("cpu"):
         x_data = tf.placeholder(np.float32, [SIZE])

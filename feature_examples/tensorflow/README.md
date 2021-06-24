@@ -3,7 +3,7 @@
 This directory contains a number of feature examples for how to use TensorFlow 1 with IPUs. These include examples of how to measure performance, use multiple IPUs and implement custom ops in Poplar, among other things. This README provides an overview of all of the TensorFlow 1 examples.
 
 
-## Performance and profiling
+## Performance
 
 - [Inspecting tensors](inspecting_tensors): This example trains simple pipelined and non-pipelined models on the MNIST numeral data set and shows how tensors (containing activations and gradients) can be returned to the host for inspection using outfeed queues.
 This can be useful for debugging a model.
@@ -14,6 +14,7 @@ This can be useful for debugging a model.
 
 Simple examples demonstrating and explaining different ways of using multiple IPUs are provided. [Pipelining](pipelining) and [replication](replication) are generally used to parallelise and speed up training, whereas [sharding](sharding) is generally used to simply fit a model in memory.
 
+- [PopDist training example](popdist): This shows how the PopDist API can be used to enable distributed training.
 
 ## Custom ops
 

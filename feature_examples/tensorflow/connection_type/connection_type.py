@@ -4,17 +4,17 @@ import argparse
 import sys
 import numpy as np
 import tensorflow as tf
-from tensorflow.python.ipu import ipu_compiler, scopes, utils
+from tensorflow.python.ipu import ipu_compiler, scopes, config
 from tensorflow.python.framework import errors
 
 tf.compat.v1.disable_v2_behavior()
 
 
 def device_connection_type(value):
-    dcts = {"ALWAYS": utils.DeviceConnectionType.ALWAYS,
-            "ON_DEMAND": utils.DeviceConnectionType.ON_DEMAND,
-            "PRE_COMPILE": utils.DeviceConnectionType.PRE_COMPILE,
-            "NEVER": utils.DeviceConnectionType.NEVER}
+    dcts = {"ALWAYS": config.DeviceConnectionType.ALWAYS,
+            "ON_DEMAND": config.DeviceConnectionType.ON_DEMAND,
+            "PRE_COMPILE": config.DeviceConnectionType.PRE_COMPILE,
+            "NEVER": config.DeviceConnectionType.NEVER}
     return dcts.get(value)
 
 
@@ -48,16 +48,14 @@ def main():
     # Connection type from options.
     connection_type = device_connection_type(opts.connection_type)
 
-    cfg = utils.create_ipu_config()
-    cfg = utils.auto_select_ipus(cfg, 1)
+    cfg = config.IPUConfig()
+    cfg.auto_select_ipus = 1
     if opts.connection_type in ["NEVER", "PRE_COMPILE"]:
-        cfg = utils.set_ipu_connection_type(cfg,
-                                            connection_type,
-                                            ipu_version=2)
+        cfg.device_connection.type = connection_type
+        cfg.device_connection.version = "ipu2"
     else:
-        cfg = utils.set_ipu_connection_type(cfg,
-                                            connection_type)
-    utils.configure_ipu_system(cfg)
+        cfg.device_connection.type = connection_type
+    cfg.configure_ipu_system()
 
     # Run the session.
     # If running with DeviceConnectionType.NEVER then anticipate the
@@ -67,7 +65,7 @@ def main():
             result = sess.run(out, fd)
             print(result)
         except tf.errors.InvalidArgumentError as invalid_arg_exception:
-            if (connection_type == utils.DeviceConnectionType.NEVER) and \
+            if (connection_type == config.DeviceConnectionType.NEVER) and \
                ("configured for compilation only" in invalid_arg_exception.message):
                 print("Compiled")
                 pass

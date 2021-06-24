@@ -85,12 +85,12 @@ To use the IPU, you must create an IPU session configuration.
 Add the following code after the model function definition in `demo.py`:
 
 ```
-ipu_config = ipu_utils.create_ipu_config()
-ipu_config = ipu_utils.auto_select_ipus(ipu_config, num_ipus=2)
-ipu_utils.configure_ipu_system(ipu_config)
+ipu_config = ipu.config.IPUConfig()
+ipu_config.auto_select_ipus = 2
+ipu_config.configure_ipu_system()
 ```
 
-By specifying `num_ipus=2` in the configuration, a single TensorFlow virtual device is created in control of 2 IPUs. Since our simple Keras model only needs 1 IPU, data replication is automatically enabled; the same model is run on both IPUs with different batches of data. Note that the system will automatically select IPU MultiDevices that contain the number of IPUs we request. To see all available IPU MultiDevices, use the [`gc-info` command line tool](https://docs.graphcore.ai/projects/command-line-tools/en/latest/gc-info_main.html).
+By specifying `ipu_config.auto_select_ipus = 2` in the configuration, a single TensorFlow virtual device is created in control of 2 IPUs. Since our simple Keras model only needs 1 IPU, data replication is automatically enabled; the same model is run on both IPUs with different batches of data. Note that the system will automatically select IPU MultiDevices that contain the number of IPUs we request. To see all available IPU MultiDevices, use the [`gc-info` command line tool](https://docs.graphcore.ai/projects/command-line-tools/en/latest/gc-info_main.html).
 
 ##### 3. Specify IPU strategy
 

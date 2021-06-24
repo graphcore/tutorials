@@ -1,4 +1,4 @@
-Tutorial 2: using Poplibs
+Tutorial 2: using PopLibs
 -------------------------
 
 Make a copy of the file ``tut2_operations/start_here/tut2.cpp`` in your working
@@ -22,7 +22,7 @@ highly optimised for IPU devices.
 
     popops::addCodelets(graph);
 
-A similar ``addCodelets`` call is required for each of the Poplibs libraries you
+A similar ``addCodelets`` call is required for each of the PopLibs libraries you
 use in your program.
 
 * Compile and run the code (remember to link in the ``popops`` and ``poputil`` libraries):
@@ -63,9 +63,9 @@ result of adding the elements of ``v1`` to ``v2``.
 * Add code to add ``v2`` to the result tensor ``v3`` and print the
   result.
 
-That is all that is required to use the Poplibs library functions. You can see
-the capability of these libraries by browsing the `Poplibs API documentation
-<https://www.graphcore.ai/docs/poplar-api-reference#document-poplibs_api>`_
+That is all that is required to use the PopLibs library functions. You can see
+the capability of these libraries by browsing the `PopLibs API documentation
+<https://docs.graphcore.ai/projects/poplar-api/en/latest/poplibs_api.html>`_
 or the header files in the ``include`` directories of the Poplar installation.
 
 Reshaping and transposing data
@@ -74,7 +74,7 @@ Reshaping and transposing data
 When calling libraries to perform operations, there are many ways to
 arrange how data is passed to the operation. These are in the ``Tensor.hpp`` header
 file and documented in the `Poplar API Reference
-<https://www.graphcore.ai/docs/poplar-api-reference#poplar-tensor-hpp>`_.
+<https://docs.graphcore.ai/projects/poplar-api/en/latest/poplar_api.html#poplar-tensor-hpp>`_.
 
 In tutorial 1 we used slicing, but there are also functions for reshaping and
 transposing data.

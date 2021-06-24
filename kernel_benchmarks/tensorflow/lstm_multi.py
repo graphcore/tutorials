@@ -17,7 +17,7 @@ from tensorflow.python.ipu import rnn_ops
 
 
 def lstm_block(input_tensor, num_units, opts, name=""):
-    # PopnnLSTM uses a direct poplibs implementation
+    # PopnnLSTM uses a direct PopLibs implementation
     lstm_cell = rnn_ops.PopnnLSTM(num_units=num_units, dtype=input_tensor.dtype, name=name)
     # The input is [timesteps, batch_size, input_size]
     return lstm_cell(input_tensor, training=opts.train)

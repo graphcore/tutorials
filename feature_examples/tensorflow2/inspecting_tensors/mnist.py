@@ -158,9 +158,9 @@ def main():
         outfeed_optimizer_mode = OutfeedOptimizerMode.BEFORE_APPLY
 
     # Configure the IPU system
-    cfg = ipu.utils.create_ipu_config()
-    cfg = ipu.utils.auto_select_ipus(cfg, num_ipus)
-    ipu.utils.configure_ipu_system(cfg)
+    cfg = ipu.config.IPUConfig()
+    cfg.auto_select_ipus = num_ipus
+    cfg.configure_ipu_system()
 
     # Create an IPU distribution strategy.
     strategy = ipu.ipu_strategy.IPUStrategy()

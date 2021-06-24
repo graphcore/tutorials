@@ -23,7 +23,7 @@ import time
 
 import imagenet_categories
 from resnet import ResNet
-from tensorflow.python.ipu import utils
+from tensorflow.python.ipu import config
 
 
 class ImageClassifier(object):
@@ -31,9 +31,9 @@ class ImageClassifier(object):
     def __init__(self, weights_path = './weights'):
         """Builds a TensorFlow image classifier model for Graphcore IPUs."""
         # Set compile and device options
-        self.opts = utils.create_ipu_config(profiling=False, use_poplar_text_report=False)
-        cfg = utils.auto_select_ipus(self.opts, [1])
-        utils.configure_ipu_system(cfg)
+        cfg = config.IPUConfig()
+        cfg.auto_select_ipus = 1
+        cfg.configure_ipu_system()
 
         # Build a Graph that computes the predictions from the inference model.
         img_size = 224

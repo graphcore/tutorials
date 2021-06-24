@@ -1,6 +1,6 @@
 ## Graphcore benchmarks: Grouped convolution, GRU, LSTM and RNN layers with TensorFlow
 
-This readme describes how to run the benchmarks for models with a single type of layer and synthetic data in training and inference.
+This README describes how to run the benchmarks for models with a single type of layer and synthetic data in training and inference.
 
 ## Benchmarking
 
@@ -14,7 +14,7 @@ Each program creates a model with only one type of layer for benchmarking.
 * LSTM (Long Short-Term Memory) are used in sequential data with long dependencies.
 * GRU (Gated Recurrent Unit) are a simpler version of LSTM.
 * Dense layers, also known as fully connected layers are widely used across a range of models.
-* HMC The HMC step from Contrastive Divergence for Combining Variational Inference and MCMC.
+* HMC (Hamiltonian Monte Carlo) is a step from Contrastive Divergence for Combining Variational Inference and MCMC.
 
 ## Running the model
 
@@ -34,7 +34,9 @@ The structure of the repo is as follows:
 | `README.md`                                     | This file                                                              |
 | `test/`                                         | Test code that can be run via pytest                                   |
 
+## Deprecation warning
 
+The scripts in this folder use an older version of our TensorFlow API, which will lead to deprecation warnings. This has no effect on the performance of the benchmarks and can safely be ignored.
 
 ## Quick start guide
 

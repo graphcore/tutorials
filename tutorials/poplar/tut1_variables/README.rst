@@ -184,7 +184,7 @@ variable ``v1`` will result in ``v1`` containing the same data as ``c1``.
 
 Note that the synchronisation and exchange phases of IPU execution described in
 the `IPU Programmer's Guide
-<https://www.graphcore.ai/docs/ipu-programmers-guide#programming-model>`_
+<https://docs.graphcore.ai/projects/ipu-overview/en/latest/programming_model.html>`_
 are performed automatically by the Poplar library functions and do not need
 to be specified explicitly.
 
@@ -306,8 +306,8 @@ Data streams
 ............
 
 The most efficient way to get data in and out of the device is to use data
-streams (see the the `Poplar and Poplibs User Guide
-<https://www.graphcore.ai/docs/poplar-and-poplibs-user-guide#data-streams-and-remote-buffers>`_
+streams (see the the `Poplar and PopLibs User Guide
+<https://docs.graphcore.ai/projects/poplar-user-guide/en/latest/poplar_programs.html#data-streams-and-remote-buffers>`_
 for more information).
 
 During machine learning training, for example, data streams are the best

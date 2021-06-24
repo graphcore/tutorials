@@ -143,11 +143,11 @@ Configuring the IPU and preparing the model are the same as before, except that 
 ```python
 # SNIPPET 5
 
-ipu_configuration = ipu.utils.create_ipu_config()
+ipu_configuration = ipu.config.IPUConfig()
 
-ipu_configuration = ipu.utils.auto_select_ipus(opts=ipu_configuration, num_ipus=1)
+ipu_configuration.auto_select_ipus = 1
 
-ipu.utils.configure_ipu_system(config=ipu_configuration)
+ipu_configuration.configure_ipu_system()
 
 with ipu.scopes.ipu_scope('/device:IPU:0'):
     train_one_epoch_on_ipu = ipu.ipu_compiler.compile(train_one_epoch)

@@ -6,7 +6,7 @@ from tensorflow.python import ipu
 
 from data import CIFAR10_Data
 from model import get_model
-from utils import parse_params, create_ipu_config
+from utils import parse_params, create_ipu_run_config
 
 
 def estimator_model(features, labels, mode):
@@ -29,8 +29,8 @@ if __name__ == '__main__':
     print("Initialize the model")
     test_steps = len(data.y_test) // opts.batch_size
     training_steps = 5 * test_steps
-    config = create_ipu_config(training_steps, test_steps)
-    ipu_estimator = ipu.ipu_estimator.IPUEstimator(config=config, model_fn=estimator_model)
+    run_config = create_ipu_run_config(training_steps, test_steps)
+    ipu_estimator = ipu.ipu_estimator.IPUEstimator(config=run_config, model_fn=estimator_model)
 
     print("Training...")
     ipu_estimator.train(partial(data.get_train_datagenerator, opts.batch_size), steps=training_steps*opts.epochs)

@@ -70,9 +70,9 @@ def get_model():
 
 def main():
     # Configure IPUs.
-    cfg = ipu.utils.create_ipu_config()
-    cfg = ipu.utils.auto_select_ipus(cfg, 2)
-    ipu.utils.configure_ipu_system(cfg)
+    cfg = ipu.config.IPUConfig()
+    cfg.auto_select_ipus = 2
+    cfg.configure_ipu_system()
 
     # Set up IPU strategy.
     strategy = ipu.ipu_strategy.IPUStrategy()

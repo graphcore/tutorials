@@ -17,15 +17,15 @@ def parse_params(enable_multi_ipu=False, enable_pipelining=False):
     return opts
 
 
-def create_ipu_config(training_steps, test_steps, num_replicas=1, num_shards=1):
-    cfg = ipu.utils.create_ipu_config()
-    ipu_options = ipu.utils.auto_select_ipus(cfg, num_ipus=num_replicas*num_shards)
+def create_ipu_run_config(training_steps, test_steps, num_replicas=1, num_shards=1):
+    cfg = ipu.config.IPUConfig()
+    cfg.auto_select_ipus = num_replicas*num_shards
 
     ipu_run_config = ipu.ipu_run_config.IPURunConfig(
         num_replicas=num_replicas,
         num_shards=num_shards,
         iterations_per_loop=test_steps,
-        ipu_options=ipu_options,
+        ipu_options=cfg,
     )
 
     config = ipu.ipu_run_config.RunConfig(

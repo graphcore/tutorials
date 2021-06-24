@@ -75,18 +75,18 @@ The next step is to configure the IPU device(s) we wish to run the model on. An 
 # SNIPPET 3
 
 # Create a default configuration
-ipu_configuration = ipu.utils.create_ipu_config()
+ipu_configuration = ipu.config.IPUConfig()
 
 # Select an IPU automatically
-ipu_configuration = ipu.utils.auto_select_ipus(opts=ipu_configuration, num_ipus=1)
+ipu_configuration.auto_select_ipus = 1
 
 # Apply the configuration
-ipu.utils.configure_ipu_system(config=ipu_configuration)
+ipu_configuration.configure_ipu_system()
 ```
 
 This will create one TensorFlow virtual device which we can refer to later as `/device:IPU:0`. This virtual device will be able to use 1 IPU. We can create multiple TensorFlow virtual devices, each with multiple IPUs, by passing a Python list of sizes to `auto_select_ipus`. However, working effectively with multiple IPUs is a subject that requires separate treatment and will be covered in a further tutorial.
 
-For many small applications, this is enough to get a model up and running, but there are still plenty of useful options. For example, in `create_ipu_config`, we can enable profiling to get information on compilation, execution and memory usage, and we can also target a specific IPU or multi-IPU device using `ipu.utils.select_ipus`. The full list of options is documented in the relevant part of the [API reference](https://docs.graphcore.ai/projects/tensorflow1-user-guide/en/latest/api.html#tensorflow.python.ipu.utils.create_ipu_config).
+For many small applications, this is enough to get a model up and running, but there are still plenty of useful options. For example, we can target a specific IPU or multi-IPU device by setting `select_ipus` on our IPUConfig object instead of `auto_select_ipus`. The full list of options is documented in the relevant part of the [API reference](https://docs.graphcore.ai/projects/tensorflow1-user-guide/en/latest/api.html#tensorflow.python.ipu.config.IPUConfig).
 
 ## Preparing the model for the IPU
 

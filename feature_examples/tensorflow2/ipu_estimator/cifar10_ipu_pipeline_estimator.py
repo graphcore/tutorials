@@ -6,7 +6,7 @@ from tensorflow.python import ipu
 
 from data import CIFAR10_Data
 from model import get_staged_model
-from utils import parse_params, create_ipu_config
+from utils import parse_params, create_ipu_run_config
 
 
 def estimator_model(opts, mode):
@@ -43,8 +43,8 @@ if __name__ == '__main__':
     # test_steps must be a multiple of the gradient accumulation count:
     test_steps = (test_steps // opts.gradient_accumulation_count) * opts.gradient_accumulation_count
     training_steps = 5 * test_steps
-    config = create_ipu_config(training_steps, test_steps, num_shards=opts.ipus)
-    ipu_estimator = ipu.ipu_pipeline_estimator.IPUPipelineEstimator(config=config, model_fn=partial(estimator_model, opts))
+    run_config = create_ipu_run_config(training_steps, test_steps, num_shards=opts.ipus)
+    ipu_estimator = ipu.ipu_pipeline_estimator.IPUPipelineEstimator(config=run_config, model_fn=partial(estimator_model, opts))
 
     ipu_estimator.train(partial(data.get_train_datagenerator, opts.batch_size), steps=training_steps*opts.epochs)
 

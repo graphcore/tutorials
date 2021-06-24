@@ -5,7 +5,7 @@ import argparse
 import numpy as np
 import tensorflow as tf
 
-from tensorflow.python.ipu import ipu_compiler, scopes, utils
+from tensorflow.python.ipu import ipu_compiler, scopes, config
 
 NUM_SHARDS = 2
 
@@ -41,9 +41,9 @@ with scopes.ipu_scope("/device:IPU:0"):
 fd = {pa: [1., 1.], pb: [0., 1.], pc: [1., 5.]}
 # Configure an IPU device that has NUM_SHARDS devices that we will
 # shard across.
-cfg = utils.create_ipu_config(profiling=True)
-cfg = utils.auto_select_ipus(cfg, NUM_SHARDS)
-utils.configure_ipu_system(cfg)
+cfg = config.IPUConfig()
+cfg.auto_select_ipus = NUM_SHARDS
+cfg.configure_ipu_system()
 
 with tf.Session() as sess:
     result = sess.run(out, fd)

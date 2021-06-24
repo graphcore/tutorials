@@ -56,13 +56,13 @@ batches_per_epoch = len(x_train) // BATCHSIZE
 # SNIPPET 3
 
 # Create a default configuration
-ipu_configuration = ipu.utils.create_ipu_config()
+ipu_configuration = ipu.config.IPUConfig()
 
 # Select an IPU automatically
-ipu_configuration = ipu.utils.auto_select_ipus(opts=ipu_configuration, num_ipus=1)
+ipu_configuration.auto_select_ipus = 1
 
 # Apply the configuration
-ipu.utils.configure_ipu_system(config=ipu_configuration)
+ipu_configuration.configure_ipu_system()
 
 
 # SNIPPET 4
