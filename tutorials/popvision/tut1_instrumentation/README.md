@@ -30,13 +30,13 @@ Add the import statement at the top of `popart_mnist.py`
 
 Next we will need to create a trace channel. Add the `mnistPvtiChannel` as a global object.
 
-    minstPvtiChannel = pvti.createTraceChannel("Mnist Application")
+    mnistPvtiChannel = pvti.createTraceChannel("Mnist Application")
 
 We are going to use the Python `with` keyword with a Python context manager to instrument the epoch loop. Note you will need to indent the contents of the loop
 
     print("Running training loop.")
     for i in range(opts.epochs):
-      with pvti.Tracepoint(minstPvtiChannel, f"Epoch:{i}"):
+      with pvti.Tracepoint(mnistPvtiChannel, f"Epoch:{i}"):
         ...
 
 We leave it as an exercise for the reader to add instrumentation of the training & evaluation phases. When added you will see the following profile in the PopVision System Analyser. Note: You can nest the Tracepoint statements.

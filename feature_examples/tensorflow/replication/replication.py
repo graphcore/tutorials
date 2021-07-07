@@ -190,18 +190,16 @@ def build_IPU_graph(opts, dataset):
     ipu.utils.move_variable_initialization_to_cpu()
 
     # Configure the IPU
-    config = ipu.utils.create_ipu_config()
+    config = ipu.config.IPUConfig()
     if opts.on_demand:
-        config = ipu.utils.set_ipu_connection_type(config, ipu.utils.DeviceConnectionType.ON_DEMAND, enable_remote_buffers=True)
+        config.device_connection.type = ipu.config.DeviceConnectionType.ON_DEMAND
+        config.device_connection.enable_remote_buffers = True
     # We should request as many IPUs as all of the replicas need. Since the
     # model requires 1 IPU, and we replicate it N times, we need N IPUs.
-    config = ipu.utils.auto_select_ipus(config, opts.replicas)
+    config.auto_select_ipus = opts.replicas
     # Set the max_cross_replica_sum_buffer_size
-    config = ipu.utils.set_optimization_options(
-        config,
-        max_cross_replica_sum_buffer_size=opts.max_cross_replica_sum_buffer_size
-    )
-    ipu.utils.configure_ipu_system(config)
+    config.optimizations.maximum_cross_replica_sum_buffer_size = opts.max_cross_replica_sum_buffer_size
+    config.configure_ipu_system()
 
     return init, compile_and_run, dequeue_outfeed
 

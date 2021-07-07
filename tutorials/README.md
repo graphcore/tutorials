@@ -36,4 +36,5 @@ Each of the tutorials contains its own README file with full instructions.
 PopVision is Graphcore's suite of graphical application analysis tools.
 
 - [Tutorial 1: Instrumenting applications and using the PopVision System Analyser](popvision/tut1_instrumentation)
+- [Tutorial 2: Accessing profiling information with libpva](popvision/tut2_libpva)
 - Profiling output with the PopVision Graph Analyser is currently included in [Poplar Tutorial 4: profiling output](poplar/tut4_profiling)
