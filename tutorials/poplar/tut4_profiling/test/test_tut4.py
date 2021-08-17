@@ -47,9 +47,9 @@ class TestBuildAndRun(SubProcessChecker):
 
         with tempfile.TemporaryDirectory() as temporary_path:
             # Copy binaries to temp directory
-            copy("tut4_ipu_model", os.path.join(temporary_path,
-                                                "tut4_ipu_model"))
-            copy("CppExample", os.path.join(temporary_path, "CppExample"))
+            copy(os.path.dirname(os.path.abspath(__file__)) + "/tut4_ipu_model",
+                 os.path.join(temporary_path, "tut4_ipu_model"))
+            copy(os.path.dirname(os.path.abspath(__file__)) + "/CppExample", os.path.join(temporary_path, "CppExample"))
 
             # Execute ipu_model that will collect reports
             self.run_command("./tut4_ipu_model",

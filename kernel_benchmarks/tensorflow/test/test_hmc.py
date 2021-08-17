@@ -38,10 +38,3 @@ class TestTensorFlowHamiltonianMonteCarloBenchmarks(SubProcessChecker):
         self.run_command("python3 hmc.py --steps 200 --hmc-steps 10000 --leapfrog-steps 10",
                          working_path,
                          [r"(\w+.\w+) hmc steps/sec"])
-
-    @pytest.mark.category1
-    @pytest.mark.ipus(1)
-    def test_report(self):
-        self.run_command("python3 hmc.py --report",
-                         working_path,
-                         "IPU Timings")

@@ -54,7 +54,7 @@ print(f"Global batch size {global_batch_size}:",
 # Create the model under the strategy scope.
 with strategy.scope():
 
-    infeed_queue = ipu.ipu_infeed_queue.IPUInfeedQueue(dataset, "infeed")
+    infeed_queue = ipu.ipu_infeed_queue.IPUInfeedQueue(dataset)
 
     def per_replica_step(loss_sum, x, y):
         # Build a simple convolutional model with the Keras API.

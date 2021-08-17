@@ -8,6 +8,7 @@
 #include <memory>
 #include <poplar/Engine.hpp>
 #include <poplar/IPUModel.hpp>
+#include <poplar/DeviceManager.hpp>
 
 // This example performs matrix multiplication on the IPU by decomposing
 // the column axis (i.e. the number of columns) into N partial sums.
@@ -232,21 +233,66 @@ Program buildMultiplyProgram(Graph &graph, Tensor matrix, Tensor in,
   return Sequence(Execute(mulCS), Execute(reduceCS));
 }
 
-int main(int argc, char **argv) {
-  if ((argc < 3 || argc > 4) || (argc == 4 && strcmp(argv[3], "mk1") != 0)) {
-    std::cerr << "usage: " << argv[0] << " numRows numCols mk1(optional)\n";
-    return 1;
-  }
-  unsigned numRows = std::atoi(argv[1]);
-  unsigned numCols = std::atoi(argv[2]);
-  std::string model;
+void help(const char* app) {
+  std::cerr << "usage: " << app << " numRows numCols --device {model-ipu1,model-ipu2,ipu}\n";
+}
 
-  if (argc == 4 && strcmp(argv[3], "mk1") == 0) {
-    model = "ipu1";
+int parse_args(unsigned &numRows, unsigned &numCols, const char* &dev,
+               int argc, char** argv) {
+  for (int a = 1; a < argc; ++a) {
+    if (strcmp(argv[a], "--device") == 0) {
+      ++a;
+      if (a >= argc) {
+        printf("Missing argument following --device\n");
+        return -1;
+      }
+      dev = argv[a];
+      if (strcmp(dev, "ipu") &&
+          strcmp(dev, "model-ipu1") &&
+          strcmp(dev, "model-ipu2")) {
+        printf("Unrecognised device %s\n", dev);
+        return -1;
+      }
+    }
+    else if (numRows == 0) {
+      numRows = atoi(argv[a]);
+      if (numRows <= 0) {
+        printf("Malformed numRows argument\n");
+        return -1;
+      }
+    }
+    else if (numCols == 0) {
+      numCols = atoi(argv[a]);
+      if (numCols <= 0) {
+        printf("Malformed numCols argument\n");
+        return -1;
+      }
+    }
+    else {
+      printf("Unexpected arguments\n");
+      return -1;
+    }
   }
-  else {
-    model = "ipu2";
+  if (numRows <= 0 || numCols <= 0) {
+    printf("Missing rows/cols arguments\n");
+    return -1;
   }
+  return 0;
+}
+
+int main(int argc, char **argv) {
+  unsigned numRows = 0;
+  unsigned numCols = 0;
+  const char* dev = "model-ipu2";
+
+  int ret = parse_args(numRows, numCols, dev, argc, argv);
+  if (ret != 0) {
+    printf("Failed to parse arguments\n");
+    help(argv[0]);
+    return ret;
+  }
+
+  printf("Device %s\n", dev);
 
   std::cout << "Multiplying matrix of size " << numRows << "x" << numCols
             << " by vector of size " << numCols << "\n";
@@ -257,13 +303,37 @@ int main(int argc, char **argv) {
   // is set to be more simplistic to reduce some latencies/delays in
   // the exchange fabric.
 
-  char modelChar[model.length() + 1];
-  strcpy(modelChar, model.c_str());
+  Device device;
 
-  IPUModel ipuModel(modelChar);
-  ipuModel.minIPUSyncDelay = 0;
-  ipuModel.relativeSyncDelay = IPUModel::RelativeSyncDelayType::NO_DELAY;
-  auto device = ipuModel.createDevice();
+  if (strcmp(dev, "ipu") == 0) {
+    // The DeviceManager is used to discover IPU devices
+    DeviceManager manager = DeviceManager::createDeviceManager();
+
+    // Attempt to connect to a single IPU
+    bool success = false;
+    for (auto &d : manager.getDevices(poplar::TargetType::IPU, 1)) {
+      device = std::move(d);
+      std::cerr << "Trying to attach to IPU " << device.getId();
+      if ((success = device.attach())) {
+        std::cerr << " - attached" << std::endl;
+        break;
+      } else {
+        std::cerr << std::endl;
+      }
+    }
+    if (!success) {
+      std::cerr << "Error attaching to device" << std::endl;
+      return -1;
+    }
+  } else {
+    char ipuVersion[] = "ipu1";
+    strncpy(ipuVersion, &dev[6], strlen(ipuVersion));
+    IPUModel ipuModel(ipuVersion);
+    ipuModel.minIPUSyncDelay = 0;
+    ipuModel.relativeSyncDelay = IPUModel::RelativeSyncDelayType::NO_DELAY;
+    device = ipuModel.createDevice();
+  }
+
   Graph graph(device);
   graph.addCodelets("matrix-mul-codelets.cpp");
 

@@ -14,8 +14,14 @@ def run_multi_ipu(shards, batch_size, batches_per_step):
            "--batch-size", str(batch_size),
            "--batches-per-step", str(batches_per_step)]
     cwd = os.path.dirname(__file__)
-    out = subprocess.check_output(cmd, cwd=cwd, stderr=subprocess.PIPE).decode("utf-8")
-    print(out)
+    try:
+        out = subprocess.check_output(
+            cmd, cwd=cwd, stderr=subprocess.PIPE).decode("utf-8")
+    except subprocess.CalledProcessError as e:
+        print(f"TEST FAILED")
+        print(f"stdout={e.stdout.decode('utf-8',errors='ignore')}")
+        print(f"stderr={e.stderr.decode('utf-8',errors='ignore')}")
+        raise
     return out
 
 

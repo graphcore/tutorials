@@ -15,22 +15,46 @@ consisting of two dense layers. Run one pipeline length and compute loss.
 
 1) Prepare the environment.
 
-   Install the Poplar SDK following the instructions in the Getting Started guide for your IPU system. Make sure to source the `enable.sh`
-    scripts for poplar and popart.
+   Install the Poplar SDK following the instructions in the [Getting Started guide](https://docs.graphcore.ai/en/latest/getting-started.html) for your IPU system.
 
-2) Run the program. Note that the PopART Python API only supports Python 3.
-
-    python3 pipelining.py [-h] [--export FILE] [--report] [--no_pipelining] [--test]
-
-### Options
-
-Run pipelining.py with -h option to list all the command line options.
-
-### Running the tests
-
-Install the needed package and use pytest.
+2) Install the required packages.
 
 ```cmd
 pip install -r requirements.txt
-pytest -s
+```
+
+3) Run the program. Note that the PopART Python API only supports Python 3.
+
+```cmd
+python3 pipelining.py [-h] [--export FILE] [--no_pipelining] [--test]
+```
+
+### Options
+
+To list all the command line options, run:
+
+```cmd
+python3 pipelining.py -h
+```
+
+### Profiling
+
+The Poplar SDK can generate report files during the compilation and execution of applications.
+The following enables report generation, and specifies a directory to generate reports in.
+
+```
+export POPLAR_ENGINE_OPTIONS='{"autoReport.all":"true", "autoReport.directory":"."}'
+```
+
+After running an application, the resulting report files can be opened using the PopVision Graph Analyser.
+See the PopVision user guide for more information:
+[PopVision User Guide](https://docs.graphcore.ai/projects/graphcore-popvision-user-guide/en/latest/index.html).
+
+### Running the tests
+
+Install the required packages and use pytest.
+
+```cmd
+pip install -r requirements.txt
+python -m pytest
 ```

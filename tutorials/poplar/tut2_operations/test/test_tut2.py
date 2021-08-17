@@ -15,16 +15,8 @@ class TestBuildAndRun(SubProcessChecker):
 
     @lock(os.path.join(working_path, "binary.lock"))
     def setUp(self):
-        ''' Compile the start here and complete versions of the tutorial code '''
+        ''' Compile the complete version of the tutorial code '''
         self.run_command("make all", working_path, [])
-
-    @pytest.mark.category1
-    def test_run_start_here(self):
-        ''' Check that the start here version of the tutorial code runs '''
-
-        self.run_command("./tut2_start_here",
-                         working_path,
-                         ["Program complete"])
 
     @pytest.mark.category1
     def test_run_complete(self):

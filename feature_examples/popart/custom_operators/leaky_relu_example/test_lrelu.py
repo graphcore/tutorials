@@ -38,7 +38,14 @@ def test_leaky_relu_cmd_ln(input_data, alpha, run_on_ipu):
 
     cmd.extend([str(i) for i in input_data])
 
-    out = subprocess.check_output(cmd, cwd=os.path.dirname(__file__), stderr=subprocess.PIPE).decode("utf-8")
+    try:
+        out = subprocess.check_output(
+            cmd, cwd=os.path.dirname(__file__), stderr=subprocess.PIPE).decode("utf-8")
+    except subprocess.CalledProcessError as e:
+        print(f"TEST FAILED")
+        print(f"stdout={e.stdout.decode('utf-8',errors='ignore')}")
+        print(f"stderr={e.stderr.decode('utf-8',errors='ignore')}")
+        raise
 
     # Looks for output like: "{'LeakyRelu:0': array([....], dtype=float32)}""
     match = re.search(r"{'LeakyRelu:0': array\(\[[\-0-9. ,]*\], dtype=float32\)\}", out)

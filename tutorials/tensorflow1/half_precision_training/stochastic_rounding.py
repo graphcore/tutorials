@@ -79,7 +79,7 @@ dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train))
 dataset = dataset.repeat().batch(args.batch_size, drop_remainder=True)
 
 # Create an infeed queue
-cifar10_infeed_queue = ipu.ipu_infeed_queue.IPUInfeedQueue(dataset, feed_name="cifar10_data")
+cifar10_infeed_queue = ipu.ipu_infeed_queue.IPUInfeedQueue(dataset)
 
 # Use floor division because we drop the remainder
 batches_per_epoch = len(x_train) // args.batch_size

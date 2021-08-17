@@ -1,8 +1,8 @@
 Tutorial 2: using PopLibs
 -------------------------
 
-Make a copy of the file ``tut2_operations/start_here/tut2.cpp`` in your working
-directory and open it in an editor. This file contains a basic Poplar program
+Using ``tut2_operations/start_here`` as your working
+directory, open ``tut2.cpp`` in an editor. This file contains a basic Poplar program
 structure similar to that seen in tutorial 1. It creates a graph with a couple
 of variables and initialises them. However, this time it includes some extra
 headers from the ``popops`` library:

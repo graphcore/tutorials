@@ -6,7 +6,7 @@ pieces of work (the *vertices* of the compute graph) in parallel as *compute set
 process for constructing compute sets described here is the same method that the
 PopLibs libraries use.
 
-Make a copy of the file ``tut3_vertices/start_here/tut3.cpp`` and open it in an
+Using ``tut3_vertices/start_here`` as your working directory, open ``tut3.cpp`` in an
 editor. This file has an outline program like tutorial 2, but does not use the
 PopLibs libraries. Instead, we will write the device code for the vertices in
 C++.

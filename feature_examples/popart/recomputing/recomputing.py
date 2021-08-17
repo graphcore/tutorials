@@ -112,8 +112,6 @@ def main(args):
     # Session options
     num_ipus = 1
     opts = popart.SessionOptions()
-    opts.reportOptions = {"showExecutionSteps": "true"}
-    opts.engineOptions = {"debug.instrument": "true"}
 
     if args.recomputing == 'AUTO':
         opts.autoRecomputation = popart.RecomputationType.Standard
@@ -143,10 +141,6 @@ def main(args):
     session.weightsFromHost()
     session.run(stepio)
 
-    # Save report and return session object (optional)
-    if args.report:
-        from gcprofile import save_popart_report
-        save_popart_report(session)
     if args.test:
         return session
 
@@ -156,9 +150,6 @@ if __name__ == "__main__":
     # Arguments
     parser = argparse.ArgumentParser()
     parser.add_argument('--export', help='export model', metavar='FILE')
-    parser.add_argument('--report',
-                        action='store_true',
-                        help='save execution report')
     parser.add_argument('--test', action='store_true', help='test mode')
     parser.add_argument('--recomputing',
                         help='deactivate recompute',

@@ -3,9 +3,9 @@ Tutorial 5: a basic machine learning example
 
 This tutorial contains a complete training program that performs a logistic
 regression on the MNIST data set, using gradient descent. The files for the demo
-are in ``tut5_ml``. There are no coding steps in the tutorial. The task is to
+are in ``tut5_ml``, use this as your working directory. There are no coding steps in the tutorial. The task is to
 understand the code, build it and run it. You can build the code using the
-supplied makefile.
+supplied makefile by running ``make``
 
 Before you can run the code you will need to run the ``get_data.sh`` script to
 download the MNIST data.

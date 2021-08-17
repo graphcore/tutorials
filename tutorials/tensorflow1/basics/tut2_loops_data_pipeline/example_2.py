@@ -50,7 +50,7 @@ batches_per_epoch = len(x_train) // BATCHSIZE
 
 # SNIPPET 2
 
-mnist_infeed_queue = ipu.ipu_infeed_queue.IPUInfeedQueue(dataset, feed_name="mnist_data")
+mnist_infeed_queue = ipu.ipu_infeed_queue.IPUInfeedQueue(dataset)
 
 
 # SNIPPET 3

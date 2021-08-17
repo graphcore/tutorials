@@ -2,8 +2,8 @@ Tutorial 6: matrix-vector multiplication
 ----------------------------------------
 
 This tutorial builds up a more complex calculation on vertices: multiplying a
-matrix by a vector. Make a copy of the files from
-``tut6_matrix_vector/start_here`` in your working directory.
+matrix by a vector. Use
+``tut6_matrix_vector/start_here`` as your working directory.
 
 The file ``matrix-mul-codelets.cpp`` contains the outline for the vertex code
 that will perform a dot product. Its input and output fields are already
@@ -59,7 +59,7 @@ the compute set.
     the ``out`` tensor.
 
 After adding this code, you can build and run the example. A makefile is provided
-to compile the program.
+to compile the program. You can build it by running ``make``
 
 As you can see from the host program code, you'll need to provide two arguments
 to the execution command that specify the size of the matrix. For example,
@@ -68,8 +68,128 @@ size 50:
 
 .. code-block:: bash
 
-  $ ./matrix-vector 40 50
+  $ ./tut6_cpu 40 50
 
 The host code includes a check that the result is correct.
+
+(Optional) Using the IPU
+........................
+
+This section describes how to modify the program to use the IPU hardware.
+
+* Copy ``tut6.cpp`` to ``tut6_ipu_hardware.cpp`` and open it in an editor.
+
+* Add this include line:
+
+.. code-block:: c++
+
+  #include <poplar/DeviceManager.hpp>
+
+* Add the following lines at the start of ``main``:
+
+.. code-block:: c++
+
+  // Create the DeviceManager which is used to discover devices
+  DeviceManager manager = DeviceManager::createDeviceManager();
+
+  // Attempt to attach to a single IPU:
+  Device device;
+  bool success = false;
+  // Loop over all single IPU devices on the host
+  // Break the loop when an IPU is successfully acquired
+  for (auto &hwDevice : manager.getDevices(poplar::TargetType::IPU, 1)) {
+    device = std::move(hwDevice);
+    std::cerr << "Trying to attach to IPU " << device.getId() << std::endl;
+    if ((success = device.attach())) {
+      std::cerr << "Attached to IPU " << device.getId() << std::endl;
+      break;
+    }
+  }
+  if (!success) {
+    std::cerr << "Error attaching to device" << std::endl;
+    return -1;
+  }
+
+  Target target = device.getTarget();
+
+This gets a list of all devices consisting of a single IPU that are attached to
+the host and tries to attach to each one in turn until successful.
+This is a useful approach if there are multiple users on the host.
+It is also possible to get a specific device using its device-manager ID with the
+``getDevice`` function.
+
+* Replace the following line which creates a CPU target:
+
+.. code-block:: c++
+
+  Graph graph(Target::createCPUTarget());
+
+with this code:
+
+.. code-block:: c++
+
+  Graph graph(target);
+
+* Add tile mapping of variables after their declaration:
+
+.. code-block:: c++
+
+  graph.setTileMapping(matrix, 0);
+  graph.setTileMapping(inputVector, 0);
+  graph.setTileMapping(outputVector, 0);
+
+Also, add tile mapping for each vertex in function ``buildMultiplyProgram``:
+
+.. code-block:: c++
+
+  for (unsigned i = 0; i < numRows; ++i) {
+      auto v = graph.addVertex(mulCS,              // Put the vertex in the
+                                                   // 'mulCS' compute set.
+                               "DotProductVertex", // Create a vertex of this
+                                                   // type.
+                               {{"a", matrix[i]},  // Connect input 'a' of the
+                                                   // vertex to a row of the
+                                                   // matrix.
+                                {"b", in},         // Connect input 'b' of the
+                                                   // vertex to whole
+                                                   // input vector.
+                                {"out", out[i]}}); // Connect the output 'out'
+                                                   // of the vertex to a single
+                                                   // element of the output
+                                                   // vector.
+      graph.setTileMapping(v, i);
+    }
+    // The returned program just executes the 'mulCS' compute set i.e. executes
+    // every vertex calculation in parallel.
+    return Execute(mulCS);
+  }
+
+* Replace the following line:
+
+.. code-block:: c++
+
+  engine.load(Device::createCPUDevice());
+
+with:
+
+.. code-block:: c++
+
+  engine.load(device);
+
+* Compile the program.
+
+.. code-block:: bash
+
+  $ g++ --std=c++11 tut6_ipu_hardware.cpp -lpoplar -o tut6_ipu
+
+Before running this you need to make sure that you have set the environment
+variables for the Graphcore drivers (see the Getting Started Guide for your IPU
+system).
+
+* Run the program to see the same results as running on CPU
+
+.. code-block:: bash
+
+  $ ./tut6_ipu_hardware
 
 Copyright (c) 2018 Graphcore Ltd. All rights reserved.

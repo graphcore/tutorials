@@ -107,8 +107,6 @@ def main(args):
     opts = popart.SessionOptions()
     opts.enablePipelining = False if args.no_pipelining else True
     opts.virtualGraphMode = popart.VirtualGraphMode.Manual
-    opts.reportOptions = {"showExecutionSteps": "true"}
-    opts.engineOptions = {"debug.instrument": "true"}
     pipeline_depth = 64
     num_ipus = 2
 
@@ -142,10 +140,6 @@ def main(args):
     session.weightsFromHost()
     session.run(stepio)
 
-    # Save report and return session object (optional)
-    if args.report:
-        from gcprofile import save_popart_report
-        save_popart_report(session)
     if args.test:
         return session
 
@@ -155,8 +149,6 @@ if __name__ == "__main__":
     # Arguments
     parser = argparse.ArgumentParser()
     parser.add_argument('--export', help='export model', metavar='FILE')
-    parser.add_argument('--report', action='store_true',
-                        help='save execution report')
     parser.add_argument('--no_pipelining', action='store_true',
                         help='deactivate pipelining')
     parser.add_argument('--test', action='store_true', help='test mode')

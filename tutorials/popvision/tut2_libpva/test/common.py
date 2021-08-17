@@ -14,13 +14,19 @@ def download_mnist(file_path):
         print("MNIST dataset already downloaded, skipping download")
         return
 
-    subprocess.check_output(
-        "./get_data.sh", env=os.environ.copy(), cwd=file_path,
-        universal_newlines=True
-    )
+    try:
+        subprocess.check_output(
+            "./get_data.sh", env=os.environ.copy(), cwd=file_path,
+            universal_newlines=True
+        )
+    except subprocess.CalledProcessError as e:
+        print("Failed to download MNIST dataset (./get_data.sh failed)")
+        print(f"stdout={e.stdout.decode('utf-8',errors='ignore')}")
+        print(f"stderr={e.stderr.decode('utf-8',errors='ignore')}")
+        raise
 
     if not check_all_data_present(file_path):
-        raise OSError("MNIST dataset download unsuccessful")
+        raise OSError("MNIST dataset not fully downloaded")
 
     print("Successfully downloaded MNIST dataset")
 

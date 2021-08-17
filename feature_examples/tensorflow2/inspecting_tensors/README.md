@@ -41,7 +41,8 @@ This example uses the following classes:
 * `outfeed_layers.Outfeed` - a Keras layer that puts the inputs into a dictionary
   and enqueues it on an IPUOutfeedQueue.
 * `outfeed_layers.MaybeOutfeed` - a Keras layer that uses a MaybeOutfeedQueue to
-  selectively put the inputs into a dict and optionally enqueues the dict.
+  selectively put the inputs into a dict and optionally enqueues the dict. At the moment,
+  this layer cannot be used with non-pipelined Sequential models.
 * `outfeed_callback.OutfeedCallback` - a Keras callback to dequeue an outfeed
   queue at the end of every epoch, printing some statistics about the tensors.
 
@@ -69,16 +70,16 @@ Example output:
 Epoch 1/3
 
 Gradients callback
-key: Dense_128/bias:0_grad shape: (2000, 128)
-key: Dense_128/kernel:0_grad shape: (2000, 256, 128)
+key: Dense_128/bias:0_grad shape: (500, 128)
+key: Dense_128/kernel:0_grad shape: (500, 256, 128)
 Epoch 1 - Summary Stats
 Index Name                         Mean         Std          Minimum      Maximum      NaNs    infs
 0     Dense_128/bias:0_grad        -0.000678    0.019391     -0.151136    0.155004     False   False
 1     Dense_128/kernel:0_grad      -0.000149    0.011651     -0.221480    0.222142     False   False
 
 Multi-layer activations callback
-key: Dense_128_acts shape: (8000, 32, 128)
-key: Dense_10_acts shape: (8000, 32, 10)
+key: Dense_128_acts shape: (2000, 32, 128)
+key: Dense_10_acts shape: (2000, 32, 10)
 Epoch 1 - Summary Stats
 Index Name                Mean         Std          Minimum      Maximum      NaNs    infs
 0     Dense_128_acts      0.729529     0.845325     0.000000     8.597726     False   False
@@ -97,19 +98,23 @@ are returned for inspection on the host. This can be changed using options.
 For the single IPU models (Model and Sequential) gradients and activations are
 returned for one layer.
 
+#### Known issue
+
+At the moment, the `outfeed_layers.MaybeOutfeed` layer cannot be used in non-pipelined
+Sequential models.
+
 #### Options
 
 The following command line options are available. See the code for other ways of
 changing the behaviour of the example.
 
- * --model-type: One of "Model", "Sequential", "PipelineModel",
-   "PipelineSequential". Default is "PipelineSequential".
+ * --model-type: One of "Model", "Sequential". Default is "Sequential".
+ * --no-pipelining: If set, pipelining will not be used. Default is False (i.e. pipelining is used).
  * --outfeed-pre-accumulated-gradients: If set then outfeed the pre-accumulated
    rather than accumulated gradients (only makes a difference when using gradient
    accumulation)
- * --gradient-accumulation: enables gradient accumulation when using the Model or
-   Sequential models. It is used by default when using the PipelineModel or
-   PipelineSequential models.
+ * --use-gradient-accumulation: enables gradient accumulation even when not using pipelining. It is
+   enabled by default when using pipelining.
  * --steps-per-epoch: The number of steps to run per epoch. Default is 2000.
  * --epochs: The number of epochs to run. Default is 3.
  * --gradients-filters: Space separated strings used to select which gradients
@@ -117,7 +122,7 @@ changing the behaviour of the example.
    Dense_128. Set to none to get all gradients.
  * --activations-filters: Space separated strings used to select which activations
    from the second PipelineStage should be added to the dict that is returned via an outfeed queue. Set to none (default) to get the activations from
-   both layers. Only applicable when using PipelineModel or PipelineSequential.
+   both layers. Only applicable when using pipelined models.
 
 ### Tests
 

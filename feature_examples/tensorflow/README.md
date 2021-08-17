@@ -8,7 +8,7 @@ This directory contains a number of feature examples for how to use TensorFlow 1
 - [Inspecting tensors](inspecting_tensors): This example trains simple pipelined and non-pipelined models on the MNIST numeral data set and shows how tensors (containing activations and gradients) can be returned to the host for inspection using outfeed queues.
 This can be useful for debugging a model.
 
-- [I/O benchmarking](../simple_applications/tensorflow/mnist): The MNIST simple application shows how to use ipu.dataset_benchmark to determine the maximum achievable throughput for a given dataset.
+- [I/O benchmarking](../../simple_applications/tensorflow/mnist): The MNIST simple application shows how to use ipu.dataset_benchmark to determine the maximum achievable throughput for a given dataset.
 
 ## Using multiple IPUs
 

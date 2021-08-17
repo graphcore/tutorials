@@ -26,8 +26,14 @@ def run_script(script_name, parameters):
     cmd = ["python3", script_name] + param_list
     cmd_str = " ".join(cmd)
     print(f"\nRunning:\n{cmd_str}\n")
-    out = subprocess.check_output(cmd, cwd=cwd, stderr=subprocess.PIPE).decode("utf-8")
-
+    try:
+        out = subprocess.check_output(
+            cmd, cwd=cwd, stderr=subprocess.PIPE).decode("utf-8")
+    except subprocess.CalledProcessError as e:
+        print(f"TEST FAILED")
+        print(f"stdout={e.stdout.decode('utf-8',errors='ignore')}")
+        print(f"stderr={e.stderr.decode('utf-8',errors='ignore')}")
+        raise
     return out
 
 
@@ -76,7 +82,7 @@ def test_training_model(conv_mode):
     out, loss = model(x, labels)
 
     pop_model = poptorch.trainingModel(
-        model, poptorch.Options(), torch.optim.SGD(model.parameters(), lr=0.01))
+        model, poptorch.Options(), poptorch.optim.SGD(model.parameters(), lr=0.01))
     pop_out, pop_loss = pop_model(x, labels)
     torch.testing.assert_allclose(out, pop_out)
     torch.testing.assert_allclose(loss, pop_loss)

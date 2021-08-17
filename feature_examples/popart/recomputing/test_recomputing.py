@@ -4,7 +4,7 @@
 import recomputing
 import pytest
 import argparse
-import json
+import pva
 
 
 class TestRecomputingPopART(object):
@@ -14,20 +14,20 @@ class TestRecomputingPopART(object):
     @pytest.mark.category1
     def test_manual_recomputing_use_less_memory(self):
         args = argparse.Namespace(
-            test=True, export=None, report=False, recomputing='ON')
+            test=True, export=None, recomputing='ON')
         session = recomputing.main(args)
 
-        graph_report = json.loads(session.getGraphReport())
+        report = session.getReport()
         recomputing_memory = sum(
-            graph_report['memory']['byTile']['total'])
+            [t.memory.total.excludingGaps for t in report.compilation.tiles])
 
         args = argparse.Namespace(
-            test=True, export=None, report=False, recomputing='OFF')
+            test=True, export=None, recomputing='OFF')
         session = recomputing.main(args)
 
-        graph_report = json.loads(session.getGraphReport())
+        report = session.getReport()
         no_recomputing_memory = sum(
-            graph_report['memory']['byTile']['total'])
+            [t.memory.total.excludingGaps for t in report.compilation.tiles])
 
         print("\n")
         print("Memory use (recomputing) -->", recomputing_memory)
@@ -38,12 +38,12 @@ class TestRecomputingPopART(object):
     @pytest.mark.category1
     def test_auto_recomputing(self):
         args = argparse.Namespace(
-            test=True, export=None, report=False, recomputing='AUTO')
+            test=True, export=None, recomputing='AUTO')
         session = recomputing.main(args)
 
-        graph_report = json.loads(session.getGraphReport())
+        report = session.getReport()
         mem = sum(
-            graph_report['memory']['byTile']['total'])
+            [t.memory.total.excludingGaps for t in report.compilation.tiles])
         print("Memory use (auto recomputing) -->", mem)
         assert mem > 0
 

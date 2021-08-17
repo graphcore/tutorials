@@ -10,7 +10,7 @@ if tf.__version__[0] != '2':
 
 # The input data and labels.
 def create_dataset():
-    mnist = tf.keras.datasets.mnist
+    mnist = keras.datasets.mnist
 
     (x_train, y_train), (x_test, y_test) = mnist.load_data()
     x_train, x_test = x_train / 255.0, x_test / 255.0
@@ -27,10 +27,9 @@ def create_dataset():
     return train_ds.repeat()
 
 
-# Create the model using the IPU-specific Sequential class instead of the
-# standard tf.keras.Sequential class
+# Create the model using standard Keras Sequential class
 def create_model():
-    model = ipu.keras.Sequential([
+    model = keras.Sequential([
         keras.layers.Flatten(),
         keras.layers.Dense(128, activation='relu'),
         keras.layers.Dense(10, activation='softmax')])
@@ -39,12 +38,12 @@ def create_model():
 
 def main():
     # Configure the IPU system
-    cfg = ipu.utils.create_ipu_config()
-    cfg = ipu.utils.auto_select_ipus(cfg, 1)
-    ipu.utils.configure_ipu_system(cfg)
+    cfg = ipu.config.IPUConfig()
+    cfg.auto_select_ipus = 1
+    cfg.configure_ipu_system()
 
     # Create an IPU distribution strategy.
-    strategy = ipu.ipu_strategy.IPUStrategy()
+    strategy = ipu.ipu_strategy.IPUStrategyV1()
 
     with strategy.scope():
         # Create an instance of the model.
@@ -54,8 +53,9 @@ def main():
         ds = create_dataset()
 
         # Train the model.
-        model.compile(loss = tf.keras.losses.SparseCategoricalCrossentropy(),
-                      optimizer = tf.keras.optimizers.SGD())
+        model.compile(loss = keras.losses.SparseCategoricalCrossentropy(),
+                      optimizer = keras.optimizers.SGD(),
+                      steps_per_execution=100)
         model.fit(ds, steps_per_epoch=2000, epochs=4)
 
 if __name__ == '__main__':

@@ -24,48 +24,81 @@ from utils import load_data, parse_params
 num_classes = 10
 input_shape = (28, 28, 1)
 
-x_train, y_train, x_test, y_test = load_data()
 args = parse_params()
+(train_dataset, test_dataset), (train_data_len, test_data_len) = load_data(args.batch_size)
 
 if not args.use_ipu:
-    # Model.__init__ takes two required arguments, inputs and outputs.
+
     model = keras.Model(*model_fn(input_shape, num_classes))
 
     # Compile our model with Stochastic Gradient Descent as an optimizer
     # and Categorical Cross Entropy as a loss.
-    model.compile('sgd', 'categorical_crossentropy', metrics=["accuracy"])
+
+    model.compile('sgd', 'categorical_crossentropy', metrics=["accuracy"],
+                  steps_per_execution=1)
     model.summary()
+
     print('Training')
-    model.fit(x_train, y_train, epochs=3, batch_size=64)
+    train_dataset = train_dataset.batch(args.batch_size)
+    steps_per_epoch = train_data_len // args.batch_size
+    model.fit(train_dataset, epochs=3, batch_size=args.batch_size, steps_per_epoch=steps_per_epoch)
+
     print('Evaluation')
-    model.evaluate(x_test, y_test)
+    test_dataset = test_dataset.batch(args.batch_size)
+    model.evaluate(test_dataset)
+
 else:
+
+    num_ipus = 2
+
+    assert args.batch_size % num_ipus == 0, f"The batch size must be a multiple of the number of IPUs ({num_ipus})."
+
     # Standard IPU TensorFlow setup.
     ipu_config = ipu.config.IPUConfig()
-    ipu_config.auto_select_ipus = 2
+    ipu_config.auto_select_ipus = num_ipus
     ipu_config.configure_ipu_system()
 
     # Create an execution strategy.
     strategy = ipu.ipu_strategy.IPUStrategy()
 
     with strategy.scope():
-        # As with keras.Model.__init__, ipu.keras.Model.__init__ takes two
-        # required arguments, inputs and outputs.
+
         if not args.pipelining:
             # Note that the model function from the CPU example can be reused.
-            ipu_model = ipu.keras.Model(*model_fn(input_shape, num_classes))
+            ipu_model = keras.Model(*model_fn(input_shape, num_classes))
+            steps_per_execution = num_ipus*10
+
         else:
-            ipu_model = ipu.keras.PipelineModel(
-                *pipeline_model_fn(input_shape, num_classes),
-                gradient_accumulation_count=args.gradient_accumulation_count)
+            ipu_model = keras.Model(*pipeline_model_fn(input_shape, num_classes))
+            ipu_model.set_pipelining_options(
+                gradient_accumulation_steps_per_replica=args.gradient_accumulation_steps_per_replica
+            )
+            steps_per_execution = args.gradient_accumulation_steps_per_replica
+
+        batch_size_per_ipu = args.batch_size // num_ipus
 
         # Compile our model as with the CPU example.
-        ipu_model.compile("sgd", "categorical_crossentropy", metrics=["accuracy"])
+        ipu_model.compile("sgd", "categorical_crossentropy",
+                          metrics=["accuracy"],
+                          steps_per_execution=steps_per_execution)
         ipu_model.summary()
 
+        ideal_steps_per_epoch = train_data_len // args.batch_size
+        steps_per_epoch = ideal_steps_per_epoch - ideal_steps_per_epoch % steps_per_execution
+        train_dataset = train_dataset.batch(batch_size_per_ipu, drop_remainder=True)
+
         print("Training")
-        ipu_model.fit(x_train, y_train, epochs=3, batch_size=64)
+        ipu_model.fit(train_dataset,
+                      epochs=3,
+                      batch_size=batch_size_per_ipu,
+                      steps_per_epoch=steps_per_epoch)
 
         print("Evaluation")
-        result = ipu_model.evaluate(x_test, y_test, batch_size=64)
+        ideal_evaluation_steps = test_data_len // args.batch_size
+        evaluation_steps = ideal_evaluation_steps - ideal_evaluation_steps % steps_per_execution
+        test_dataset = test_dataset.batch(batch_size_per_ipu, drop_remainder=True)
+
+        result = ipu_model.evaluate(test_dataset, batch_size=batch_size_per_ipu, steps=evaluation_steps)
         print(f"loss: {result[0]:.4f} - accuracy: {result[1]:.4f}")
+
+print("Program ran successfully")

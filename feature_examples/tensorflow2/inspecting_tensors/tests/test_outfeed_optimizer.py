@@ -3,7 +3,6 @@
 import os
 import sys
 import tensorflow as tf
-from tensorflow.python import keras
 import unittest
 
 
@@ -19,12 +18,6 @@ class TestOutfeedOptimizer(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,
                                     "The model must be specified if a Keras"):
             OutfeedOptimizer(tf.keras.optimizers.SGD(), None)
-
-
-    def test_keras_v1_optimizer_supplied(self):
-        with self.assertRaisesRegex(ValueError,
-                                    "Only subclasses of Keras optimizer_v2.Optimizer and TensorFlow"):
-            OutfeedOptimizer(keras.optimizers.SGD(), None)
 
 
     def test_tf_optimizer_supplied(self):

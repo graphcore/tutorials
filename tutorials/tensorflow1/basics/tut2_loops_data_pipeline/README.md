@@ -60,12 +60,12 @@ batches_per_epoch = len(x_train) // BATCHSIZE
 
 ## Creating an infeed queue
 
-In order to create a data pipeline to the IPU, we wrap our `tf.data.Dataset` in an infeed queue, which manages the transfer of the data from the host to the IPU. All queues (including outfeed queues, which are not covered here) also need a `feed_name`, and all queues must have a different value for `feed_name`.
+In order to create a data pipeline to the IPU, we wrap our `tf.data.Dataset` in an infeed queue, which manages the transfer of the data from the host to the IPU.
 
 ```python
 # SNIPPET 2
 
-mnist_infeed_queue = ipu.ipu_infeed_queue.IPUInfeedQueue(dataset, feed_name="mnist_data")
+mnist_infeed_queue = ipu.ipu_infeed_queue.IPUInfeedQueue(dataset)
 ```
 
 Once the infeed queue has been created, the dataset itself must not be changed or used. All access to the data must be through the infeed queue. The only thing left to do is initialize the infeed queue within the `tf.Session` where we run our code, as we would with a standard dataset iterator.

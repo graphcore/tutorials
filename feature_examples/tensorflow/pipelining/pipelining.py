@@ -132,8 +132,8 @@ if __name__ == "__main__":
     n_examples, dataset = create_dataset(args)
 
     # Create the data queues from/to IPU
-    infeed_queue = ipu.ipu_infeed_queue.IPUInfeedQueue(dataset, "infeed")
-    outfeed_queue = ipu.ipu_outfeed_queue.IPUOutfeedQueue("outfeed")
+    infeed_queue = ipu.ipu_infeed_queue.IPUInfeedQueue(dataset)
+    outfeed_queue = ipu.ipu_outfeed_queue.IPUOutfeedQueue()
 
     # With batch size BS, gradient accumulation count GAC and repeat count RPT,
     # at every step n = (BS * GAC * RPT) examples are used.

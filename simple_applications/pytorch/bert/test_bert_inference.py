@@ -35,8 +35,14 @@ def run_poptorch_bert_inference(**kwargs):
     args = [str(item) for sublist in kwargs.items()
             for item in sublist if item != '']
     cmd.extend(args)
-    out = subprocess.check_output(
-        cmd, cwd=os.path.dirname(__file__), stderr=subprocess.PIPE).decode("utf-8")
+    try:
+        out = subprocess.check_output(
+            cmd, cwd=os.path.dirname(__file__), stderr=subprocess.PIPE).decode("utf-8")
+    except subprocess.CalledProcessError as e:
+        print(f"TEST FAILED")
+        print(f"stdout={e.stdout.decode('utf-8',errors='ignore')}")
+        print(f"stderr={e.stderr.decode('utf-8',errors='ignore')}")
+        raise
     return out
 
 

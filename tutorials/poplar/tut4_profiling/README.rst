@@ -29,7 +29,7 @@ but for this tutorial we provide code examples for both - ``tut4_ipu_model.cpp``
 ``tut4_ipu_hardware.cpp``. We'll reference ``tut4_ipu_model.cpp``, but unless noted,
 the instructions are the the same for ``tut4_ipu_hardware.cpp`` (except the filename).
 
-Make a copy of the files in ``tut4_profiling`` in your working directory. This tutorial
+Use ``tut4_profiling`` as your working directory. This tutorial
 is not about completing code; the aim is to understand and experiment with the
 profiling options presented here.
 
@@ -263,7 +263,7 @@ Another useful function is the ability to compare two reports directly.
 Instead of clicking ``'Open a Report…'`` in the main menu, simply click on
 ``'Compare two Reports…'``, navigate the file open windows to the two reports and click ``Compare``.
 For this you'll need two reports, so modify the dimensions of one or more of the tensors,
-for example m1 ``{800, 500} -> {1600, 700}``, m2 ``{500, 400} -> {500, 400}``.
+for example m1 ``{900, 600} -> {1600, 700}``, m2 ``{600, 300} -> {700, 300}``.
 
 Recompile and capture a second report to a second directory:
 

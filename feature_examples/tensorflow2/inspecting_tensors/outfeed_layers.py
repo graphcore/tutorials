@@ -20,6 +20,7 @@ class Outfeed(keras.layers.Layer):
         super(Outfeed, self).__init__(**kwargs)
         self._outfeed_queue = outfeed_queue
 
+
     def call(self, inputs):
         """ Enqueue a dictionary with a single entry on the outfeed queue.
 
@@ -31,7 +32,8 @@ class Outfeed(keras.layers.Layer):
         Returns:
             The inputs.
         """
-        self._outfeed_queue.enqueue({self.name: inputs})
+        if not self._outfeed_queue.enqueued:
+            self._outfeed_queue.enqueue({self.name: inputs})
         return inputs
 
 

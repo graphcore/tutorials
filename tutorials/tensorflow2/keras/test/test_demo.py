@@ -25,4 +25,4 @@ class TestDemo(SubProcessChecker):
     def test_run_demo(self):
         self.run_command("python3 demo.py",
                          working_path,
-                         "Epoch 3")
+                         "Program ran successfully")

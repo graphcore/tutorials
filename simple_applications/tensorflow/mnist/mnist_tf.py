@@ -4,9 +4,10 @@ import numpy as np
 from tqdm import tqdm
 from functools import partial
 import tensorflow.compat.v1 as tf
-from tensorflow.python.ipu import utils, ipu_compiler, scopes, loops, ipu_infeed_queue, ipu_outfeed_queue
+from tensorflow.python.ipu import ipu_compiler, scopes, loops, ipu_infeed_queue, ipu_outfeed_queue
 from tensorflow.python.ipu import dataset_benchmark
 from tensorflow.python.ipu import rand_ops
+from tensorflow.python.ipu.config import IPUConfig
 import argparse
 tf.disable_eager_execution()
 tf.disable_v2_behavior()
@@ -109,14 +110,10 @@ def run_model(opts):
     # Create dataset and IPU feeds:
     dataset = tf.data.Dataset.from_tensor_slices((place_x, place_y))
     dataset = dataset.cache().repeat().batch(batch_size, drop_remainder=True)
-    infeed_train_queue = ipu_infeed_queue.IPUInfeedQueue(
-        dataset, feed_name="train_infeed")
-    outfeed_train_queue = ipu_outfeed_queue.IPUOutfeedQueue(
-        feed_name="train_outfeed")
-    infeed_test_queue = ipu_infeed_queue.IPUInfeedQueue(
-        dataset, feed_name="test_infeed")
-    outfeed_test_queue = ipu_outfeed_queue.IPUOutfeedQueue(
-        feed_name="test_outfeed")
+    infeed_train_queue = ipu_infeed_queue.IPUInfeedQueue(dataset)
+    outfeed_train_queue = ipu_outfeed_queue.IPUOutfeedQueue()
+    infeed_test_queue = ipu_infeed_queue.IPUInfeedQueue(dataset)
+    outfeed_test_queue = ipu_outfeed_queue.IPUOutfeedQueue()
 
     # Use function binding to create all the builder functions that are neeeded:
     bound_train_model = partial(model, lr_placeholder, outfeed_train_queue, True)
@@ -139,9 +136,9 @@ def run_model(opts):
         saver = tf.train.Saver()
 
     # Setup and acquire an IPU device:
-    config = utils.create_ipu_config()
-    config = utils.auto_select_ipus(config, 1)
-    utils.configure_ipu_system(config)
+    config = IPUConfig()
+    config.auto_select_ipus = 1
+    config.configure_ipu_system()
 
     # These allow us to retrieve the results of IPU feeds:
     dequeue_train_outfeed = outfeed_train_queue.dequeue()

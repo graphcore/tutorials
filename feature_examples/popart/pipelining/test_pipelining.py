@@ -4,7 +4,7 @@
 import pipelining
 import pytest
 import argparse
-import json
+import pva
 
 
 class TestPipeliningPopART(object):
@@ -14,11 +14,11 @@ class TestPipeliningPopART(object):
     @pytest.mark.category1
     def test_pipelining_running(self):
         args = argparse.Namespace(
-            test=True, export=None, no_pipelining=False, report=False)
+            test=True, export=None, no_pipelining=False)
         session = pipelining.main(args)
 
-        parsed_report = json.loads(session.getExecutionReport())
-        cycles = parsed_report['simulation']['cycles']
+        report = session.getReport()
+        cycles = report.execution.totalCycles.total
         print(f"\nRunning the model with pipelining took {cycles} cycles.")
 
     @pytest.mark.ipus(2)
@@ -26,11 +26,11 @@ class TestPipeliningPopART(object):
     def test_without_pipelining_running(self):
 
         args = argparse.Namespace(
-            test=True, export=None, no_pipelining=True, report=False)
+            test=True, export=None, no_pipelining=True)
         session = pipelining.main(args)
 
-        parsed_report = json.loads(session.getExecutionReport())
-        cycles = parsed_report['simulation']['cycles']
+        report = session.getReport()
+        cycles = report.execution.totalCycles.total
         print(f"\nRunning the model without pipelining took {cycles} cycles.")
 
 

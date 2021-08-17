@@ -159,14 +159,8 @@ def training_step(opts, outfeed, X, y):
 def build_IPU_graph(opts, dataset):
     # Set up infeeds and outfeeds on the host to streamcopy batch-wise data
     # to/from the IPU during each IPU step
-    # They must be aware of the number of replicas
-    infeed = ipu.ipu_infeed_queue.IPUInfeedQueue(
-        dataset,
-        replication_factor=opts.replicas,
-        feed_name='infeed')
-    outfeed = ipu.ipu_outfeed_queue.IPUOutfeedQueue(
-        replication_factor=opts.replicas,
-        feed_name='outfeed')
+    infeed = ipu.ipu_infeed_queue.IPUInfeedQueue(dataset)
+    outfeed = ipu.ipu_outfeed_queue.IPUOutfeedQueue()
 
     with ipu.scopes.ipu_scope("/device:IPU:0"):
         # Repeat the model n times on the IPU before returning to the host

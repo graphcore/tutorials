@@ -12,8 +12,7 @@ import time
 import inspect
 import os
 import argparse
-from tensorflow.python.ipu import utils
-from tensorflow.compiler.plugin.poplar.ops import gen_ipu_ops
+from tensorflow.python.ipu import config, utils
 import sys
 from tensorflow.python import ipu
 
@@ -52,8 +51,6 @@ if __name__ == '__main__':
                         help='Number of steps to run the leapfrog integrator for')
     parser.add_argument('--save-graph', action="store_true",
                         help="Save default graph to 'logs' directory (used by TensorBoard)")
-    parser.add_argument('--report', action="store_true",
-                        help="Save execution and compilation reports as JSON")
     options = parser.parse_args()
 
     # Initialize the HMC transition kernel.
@@ -65,20 +62,14 @@ if __name__ == '__main__':
     with ipu.scopes.ipu_scope('/device:IPU:0'):
         ss = xla.compile(lambda: run_single_steps(hmc, options.hmc_steps), ())
 
-    # Report
-    report = gen_ipu_ops.ipu_event_trace()
-
     # Dump the graph to a logdir
     if options.save_graph:
         writer = tf.summary.FileWriter(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'logs', time.strftime('%Y%m%d_%H%M%S_%Z')))
         writer.add_graph(tf.get_default_graph())
 
-    config = utils.create_ipu_config(profiling=options.report,
-                                     profile_execution=options.report,
-                                     report_every_nth_execution=1,
-                                     max_report_size=0x100000000)
-    config = utils.auto_select_ipus(config, [1])
-    ipu.utils.configure_ipu_system(config)
+    cfg = config.IPUConfig()
+    cfg.auto_select_ipus = 1
+    cfg.configure_ipu_system()
 
     print(" Hamilton Monte-Carlo Synthetic benchmark.\n"
           " Inner steps {}.\n"
@@ -89,7 +80,6 @@ if __name__ == '__main__':
     with tf.Session(config=conf) as sess:
         utils.move_variable_initialization_to_cpu()
         sess.run(tf.global_variables_initializer())
-        sess.run(report)
 
         # Warmup
         print("Compiling and Warmup...")
@@ -97,12 +87,6 @@ if __name__ == '__main__':
         sess.run(ss)
         duration = time.time() - start
         print("Duration: {:.3f} seconds\n".format(duration))
-
-        # Cycle Report
-        if options.report:
-            rep = sess.run(report)
-            benchmark.extract_runtimes_from_report(rep, options, display=True)
-            sys.exit()  # Only run once if producing cycle report
 
         print("Executing...")
         t_total = 0.

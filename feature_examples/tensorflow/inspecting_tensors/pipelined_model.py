@@ -170,17 +170,16 @@ if __name__ == "__main__":
     n_examples, dataset = create_dataset()
 
     # Create the data queues to/from the IPU
-    infeed_queue = ipu.ipu_infeed_queue.IPUInfeedQueue(dataset, "infeed")
-    outfeed_queue = ipu.ipu_outfeed_queue.IPUOutfeedQueue("outfeed")
+    infeed_queue = ipu.ipu_infeed_queue.IPUInfeedQueue(dataset)
+    outfeed_queue = ipu.ipu_outfeed_queue.IPUOutfeedQueue()
 
     # Create the outfeed queue for selected gradients
-    optimizer_outfeed_queue = MaybeOutfeedQueue("optimizer_outfeed",
-                                                filters=["dense1", "dense2"])
+    optimizer_outfeed_queue = MaybeOutfeedQueue(filters=["dense1", "dense2"])
 
     # Create outfeed queues for selected activations in the pipeline stages
     # The filters argument is optional
-    stage1_outfeed_queue = MaybeOutfeedQueue("stage1_outfeed", filters=["dense1"])
-    stage2_outfeed_queue = MaybeOutfeedQueue("stage2_outfeed")
+    stage1_outfeed_queue = MaybeOutfeedQueue(filters=["dense1"])
+    stage2_outfeed_queue = MaybeOutfeedQueue()
 
     # With batch size BS, gradient accumulation count GA and repeat count RPT,
     # at every step n = (BS * GA * RPT) examples are used.

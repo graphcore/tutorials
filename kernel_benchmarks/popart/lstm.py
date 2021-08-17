@@ -135,8 +135,8 @@ if __name__ == '__main__':
               {"infer": "Inference", "eval": "Evaluation",
                   "train": "Training"}[opts.mode],
               opts.batch_size,
-              opts.batches_per_step if not opts.report else "n/a",
-              opts.steps if not opts.report else "n/a",
+              opts.batches_per_step,
+              opts.steps,
               opts.hidden_size,
               opts.timesteps))
     np.random.seed(42)

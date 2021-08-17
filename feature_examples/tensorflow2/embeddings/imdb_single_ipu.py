@@ -4,11 +4,11 @@ import tensorflow as tf
 from tensorflow.python import ipu
 
 from tensorflow.python.ipu.keras.layers import Embedding, LSTM
-from tensorflow.python.keras.layers import Dense
-from tensorflow.python.keras.layers import Input
-from tensorflow.python.keras.datasets import imdb
-from tensorflow.python.keras.preprocessing import sequence
-from tensorflow.python.keras.optimizer_v2.adam import Adam
+from tensorflow.keras.layers import Dense
+from tensorflow.keras.layers import Input
+from tensorflow.keras.datasets import imdb
+from tensorflow.keras.preprocessing import sequence
+from tensorflow.keras.optimizers import Adam
 
 if tf.__version__[0] != '2':
     raise ImportError("TensorFlow 2 is required for this example")
@@ -39,7 +39,7 @@ def get_model():
     x = Dense(16, activation='relu')(x)
     x = Dense(1, activation='sigmoid')(x)
 
-    return ipu.keras.Model(input_layer, x)
+    return tf.keras.Model(input_layer, x)
 
 
 def main():
@@ -54,7 +54,7 @@ def main():
 
         model = get_model()
 
-        model.compile(loss='binary_crossentropy', optimizer=Adam(0.005))
+        model.compile(steps_per_execution=384, loss='binary_crossentropy', optimizer=Adam(0.005))
         model.fit(get_dataset(), steps_per_epoch=768, epochs=3)
 
 

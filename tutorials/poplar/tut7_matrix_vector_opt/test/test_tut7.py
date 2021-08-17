@@ -19,10 +19,20 @@ class TestBuildAndRun(SubProcessChecker):
         self.run_command("make all", working_path, [])
 
     @pytest.mark.category1
+    def test_run_complete_ipu_hardware(self):
+        ''' Check that the tutorial code runs on IPU hardware'''
+
+        self.run_command("./tut7 10000 1000 --device ipu",
+                         working_path,
+                         ["Multiplying matrix of size 10000x1000 by vector of size 1000",
+                          "Worst cost seen: 53807",
+                          "Multiplication result OK"])
+
+    @pytest.mark.category1
     def test_run_complete_mk1(self):
         ''' Check that the tutorial code runs on mk1'''
 
-        self.run_command("./matrix-vector 10000 1000 mk1",
+        self.run_command("./tut7 10000 1000 --device model-ipu1",
                          working_path,
                          ["Multiplying matrix of size 10000x1000 by vector of size 1000",
                           "Worst cost seen: 64373",
@@ -32,7 +42,7 @@ class TestBuildAndRun(SubProcessChecker):
     def test_run_complete_mk2(self):
         ''' Check that the tutorial code runs on mk2'''
 
-        self.run_command("./matrix-vector 10000 1000",
+        self.run_command("./tut7 10000 1000 --device model-ipu2",
                          working_path,
                          ["Multiplying matrix of size 10000x1000 by vector of size 1000",
                           "Worst cost seen: 53807",

@@ -1,8 +1,7 @@
 Tutorial 1: programs and variables
 ----------------------------------
 
-Copy the file ``tut1_variables/start_here/tut1.cpp`` to your working directory
-and open it in an editor. The file contains the outline of a C++ program
+Using ``tut1_variables/start_here`` as your working directory, open ``tut1.cpp`` in an editor. The file contains the outline of a C++ program
 including some Poplar library headers and a namespace.
 
 Graphs, variables and programs

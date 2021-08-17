@@ -22,6 +22,7 @@ import numpy as np
 # Store class and shape information.
 num_classes = 10
 input_shape = (28, 28, 1)
+batch_size = 64
 
 # Load the MNIST dataset from keras.datasets
 (x_train, y_train), (x_test, y_test) = keras.datasets.mnist.load_data()
@@ -65,6 +66,8 @@ model.compile('sgd', 'categorical_crossentropy', metrics=["accuracy"])
 
 model.summary()
 print('\nTraining')
-model.fit(x_train, y_train, epochs=3, batch_size=64)
+model.fit(x_train, y_train, epochs=3, batch_size=batch_size)
 print('\nEvaluation')
-model.evaluate(x_test, y_test)
+model.evaluate(x_test, y_test, batch_size=batch_size)
+
+print("Program ran successfully")

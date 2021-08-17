@@ -13,10 +13,21 @@ See https://arxiv.org/abs/1604.06174
 
 ## Usage
 
-install the needed packages, then use pytest to run the example in all three recomputation modes.
+1) Prepare the environment.
 
-        pip install -r requirements.txt
-        pytest -v -s
+   Install the Poplar SDK following the instructions in the [Getting Started guide](https://docs.graphcore.ai/en/latest/getting-started.html) for your IPU system.
+
+2) Install the required packages.
+
+```cmd
+pip install -r requirements.txt
+```
+
+3) Run the program. Note that the PopART Python API only supports Python 3.
+
+```cmd
+python3 recomputing.py
+```
 
 ## Options
 
@@ -34,7 +45,24 @@ The program has a few command-line options:
 
 `--show-logs` show execution logs
 
+## Profiling
+
+The Poplar SDK can generate report files during the compilation and execution of applications.
+The following enables report generation, and specifies a directory to generate reports in.
+
+```
+export POPLAR_ENGINE_OPTIONS='{"autoReport.all":"true", "autoReport.directory":"."}'
+```
+
+After running an application, the resulting report files can be opened using the PopVision Graph Analyser.
+See the PopVision user guide for more information:
+[PopVision User Guide](https://docs.graphcore.ai/projects/graphcore-popvision-user-guide/en/latest/index.html).
+
 ## Run the tests
 
-        pip install -r requirements.txt
-        pytest
+Install the required packages, then use pytest to run the example in all three recomputation modes.
+
+```cmd
+pip install -r requirements.txt
+python -m pytest
+```

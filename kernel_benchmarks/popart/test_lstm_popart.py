@@ -17,8 +17,14 @@ def run_lstm(batch_size, timesteps, hidden_size, extra_args=None):
     if extra_args:
         cmd.extend(extra_args)
     cwd = os.path.dirname(__file__)
-    out = subprocess.check_output(cmd, cwd=cwd, stderr=subprocess.PIPE).decode("utf-8")
-    print(out)
+    try:
+        out = subprocess.check_output(
+            cmd, cwd=cwd, stderr=subprocess.PIPE).decode("utf-8")
+    except subprocess.CalledProcessError as e:
+        print(f"TEST FAILED")
+        print(f"stdout={e.stdout.decode('utf-8',errors='ignore')}")
+        print(f"stderr={e.stderr.decode('utf-8',errors='ignore')}")
+        raise
     return out
 
 
@@ -38,7 +44,12 @@ class TestPopARTLSTMSyntheticBenchmarks(unittest.TestCase):
     @pytest.mark.ipus(1)
     @pytest.mark.category1
     def test_lstm_inference_b128_s50_h1536(self):
-        out = run_lstm(batch_size=128, timesteps=50, hidden_size=1536)
+        out = run_lstm(
+            batch_size=128,
+            timesteps=50,
+            hidden_size=1536,
+            extra_args=['--lstm-options={\"availableMemoryProportion\":\"0.55\"}']
+        )
 
     @pytest.mark.ipus(1)
     @pytest.mark.category1

@@ -34,10 +34,6 @@ The structure of the repo is as follows:
 | `README.md`                                     | This file                                                              |
 | `test/`                                         | Test code that can be run via pytest                                   |
 
-## Deprecation warning
-
-The scripts in this folder use an older version of our TensorFlow API, which will lead to deprecation warnings. This has no effect on the performance of the benchmarks and can safely be ignored.
-
 ## Quick start guide
 
 ### Prepare the environment
@@ -57,3 +53,17 @@ python3 program.py --steps 5
 
 Use `--help` or `-h` to see all available options.
 
+### Profiling
+
+Profiling tools included in the Poplar SDK can be used to generate and view reports containing
+profiling information for compilation and execution of the benchmarks.
+
+The following enables report generation, and specifies a directory to generate reports in.
+
+```
+export POPLAR_ENGINE_OPTIONS='{"autoReport.all":"true", "autoReport.directory":"."}'
+```
+
+After running a benchmark, the resulting report can be opened using the PopVision Graph Analyser. 
+See the PopVision user guide for more information:
+[PopVision User Guide](https://docs.graphcore.ai/projects/graphcore-popvision-user-guide/en/latest/index.html).

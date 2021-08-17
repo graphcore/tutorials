@@ -24,19 +24,17 @@ import tensorflow as tf
 from tensorflow.python import ipu
 
 from tensorflow.python.ipu.keras.layers import Embedding, LSTM
-from tensorflow.python.keras.layers import Concatenate
-from tensorflow.python.keras.layers import Dense
-from tensorflow.python.keras.layers import Input
-from tensorflow.python.keras.datasets import imdb
-from tensorflow.python.keras.preprocessing import sequence
-from tensorflow.python.keras.optimizer_v2.adam import Adam
+from tensorflow.keras.layers import Concatenate, Dense, Input
+from tensorflow.keras.datasets import imdb
+from tensorflow.keras.preprocessing import sequence
+from tensorflow.keras.optimizers import Adam
 
 if tf.__version__[0] != '2':
     raise ImportError("TensorFlow 2 is required for this example")
 
 max_features = 20000
 minibatch_size = 32
-gradient_accumulation_count = 16
+gradient_accumulation_steps_per_replica = 16
 
 
 # Define the dataset.
@@ -63,9 +61,7 @@ def get_model():
         x = LSTM(128, dropout=0.2)(x)
         x = Dense(1, activation='sigmoid')(x)
 
-    return ipu.keras.PipelineModel(input_layer,
-                                   x,
-                                   gradient_accumulation_count=gradient_accumulation_count)
+    return tf.keras.Model(input_layer, x)
 
 
 def main():
@@ -79,10 +75,12 @@ def main():
     with strategy.scope():
 
         model = get_model()
+        model.set_pipelining_options(gradient_accumulation_steps_per_replica=gradient_accumulation_steps_per_replica)
 
-        # The effective batch size is minibatch_size x gradient_accumulation_count,
+        # The effective batch size is minibatch_size x gradient_accumulation_steps_per_replica x num_replicas,
         # so choose LR appropriately.
-        model.compile(loss='binary_crossentropy', optimizer=Adam(0.005))
+        # Note that num_replicas = 1 here.
+        model.compile(steps_per_execution=384, loss='binary_crossentropy', optimizer=Adam(0.005))
         model.fit(get_dataset(), steps_per_epoch=768, epochs=2)
 
 

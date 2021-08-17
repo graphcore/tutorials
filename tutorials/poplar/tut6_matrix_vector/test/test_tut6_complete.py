@@ -19,7 +19,7 @@ class TestComplete(SubProcessChecker):
     def test_run_complete(self):
         ''' Check that the complete version of the tutorial code runs'''
 
-        self.run_command("./matrix-vector 40 50",
+        self.run_command("./tut6_cpu 40 50",
                          working_path,
                          ["Multiplying matrix of size 40x50 by vector of size 50",
                           "Multiplication result OK"])

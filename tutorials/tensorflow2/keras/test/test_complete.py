@@ -25,18 +25,18 @@ class TestComplete(SubProcessChecker):
     def test_run_complete_cpu(self):
         self.run_command("python3 main.py",
                          working_path,
-                         "Epoch 3")
+                         "Program ran successfully")
 
     @pytest.mark.category1
     @pytest.mark.ipus(2)
     def test_run_complete_ipu(self):
         self.run_command("python3 main.py --use-ipu",
                          working_path,
-                         "Epoch 3")
+                         "Program ran successfully")
 
     @pytest.mark.category1
     @pytest.mark.ipus(2)
     def test_run_complete_pipelining(self):
         self.run_command("python3 main.py --use-ipu --pipelining",
                          working_path,
-                         "Epoch 3")
+                         "Program ran successfully")

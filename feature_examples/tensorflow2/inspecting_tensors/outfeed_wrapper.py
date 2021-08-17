@@ -11,21 +11,18 @@ class MaybeOutfeedQueue():
     If a filter is supplied then one of the filter elements must be
     contained within the key.
     Not tested with replication (behaviour unknown).
+    Will not work with non-pipelined Sequential models (known issue).
     """
-    def __init__(self, name, outfeed_mode=None, replication_factor=1, filters=None):
+    def __init__(self, outfeed_mode=None, filters=None):
         """ Construct a MaybeOutfeedQueue.
 
         Args:
-            name: The name to use for the wrapped IPUOutfeedQueue.
             outfeed_mode: The outfeed_mode for the wrapped IPUOutfeedQueue.
-            replication_factor: The replication_factor for the wrapped IPUOutfeedQueue.
             filters: Optional list of strings. If not None then one of these strings
                 must be contained within the key for the key,value pair to be added to
                 the dictionary that will be enqueued.
         """
-        self._queue = ipu_outfeed_queue.IPUOutfeedQueue(name,
-                                                        replication_factor=replication_factor,
-                                                        outfeed_mode=outfeed_mode)
+        self._queue = ipu_outfeed_queue.IPUOutfeedQueue(outfeed_mode=outfeed_mode)
         self._vals = {}
         self.enqueued = False
         if filters is not None:

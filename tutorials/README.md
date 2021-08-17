@@ -24,12 +24,14 @@ Each of the tutorials contains its own README file with full instructions.
 
 - [TensorFlow 2 Keras: How to run on the IPU](tensorflow2/keras)
 - [Optimising for the IPU: Computational Graph Recompilation and Executable Switching in TensorFlow](tensorflow2/recompilation)
+- [Tensorflow 2: How to use infeed/outfeed queues](tensorflow2/infeed_outfeed)
 
 ## PyTorch
 
 - [Tutorial 1: From 0 to 1: Introduction to PopTorch](pytorch/tut1_basics)
 - [Tutorial 2: Efficient data loading with PopTorch](pytorch/tut2_efficient_data_loading)
 - [Tutorial 3: Half and mixed precision in PopTorch](pytorch/tut3_mixed_precision)
+- [Tutorial 4: Observing tensors in PopTorch](pytorch/tut4_observing_tensors)
 
 ## PopVision
 

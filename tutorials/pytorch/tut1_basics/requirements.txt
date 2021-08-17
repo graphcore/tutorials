@@ -1,4 +1,4 @@
-torchvision==0.8.2
+torchvision==0.10.0
 sklearn 
 matplotlib 
 tqdm

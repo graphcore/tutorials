@@ -125,8 +125,8 @@ if __name__ == '__main__':
           .format(
               "Training" if options.train else "Inference",
               options.batch_size,
-              options.batches_per_step if not options.report else "n/a",
-              options.steps if not options.report else "n/a",
+              options.batches_per_step,
+              options.steps,
               options.hidden_size,
               options.timesteps))
 
