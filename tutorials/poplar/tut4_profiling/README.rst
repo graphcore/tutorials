@@ -18,10 +18,10 @@ to the PyTorch and TensorFlow frameworks.
 
 **Running on IPUModel vs IPU hardware:** As with earlier tutorials, this tutorial uses the ``IPUModel``
 as the default to allow you run the tutorial even without access to IPU hardware. As of Poplar SDK 1.4 the
-``IPUModel`` defaults to the MK2 chip and the profiling will reflect that. The `IPUModel
+``IPUModel`` defaults to the Mk2 chip and the profiling will reflect that. The `IPUModel
 <https://docs.graphcore.ai/projects/poplar-api/en/latest/poplar_api.html#poplar-ipumodel-hpp>`_
-sub-section of the Poplar and PopLibs API Reference shows how to set the ``IPUModel`` to MK1 if needed.
-There are some differences between the ``IPUModel`` and IPU hardware, and between MK2 and MK1,
+sub-section of the Poplar and PopLibs API Reference shows how to set the ``IPUModel`` to Mk1 if needed.
+There are some differences between the ``IPUModel`` and IPU hardware, and between Mk2 and Mk1,
 which will be discussed at the point they become relevant.
 
 Tutorial 1 provides an explanation of how to modify the tutorial code to run on IPU hardware,
@@ -295,7 +295,7 @@ This occurs during the graph-compilation step of running your program
 (not during the ``g++`` compilation, but when actually running your program).
 
 One factor in whether your program fits on the IPU tiles is the target -
-MK2 has more tile memory than MK1. Also, the IPUModel is designed not to stop for OOM errors
+Mk2 has more tile memory than Mk1. Also, the IPUModel is designed not to stop for OOM errors
 (it can be used for building and running models that are OOM),
 so for this section we'll assume you're using hardware.
 

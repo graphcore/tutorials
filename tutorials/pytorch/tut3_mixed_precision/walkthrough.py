@@ -36,7 +36,7 @@ class CustomModel(nn.Module):
         self.relu = nn.ReLU()
         self.fc2 = nn.Linear(100, 10)
         self.log_softmax = nn.LogSoftmax(dim=0)
-        self.loss = nn.CrossEntropyLoss()
+        self.loss = nn.NLLLoss()
 
     def forward(self, x, labels=None):
         x = self.pool(self.relu(self.conv1(x)))

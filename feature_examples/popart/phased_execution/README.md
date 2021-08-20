@@ -19,7 +19,7 @@ This feature allows to keep the weights in Streaming Memory, loading them in In-
 1) Prepare the environment.
 
    Install the Poplar SDK following the instructions in the Getting Started guide for your IPU System.
-   Make sure to source the `enable.sh` scripts for poplar, gc_drivers and popart.
+   Make sure to source the `enable.sh` scripts for Poplar and PopART.
 
    The PopART Python API only supports Python 3. It is recommended to use a virtualenv.
 

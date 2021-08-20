@@ -25,11 +25,16 @@ op as an activation function, on the FashionMNIST dataset.
     - Ensure the Poplar SDK is installed (follow the instructions in the Getting
     Started guide for your IPU system: https://docs.graphcore.ai/en/latest/getting-started.html).
     - Install the requirements for the Python program with:
-       ```pip3 install -r requirements.txt```
-    - Build the custom op in `tutorials/feature_examples/popart/custom_operators/leaky_relu_example`,
-      (Ensure the `Makefile` and `leaky_relu_custom_op.cpp` files are present):
-      ```cd ../../popart/custom_operators/leaky_relu_example```
-      ```make```
-      ```cd -```
-    - Run the Python example: 
-      ```python3 poptorch_custom_op.py```
+       ```
+       pip3 install -r requirements.txt
+       ```
+2) Build the custom op in the [PopART Leaky ReLU example](../../popart/custom_operators/leaky_relu_example) (after making sure that the `Makefile` and `leaky_relu_custom_op.cpp` files are present):
+      ```
+      cd ../../popart/custom_operators/leaky_relu_example
+      make
+      cd -
+      ```
+3) Run the Python example: 
+    ```
+    python3 poptorch_custom_op.py
+    ```

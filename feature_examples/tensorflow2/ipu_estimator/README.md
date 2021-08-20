@@ -10,8 +10,8 @@ The starting point of this code example is the [Keras CIFAR-10 example](https://
 ### File structure
 
 * `cifar10_ipu_estimator.py` The main Python script to run IPUEstimator.
-* `cifar10_estimator_replica.py` The main Python script to run IPUEstimator with multiple replicas.
-* `cifar10_pipeline_estimator.py` The main Python script to run IPUPipelineEstimator.
+* `cifar10_ipu_estimator_replica.py` The main Python script to run IPUEstimator with multiple replicas.
+* `cifar10_ipu_pipeline_estimator.py` The main Python script to run IPUPipelineEstimator.
 * `README.md` This file.
 * `requirements.txt` Required packages for the tests
 * `test_cifar10.py` Integration tests
@@ -20,7 +20,7 @@ The starting point of this code example is the [Keras CIFAR-10 example](https://
 
 1) Prepare the TensorFlow environment.
 
-Install the Poplar SDK. Make sure to run the enable.sh scripts and activate a Python 3 virtualenv with the tensorflow-2 wheel from the Poplar SDK installed.
+Install the Poplar SDK. Make sure to run the enable.sh script for Poplar and activate a Python 3 virtualenv with the tensorflow-2 wheel from the Poplar SDK installed.
 
 2) Train and test the model: start the selected file as described below.
 
@@ -35,7 +35,7 @@ Note that:
 Run with the following command:
 
 ```bash
-python3 cifar10_ipuestimator.py
+python3 cifar10_ipu_estimator.py
 ```
 
 #### Data-parallel training using replicas
@@ -49,7 +49,7 @@ The following modifications are required:
 Run with the following command:
 
 ```bash
-python3 cifar10_replica.py
+python3 cifar10_ipu_estimator_replica.py
 ```
 
 #### Using IPUPipelineEstimator
@@ -64,7 +64,7 @@ The following modifications are required:
 Run with the following command:
 
 ```bash
-python3 cifar10_pipeline.py
+python3 cifar10_ipu_pipeline_estimator.py
 ```
 
 ### Tests

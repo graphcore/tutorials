@@ -55,7 +55,7 @@ class ClassificationModel(nn.Module):
         self.relu = nn.ReLU()
         self.fc2 = nn.Linear(100, 10)
         self.log_softmax = nn.LogSoftmax(dim=0)
-        self.loss = torch.nn.CrossEntropyLoss()
+        self.loss = nn.NLLLoss()
         
     def forward(self, x, labels=None):
         x = self.pool(self.relu(self.conv1(x)))
@@ -274,11 +274,11 @@ Helpful arguments:
 
 => Global batch size:  16
 
-DataLoader throughput: 55421 items/s  
-Synthetic data throughput: 23613 items/s  
-Real data throughput: 14280 items/s
+DataLoader throughput: 70523 items/s  
+Synthetic data throughput: 22170 items/s  
+Real data throughput: 17150 items/s
 
-In that case, if the DataLoader throughput fell below 23613, it could be limiting.
+In that case, if the DataLoader throughput fell below 22170, it could be limiting.
 It is actually fine here.
 
 ***Why is the throughput lower with real data?***  
@@ -297,9 +297,9 @@ We can choose to increase the replication factor so it avoids loading more data 
 
 => Global batch size:  64
 
-DataLoader throughput: 163189 items/s  
-Synthetic data throughput: 44330 items/s  
-Real data throughput: 28077 items/s  
+DataLoader throughput: 182716 items/s  
+Synthetic data throughput: 40773 items/s  
+Real data throughput: 36542 items/s  
 
 This example gave an idea of how increasing the global batch size can improve the throughput.
 

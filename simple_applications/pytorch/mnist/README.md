@@ -14,7 +14,7 @@ This example demonstrates how to train a network on the MNIST dataset using PopT
 
 1) Prepare the environment.
 
-    Install the Poplar SDK following the instructions in the Getting Started guide for your IPU system. Make sure to run the `enable.sh` scripts and activate a Python virtualenv with poptorch installed.
+    Install the Poplar SDK following the instructions in the Getting Started guide for your IPU system. Make sure to run the `enable.sh` scripts for Poplar and PopART and activate a Python virtualenv with PopTorch installed.
 
     Then install the package requirements:
 

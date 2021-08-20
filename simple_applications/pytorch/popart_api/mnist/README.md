@@ -15,7 +15,7 @@ This example demonstrates how to train a network defined in PyTorch on the MNIST
 1) Prepare the environment.
 
    Install the Poplar SDK following the instructions in the Getting Started guide for your IPU system. Make sure to source the `enable.sh`
-    scripts for poplar and popart.
+    scripts for Poplar and PopART.
 
 
 2) Run the program. Note that the PopART Python API only supports Python 3.

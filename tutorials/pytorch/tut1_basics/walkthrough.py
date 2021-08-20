@@ -48,7 +48,7 @@
 # - `torch.jit.trace` cannot handle control flow or shape
 # variations within the model. That is, the inputs passed at
 # run-time cannot vary the control flow of the model or the
-# shapes/sizes of results;
+# shapes/sizes of results.
 
 # To learn more about TorchScript and JIT, you can go through
 # this [tutorial](https://pytorch.org/tutorials/beginner/Intro_to_TorchScript_tutorial.html).
@@ -67,7 +67,7 @@
 # DataLoader`
 # 2. Define a deep CNN  and a loss function using the `torch` API
 # 3. Train the model on an IPU using `poptorch.trainingModel`
-# 4. Evaluate the model on the CPU
+# 4. Evaluate the model on the IPU
 
 # ### Import the packages
 # PopTorch is a separate package from PyTorch, and available
@@ -107,6 +107,7 @@ from tqdm import tqdm
 # performance. We will apply both operations, conversion and normalisation, to
 # the datasets using `torchvision.transforms` and feed these ops to
 # `torchvision.datasets`:
+
 transform = torchvision.transforms.Compose([
     torchvision.transforms.ToTensor(),
     torchvision.transforms.Normalize((0.5,), (0.5,))])
@@ -162,7 +163,7 @@ class ClassificationModel(nn.Module):
         self.relu = nn.ReLU()
         self.fc2 = nn.Linear(100, 10)
         self.log_softmax = nn.LogSoftmax(dim=0)
-        self.loss = nn.CrossEntropyLoss()
+        self.loss = nn.NLLLoss()
 
     def forward(self, x, labels=None):
         x = self.pool(self.relu(self.conv1(x)))
@@ -193,15 +194,18 @@ train_dataloader = poptorch.DataLoader(opts, train_dataset, batch_size=16, shuff
 
 
 # ### Train the model
-# We will need another component in order to train our model: an optimizer. Its
-# role is to apply the computed gradients to the model's weights to optimize
-# (usually, minimize) the loss function using a specific algorithm. Not all
-# PyTorch's ops are available at the moment, and for optimizers there are 4
-# choices already: SGD, AdamW, LAMB and RMSProp.
+# We will need another component in order to train our model: an optimiser.
+# Its role is to apply the computed gradients to the model's weights to optimize
+# (usually, minimize) the loss function using a specific algorithm. PopTorch
+# currently provides classes which inherit from multiple native PyTorch optimisation
+# functions: SGD, Adam, AdamW, LAMB and RMSprop. These optimisers provide several
+# advantages over native PyTorch versions. They embed constant attributes to save
+# performance and memory, and allow you to specify additional parameters such as
+# loss/velocity scaling.
 
-# We will use SGD as it's a very popular algorithm and is appropriate for this
-# classification task.
-optimizer = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
+# We will use SGD (https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/reference.html#poptorch.optim.SGD)
+# as it's a very popular algorithm and is appropriate for this classification task.
+optimizer = poptorch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
 
 
 # We now introduce the `poptorch.trainingModel` wrapper, which will handle the
@@ -215,7 +219,7 @@ poptorch_model = poptorch.trainingModel(model, options=opts, optimizer=optimizer
 
 # #### Training loop
 # Looping through the training data, running the forward and backward passes,
-# and updating the weights form the process we refer to as the "training loop".
+# and updating the weights constitute the process we refer to as the "training loop".
 # Graphcore's Poplar system uses several optimisations to accelerate the
 # training loop. Central to this is the desire to minimise interactions between
 # the device (the IPU) and the host (the CPU), allowing the training loop to
@@ -226,9 +230,9 @@ poptorch_model = poptorch.trainingModel(model, options=opts, optimizer=optimizer
 
 # The compilation, which transforms our PyTorch model into a computational
 # graph and our dataloader into data streams, happens at the first call of a
-# `poptorch.trainingModel`. By default, IPUs, to which the graph will be
-# uploaded, are selected automatically during this first call as well. The
-# training loop can then start.
+# `poptorch.trainingModel`. The IPUs to which the graph will be uploaded are
+# selected automatically during this first call, by default. The training loop can
+# then start.
 
 # Once the loop has started, Poplar's main task is to feed the data into the
 # streams and to signal when we are done with the loop. The last step will then
@@ -243,8 +247,17 @@ for epoch in tqdm(range(epochs), desc="epochs"):
 
 
 # The model is now trained! There's no need to retrieve the weights from the
-# device as you would do with PyTorch, doing `model.cpu()`. PopTorch has
-# managed that step for us. We can save and evaluate the model on CPU.
+# device as you would by calling `model.cpu()` with PyTorch. PopTorch has
+# managed that step for us. We can now save and evaluate the model.
+
+# #### Use the same IPU for training and inference
+# After the model has been attached to the IPU and compiled after the first call
+# to the PopTorch model, it can be detached from the device. This allows PopTorch
+# to use a single device for training and inference (described below), rather
+# than using 2 IPUs (one for training and one for inference) when the device
+# is not detached. When using an IPU-POD system, detaching from the device will
+# be necessary when using a non-reconfigurable partition.
+poptorch_model.detachFromDevice()
 
 
 # #### Save the trained model
@@ -254,24 +267,44 @@ torch.save(model.state_dict(), "classifier.pth")
 
 
 # ### Evaluate the model
-# In this step, we only need to work with our original instance of
-# `ClassificationModel` since we'll be doing the evaluation on CPU.
+# Since we have detached our model from it's training from it's training device,
+# the device is now free again and we can use it for the evaluation stage,
+# instead of using the CPU. It is a good idea to use an IPU when evaluating your
+# model on a CPU is slow - be it because the test dataset is large and/or the model
+# is complex - since IPUs are blazing [fast](https://www.graphcore.ai/posts/new-graphcore-ipu-benchmarks).
 
-# First and foremost, to evaluate our model we must switch the mode our model
-# is operating in. This step is realized as usual.
+# The steps taken below to define the model for evaluation essentially allow it
+# to run in inference mode. Therefore, you can follow the same steps to use
+# the model to make predictions once it has been deployed.
+
+# For this, it is first essential to switch the model to evaluation mode. This
+# step is realised as usual.
 model = model.eval()
 
+# To evaluate the model on the IPU, we will use the `poptorch.inferenceModel`
+# class, which has a similar API to `poptorch.trainingModel` except that it
+# doesn't need an optimizer, allowing evaluation of the model without calculating
+# gradients.
+poptorch_model_inf = poptorch.inferenceModel(model, options=opts)
 
-# We will use `scikit-learn`'s standard metrics for our evaluation. They
-# usually take as inputs a list of labels and a list of predictions, in the
-# same order. Let's make both lists.
-test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=32, num_workers=10)
+# Then we can instantiate a new PopTorch dataloader object as before in order to
+# efficiently batch our test dataset.
+test_dataloader = poptorch.DataLoader(opts, test_dataset, batch_size=32, num_workers=10)
+
+
+# This short loop over the test dataset is effectively all that is needed to
+# run the model and generate some predictions. When running the model in
+# inference, we can stop here and use the predictions as needed.
+
+# For evaluation, we can use `scikit-learn`'s standard classification metrics to
+# understand how well our model is performing. This usually takes a list of labels
+# and a list of predictions as the input, both in the same order. Let's make both
+# lists, and run our model in inference mode.
 predictions, labels = [], []
 
 for data, label in test_dataloader:
-    predictions += model(data).data.max(dim=1).indices
+    predictions += poptorch_model_inf(data).data.max(dim=1).indices
     labels += label
-
 
 # A simple and widely-used performance metric for classification models is the
 # accuracy score, which simply counts how many predictions were right. But this
@@ -286,50 +319,15 @@ print(f"Eval accuracy: {100 * accuracy_score(labels, predictions):.2f}%")
 cm = confusion_matrix(labels, predictions)
 cm_plot = ConfusionMatrixDisplay(cm, display_labels=classes).plot(xticks_rotation='vertical')
 
-
 # As you can see, although we've got an accuracy score of ~88%, the model's
 # performance across the different classes isn't equal. Trousers are very well
 # classified, with more than 96-97% accuracy whereas shirts are harder to
 # classify with less than 60% accuracy, and it seems they often get confused
-# with T-shirts, pullovers and coats. So, some work's still required here to
+# with T-shirts, pullovers and coats. So, some work is still required here to
 # improve your model for all the classes!
 
 # We can save this visualisation of the confusion matrix.
 cm_plot.figure_.savefig("confusion_matrix.png")
-
-
-# # Running our model for inference on an IPU
-# To deploy a trained model, one runs it in inference mode, or prediction mode.
-# Some models, because of their complexity, require accelerators to provide
-# inferences fast. And IPUs are blazing [fast](https://www.graphcore.ai/posts/
-# new-graphcore-ipu-benchmarks).
-
-# It is also a good idea to use an IPU to speed up the operation when
-# evaluating your model on a CPU is slow because the test dataset is large
-# and/or the model is complex.
-
-# So, to run in inference mode on an IPU, we will use the `poptorch.
-# inferenceModel` class, which has a similar API than `poptorch.trainingModel`
-# except that it doesn't need an optimizer.
-poptorch_model_inf = poptorch.inferenceModel(model.eval(), options=opts)
-
-
-# **NOTE**: another IPU must be allocated to our process. If no other IPU is
-# available while running this script, an error will occur.
-
-# Let's focus on our evaluation again and see how few elements have changed for
-# the same construction of our predictions and labels lists: we just have to
-# swap `torch.utils.data.DataLoader` with `poptorch.DataLoader` and `model`
-# with our `poptorch_model_inf` variable instead.
-test_dataloader = poptorch.DataLoader(opts, test_dataset, batch_size=32, num_workers=10)
-predictions, labels = [], []
-
-for data, label in test_dataloader:
-    predictions += poptorch_model_inf(data).data.max(dim=1).indices
-    labels += label
-
-print(f"Eval accuracy on IPU: {100 * accuracy_score(labels, predictions):.2f}%")
-
 
 # # Doing more with `poptorch.Options`
 # This class encapsulates the options that PopTorch and PopART will use

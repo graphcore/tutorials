@@ -40,5 +40,5 @@ class TestPoptorchMNIST(unittest.TestCase):
             if line.find('Accuracy on test set:') != -1:
                 final_acc = float(line.split(": ")[-1].strip()[:-1])
                 break
-        self.assertGreater(final_acc, 90)
+        self.assertGreater(final_acc, 89)
         self.assertLess(final_acc, 99.9)

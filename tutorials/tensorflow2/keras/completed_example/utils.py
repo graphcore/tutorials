@@ -1,4 +1,3 @@
-
 # Copyright (c) 2021 Graphcore Ltd. All rights reserved.
 
 # Copyright holder unknown (author: François Chollet 2015)

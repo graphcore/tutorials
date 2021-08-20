@@ -29,7 +29,7 @@ a simple model using this op in C++.
 1) Prepare the environment.
 
   Install the Poplar SDK following the instructions in the Getting Started guide for your IPU system. Make sure to source the `enable.sh`
-  scripts for poplar and popart.
+  scripts for Poplar and PopART.
 
 2) Build cube operator example
 	
@@ -72,7 +72,7 @@ python runtime, build and then execute a model that uses a custom op with the py
 1) Prepare the environment.
 
   Install the Poplar SDK following the instructions in the Getting Started guide for your IPU system. Make sure to source the `enable.sh`
-  scripts for poplar and popart.
+  scripts for Poplar and PopART.
 
 2) Build leaky rely operator example
 	

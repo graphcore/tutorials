@@ -39,7 +39,7 @@ The structure of the repo is as follows:
 ### Prepare the environment
 
   Install the Poplar SDK following the instructions in the Getting Started guide for your IPU system.
-  Make sure to source the `enable.sh` script for poplar, and activate a Python
+  Make sure to source the `enable.sh` script for Poplar and activate a Python
   virtualenv with the tensorflow-1 wheel from the Poplar SDK installed.
 
 ### Run the programs

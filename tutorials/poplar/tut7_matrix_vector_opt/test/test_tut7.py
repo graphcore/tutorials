@@ -30,7 +30,7 @@ class TestBuildAndRun(SubProcessChecker):
 
     @pytest.mark.category1
     def test_run_complete_mk1(self):
-        ''' Check that the tutorial code runs on mk1'''
+        ''' Check that the tutorial code runs on Mk1'''
 
         self.run_command("./tut7 10000 1000 --device model-ipu1",
                          working_path,
@@ -40,7 +40,7 @@ class TestBuildAndRun(SubProcessChecker):
 
     @pytest.mark.category1
     def test_run_complete_mk2(self):
-        ''' Check that the tutorial code runs on mk2'''
+        ''' Check that the tutorial code runs on Mk2'''
 
         self.run_command("./tut7 10000 1000 --device model-ipu2",
                          working_path,

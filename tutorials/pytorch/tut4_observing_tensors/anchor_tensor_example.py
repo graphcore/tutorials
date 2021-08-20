@@ -17,7 +17,7 @@ class BasicLinearModel(nn.Module):
         self.fc2 = nn.Linear(320, 100)
         self.fc3 = nn.Linear(100, 10)
         self.log_softmax = nn.LogSoftmax(dim=0)
-        self.loss = nn.CrossEntropyLoss()
+        self.loss = nn.NLLLoss()
         self.relu = nn.ReLU()
 
     def forward(self, x, labels=None):
