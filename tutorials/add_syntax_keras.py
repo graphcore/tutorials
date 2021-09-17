@@ -17,6 +17,7 @@ if __name__ == '__main__':
             for line in sf.readlines():
                 if line.startswith("#"):
                     mode = "comment"
+                    line = line[2:]
                 elif line == "":
                     mode = "break"
                 else:
@@ -36,5 +37,3 @@ if __name__ == '__main__':
                     else:
                         for lm in group:
                             of.write(lm.content)
-
-
