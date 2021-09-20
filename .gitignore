@@ -9,6 +9,7 @@
 
 *.pyc
 __pycache__
+*egg-info*
 .cache
 *.csv
 *.json
@@ -34,3 +35,4 @@ report.txt
 
 # Virtual environments
 *virtualenv/
+venv
