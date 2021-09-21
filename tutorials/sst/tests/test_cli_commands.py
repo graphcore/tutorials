@@ -20,10 +20,10 @@ def cli_runner_instance():
 
 
 def test_cli_positive(cli_runner_instance):
-    test_output_with_extension = Path(str(test_output) + '.ipynb')
+    test_output_with_extension = Path(str(test_output) + '.py')
     remove_files_if_present([test_output_with_extension])
 
-    result = cli_runner_instance.invoke(cli, ['--source', example_input, "--output", test_output, "--type", "jupyter"])
+    result = cli_runner_instance.invoke(cli, ['--source', example_input, "--output", test_output, "--type", "purepython"])
 
     print(result.stdout)
     print(result.exception)
