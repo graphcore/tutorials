@@ -11,7 +11,8 @@ from tests.path_utils import remove_files_if_present, get_tests_dir
 
 STATIC_FILES = Path(get_tests_dir() + os.sep + 'static')
 
-example_input = abspath(STATIC_FILES / "just_py_method.py")
+example_input = abspath(STATIC_FILES / "trivial_mapping_md_code_md.py")
+test_output_pure_python = abspath(STATIC_FILES / "trivial_mapping_md_code_md_pure_python.py")
 test_output = abspath(STATIC_FILES / "delete_me.json")
 
 
@@ -21,7 +22,8 @@ def cli_runner_instance():
 
 
 def test_command_py2ipynb_positive(cli_runner_instance):
-    outputs = [test_output]
+    outputs = [test_output, test_output_pure_python]
+
     remove_files_if_present(outputs)
 
     result = cli_runner_instance.invoke(py2ipynb, ['--filename', example_input, "--output", test_output])
@@ -29,6 +31,7 @@ def test_command_py2ipynb_positive(cli_runner_instance):
     print(result.exception)
     assert result.exit_code == 0
     assert os.path.exists(test_output)
+    assert os.path.exists(test_output_pure_python)
 
     remove_files_if_present(outputs)
 
