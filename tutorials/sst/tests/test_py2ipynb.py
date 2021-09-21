@@ -1,13 +1,15 @@
 import json
+from os import sep
 from pathlib import Path
 
 import pytest
 from deepdiff import DeepDiff
 from nbformat import NotebookNode
 
-from format_converter import py2ipynb
+from format_converter import py_to_ipynb
+from tests.path_utils import get_tests_dir
 
-STATIC_FILES = Path('tests/static')
+STATIC_FILES = Path(get_tests_dir() + sep + 'static')
 
 
 @pytest.mark.parametrize(
@@ -18,7 +20,7 @@ def test_trivial_mapping_md_code_md(file_name):
     python_file_path, json_file_path = Path(file_name + '.py'), Path(file_name + '.json')
 
     file_py = (STATIC_FILES / python_file_path).read_text()
-    transformed_py = py2ipynb(file_py)
+    transformed_py = py_to_ipynb(file_py)
 
     file_json = (STATIC_FILES / json_file_path).read_text()
     json_dict = json.loads(file_json)

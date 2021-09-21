@@ -1,8 +1,8 @@
 import os
 from enum import Enum
-from typing import Dict, List
+from typing import List
 
-from nbformat import NotebookNode, v4
+from nbformat import NotebookNode
 from nbformat.v4 import new_notebook, new_markdown_cell, new_code_cell
 
 CELL_SEPARATOR = '"""'
@@ -31,7 +31,7 @@ type2preprocessor = {
 }
 
 
-def py2ipynb(py_file_text: str) -> NotebookNode:
+def py_to_ipynb(py_file_text: str) -> NotebookNode:
     cells = []
 
     current_cell_type = CellType.CODE

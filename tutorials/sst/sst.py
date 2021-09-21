@@ -3,7 +3,7 @@ from pathlib import Path
 import click
 from nbformat import v4
 
-from format_converter import FormatConverter
+from format_converter import py_to_ipynb
 
 
 @click.group()
@@ -21,7 +21,7 @@ def py2ipynb(filename: Path, output: Path) -> None:
     Description
     """
     py_text = filename.read_text()
-    notebook = FormatConverter().py2ipynb(py_text)
+    notebook = py_to_ipynb(py_text)
 
     jsonform = v4.writes(notebook)
     with open(output, "w") as fpout:

@@ -13,13 +13,12 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: 3.9
-        
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        cd tutorials/sst
-        pip install -e .
-        
+        pip install pytest
+        if [ -f tutorials/sst/requirements.txt ]; then pip install -r tutorials/sst/requirements.txt; fi
     - name: Test with pytest
       run: |
         cd tutorials/sst
