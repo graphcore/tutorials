@@ -1,7 +1,6 @@
 import json
 from os import sep
 from pathlib import Path
-from pprint import pprint
 
 import pytest
 from deepdiff import DeepDiff

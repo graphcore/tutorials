@@ -8,7 +8,6 @@ from click.testing import CliRunner
 from sst import cli
 from tests.path_utils import remove_files_if_present, get_tests_dir
 
-
 STATIC_FILES = Path(get_tests_dir() + os.sep + 'static')
 
 example_input = abspath(STATIC_FILES / "trivial_mapping_md_code_md.py")
