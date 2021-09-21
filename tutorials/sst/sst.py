@@ -23,7 +23,7 @@ def py2ipynb(filename: Path, output: Path) -> None:
     py_text = filename.read_text()
     notebook = FormatConverter().py2ipynb(py_text)
 
-    jsonform = v4.writes(notebook) + "\n"
+    jsonform = v4.writes(notebook)
     with open(output, "w") as fpout:
         fpout.write(jsonform)
 

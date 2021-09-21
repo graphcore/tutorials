@@ -1,67 +1,68 @@
+import os
 from enum import Enum
 from typing import Dict, List
 
 from nbformat import NotebookNode, v4
 from nbformat.v4 import new_notebook, new_markdown_cell, new_code_cell
 
+CELL_SEPARATOR = '"""'
+
 
 def code_preprocessor(input_source: str) -> str:
-    return input_source.strip('\n')
+    return input_source.strip(os.linesep)
 
 
 def markdown_preprocessor(input_source: str) -> str:
     return input_source
 
 
-class CellProcessingStatus(Enum):
+class CellType(Enum):
     CODE = 1
     MARKDOWN = 2
 
 
-class FormatConverter:
-    type2func = {
-        CellProcessingStatus.CODE: new_code_cell,
-        CellProcessingStatus.MARKDOWN: new_markdown_cell,
-    }
-    type2preprocessor = {
-        CellProcessingStatus.CODE: code_preprocessor,
-        CellProcessingStatus.MARKDOWN: markdown_preprocessor,
-    }
+type2func = {
+    CellType.CODE: new_code_cell,
+    CellType.MARKDOWN: new_markdown_cell,
+}
+type2preprocessor = {
+    CellType.CODE: code_preprocessor,
+    CellType.MARKDOWN: markdown_preprocessor,
+}
 
-    def py2ipynb(self, py_file_text: str) -> NotebookNode:
-        cells = self.extract_cells(py_file_text)
-        notebook = new_notebook(cells=cells)
-        return notebook
 
-    def extract_cells(self, python_text_file) -> List[NotebookNode]:
-        cells = []
+def py2ipynb(py_file_text: str) -> NotebookNode:
+    cells = []
 
-        current_cell_type = CellProcessingStatus.CODE
-        cell_lines = []
+    current_cell_type = CellType.CODE
+    cell_lines = []
 
-        for line in python_text_file.splitlines():
-            if not line.startswith('"""'):
-                cell_lines.append(line)
-                continue
-
-            if cell_lines:
-                new_cell = self.get_cell(cell_lines, current_cell_type)
-                cells.append(new_cell)
-                cell_lines = []
-
-            if current_cell_type == CellProcessingStatus.CODE:
-                current_cell_type = CellProcessingStatus.MARKDOWN
-            elif current_cell_type == CellProcessingStatus.MARKDOWN:
-                current_cell_type = CellProcessingStatus.CODE
+    for line in py_file_text.splitlines():
+        if not line.startswith(CELL_SEPARATOR):
+            cell_lines.append(line)
+            continue
 
         if cell_lines:
-            new_cell = self.get_cell(cell_lines, current_cell_type)
+            new_cell = create_cell_from_lines(cell_lines=cell_lines, cell_type=current_cell_type)
             cells.append(new_cell)
+            cell_lines = []
 
-        return cells
+        if current_cell_type == CellType.CODE:
+            current_cell_type = CellType.MARKDOWN
+        elif current_cell_type == CellType.MARKDOWN:
+            current_cell_type = CellType.CODE
 
-    def get_cell(self, cell_lines: List[str], current_cell_type: CellProcessingStatus) -> NotebookNode:
-        source = '\n'.join(cell_lines)
-        processed_source = self.type2preprocessor[current_cell_type](source)
-        cell = self.type2func[current_cell_type](processed_source)
-        return cell
+    if cell_lines:
+        new_cell = create_cell_from_lines(cell_lines, current_cell_type)
+        cells.append(new_cell)
+
+    notebook = new_notebook(cells=cells)
+
+    return notebook
+
+
+def create_cell_from_lines(cell_lines: List[str], cell_type: CellType) -> NotebookNode:
+    source = os.linesep.join(cell_lines)
+    processed_source = type2preprocessor[cell_type](source)
+    cell = type2func[cell_type](processed_source)
+    return cell
