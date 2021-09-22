@@ -6,7 +6,7 @@ import pytest
 from deepdiff import DeepDiff
 from nbformat import NotebookNode
 
-from format_converter import py_to_ipynb
+from src.format_converter import py_to_ipynb
 from tests.path_utils import get_tests_dir
 
 STATIC_FILES = Path(get_tests_dir() + sep + 'static')

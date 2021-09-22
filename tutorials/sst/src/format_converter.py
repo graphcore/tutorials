@@ -5,7 +5,7 @@ from typing import List
 from nbformat import NotebookNode
 from nbformat.v4 import new_notebook, new_markdown_cell, new_code_cell
 
-CELL_SEPARATOR = '"""'
+from src.constants import CELL_SEPARATOR
 
 
 def code_preprocessor(input_source: str) -> str:
