@@ -37,8 +37,6 @@ def cli(source: Path, output: Path, type: str, execute: bool) -> None:
 
     filename = construct_output_filename(outputname=output, extension=exporter.file_extension, input_name=source)
 
-    filename = Path(filename)
-
     filename.parent.mkdir(parents=True, exist_ok=True)
     filename.write_text(output_content)
 
