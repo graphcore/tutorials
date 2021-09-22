@@ -2,6 +2,7 @@ from pathlib import Path
 
 import click
 from nbconvert import NotebookExporter, MarkdownExporter
+from traitlets.config import Config
 
 from src.constants import EXECUTE_PREPROCESSOR
 from src.format_converter import py_to_ipynb
