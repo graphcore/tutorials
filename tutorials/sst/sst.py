@@ -42,4 +42,4 @@ def cli(source: Path, output: Path, type: str, execute: bool) -> None:
 
 
 if __name__ == '__main__':
-    cli() # pragma: no cover
+    cli()  # pragma: no cover
