@@ -2,7 +2,6 @@ from pathlib import Path
 
 import click
 from nbconvert import NotebookExporter, MarkdownExporter
-from traitlets.config import Config
 
 from src.constants import EXECUTE_PREPROCESSOR
 from src.format_converter import py_to_ipynb
@@ -39,9 +38,11 @@ def cli(source: Path, output: Path, type: str, execute: bool) -> None:
     assert not filename == str(source), f'Your source file and the expected output file name are the same: {source}, ' \
                                         f'specify different outfile name using --output flag.'
 
-    with open(filename, "w") as fpout:
-        fpout.write(output_content)
+    filename = Path(filename)
+
+    filename.parent.mkdir(parents=True, exist_ok=True)
+    filename.write_text(output_content)
 
 
 if __name__ == '__main__':
-    cli()
+    cli() # pragma: no cover
