@@ -36,3 +36,5 @@ report.txt
 # Virtual environments
 *virtualenv/
 venv
+
+*.coverage

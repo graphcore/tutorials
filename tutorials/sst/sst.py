@@ -37,9 +37,9 @@ def cli(source: Path, output: Path, type: str, execute: bool) -> None:
 
     filename = construct_output_filename(outputname=output, extension=exporter.file_extension, input_name=source)
 
-    with open(filename, "w") as fpout:
-        fpout.write(output_content)
+    filename.parent.mkdir(parents=True, exist_ok=True)
+    filename.write_text(output_content)
 
 
 if __name__ == '__main__':
-    cli()
+    cli() # pragma: no cover
