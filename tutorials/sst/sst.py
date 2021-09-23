@@ -1,48 +1,62 @@
 from pathlib import Path
+from typing import Tuple
 
 import click
-from nbconvert import Exporter
 
 from src.exporters import exporter_factory
 from src.format_converter import py_to_ipynb
-from src.output_types import OutputTypes, supported_types
-
-
-def construct_output_filename(outputname: Path, extension: str, input_name: Path) -> Path:
-    filename = str(outputname) + extension
-    assert not filename == str(input_name), f'Your source file and the expected output file name are the same: ' \
-                                            f'{input_name}, specify different outfile name using --output flag.'
-    return Path(filename)
+from src.output_types import OutputTypes, supported_types, EXTENSION2TYPE, TYPE2EXTENSION
 
 
 @click.command()
 @click.option('--source', '-s', required=True, type=Path,
               help='Absolute or relative path to python file to be converted')
 @click.option('--output', '-o', required=True, type=Path,
-              help='Absolute or relative path to output file without extension')
-@click.option('--type', '-f', type=click.Choice(supported_types()), help='Desired output file type')
+              help='Absolute or relative path to output file. Output file type is taken from extension. '
+                   'Output filepath can be provided without extenstion, then type is taken from --type.')
+@click.option('--type', '-f', type=click.Choice(supported_types() + [None]), default=None,
+              help='Desired output file type. Parameter is ignored when --output contains specified file extension')
 @click.option('--execute/--no-execute', default=True, help='Flag whether the notebook is to be executed or not')
 def cli(source: Path, output: Path, type: OutputTypes, execute: bool) -> None:
     """
     Command used to generate all outputs with one flow.
     """
+    output, type = set_output_extension_and_type(output, type)
+    assert output != source, f'Your source file and the expected output file name are the same: {source}, ' \
+                             f'specify different outfile name using --output flag.'
+
     py_text = source.read_text()
     notebook = py_to_ipynb(py_text)
 
     exporter = exporter_factory(type=type, execute_enabled=execute)
     output_content, _ = exporter.from_notebook_node(notebook)
 
-    filename = construct_output_filename(outputname=output, extension=exporter.file_extension, input_name=source)
-
-    filename.parent.mkdir(parents=True, exist_ok=True)
-    filename.write_text(output_content)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(output_content)
 
 
-def create_filename(exporter: Exporter, output: Path, source: Path) -> Path:
-    filename = str(output) + exporter.file_extension
-    assert not filename == str(source), f'Your source file and the expected output file name are the same: {source}, ' \
-                                        f'specify different outfile name using --output flag.'
-    return Path(filename)
+def set_output_extension_and_type(output: Path, type: OutputTypes) -> Tuple[Path, OutputTypes]:
+    """
+    If output without extension but specified type -> add extension to output
+    If output with extension -> overwrite current type
+    If output with extension but not allowed extension -> raise AssertionError
+    If output without extension and type is None -> raise AttributeError
+    """
+    if output.suffix != '':
+        allowed_extensions = list(EXTENSION2TYPE.keys())
+        assert output.suffix in allowed_extensions, \
+            f'Specified outputy file has type: {output.suffix}, while only {allowed_extensions} are allowed.'
+        type = EXTENSION2TYPE[output.suffix]
+    elif type is not None:
+        output = Path(str(output) + TYPE2EXTENSION[type])
+        print(output)
+    else:
+        raise AttributeError(
+            f'Please provide output file type by adding extension to outfile (.md or .ipynb) or specifying that by '
+            f'--type parameter [{OutputTypes.MARKDOWN_TYPE}, {OutputTypes.JUPYTER_TYPE}] are allowed.'
+        )
+
+    return output, type
 
 
 if __name__ == '__main__':

@@ -1,5 +1,4 @@
 import os
-from os.path import abspath
 from pathlib import Path
 
 import pytest
@@ -10,7 +9,7 @@ from tests.path_utils import get_tests_dir
 
 STATIC_FILES = Path(get_tests_dir() + os.sep + 'static')
 
-example_input = abspath(STATIC_FILES / "trivial_mapping_md_code_md.py")
+example_input = STATIC_FILES / "trivial_mapping_md_code_md.py"
 
 
 @pytest.fixture
@@ -24,7 +23,6 @@ def cli_runner_instance():
 def test_cli_positive(cli_runner_instance, tmp_path, type, expected_extension, output_filename):
     outfile_path = tmp_path / output_filename
     expected_output_path = Path(str(outfile_path) + expected_extension)
-
     result = cli_runner_instance.invoke(cli, ['--source', example_input, "--output", outfile_path, "--type", type])
 
     if result.exception:
@@ -32,6 +30,35 @@ def test_cli_positive(cli_runner_instance, tmp_path, type, expected_extension, o
 
     assert result.exit_code == 0
     assert os.path.exists(expected_output_path)
+
+
+@pytest.mark.parametrize("output_filename", ['file.py', 'nested/file.md', 'file.ipynb'])
+def test_cli_positive_when_no_type(cli_runner_instance, tmp_path, output_filename):
+    outfile_path = tmp_path / output_filename
+
+    result = cli_runner_instance.invoke(cli, ['--source', example_input, "--output", outfile_path])
+
+    if result.exception:
+        print(result.exception)
+
+    assert result.exit_code == 0
+    assert os.path.exists(outfile_path)
+
+
+@pytest.mark.parametrize("output_filename", ['file.txt', 'nested/file.avi'])
+def test_cli_when_wrong_extension(cli_runner_instance, tmp_path, output_filename):
+    outfile_path = tmp_path / output_filename
+    with pytest.raises(AssertionError):
+        result = cli_runner_instance.invoke(cli, ['--source', example_input, "--output", outfile_path])
+        if result.exception:
+            raise result.exception
+
+
+def test_cli_when_missing_output_extension_or_type(cli_runner_instance):
+    with pytest.raises(AttributeError):
+        result = cli_runner_instance.invoke(cli, ['--source', example_input, '--output', 'file'])
+        if result.exception:
+            raise result.exception
 
 
 def test_py_file_with_import(cli_runner_instance, tmp_path):
@@ -69,6 +96,9 @@ def test_cli_positive_markdown_output_removal_by_tags(cli_runner_instance, tmp_p
         cli,
         ['--source', example_input, "--output", outfile, "--type", "markdown", "--execute"]
     )
+
+    if result.exception:
+        print(result.exception)
 
     assert result.exit_code == 0
 
