@@ -140,4 +140,9 @@ def test_cli_convert2all_when_input_file_is_not_py(cli_runner_instance):
 
 def test_cli_convert2all_when_correct_input(cli_runner_instance, tmp_path):
     result = cli_runner_instance.invoke(cli, ['convert2all', '--source', example_input, '--output-dir', tmp_path])
+    outfile_path = tmp_path / Path('trivial_mapping_md_code_md')
+
+    assert os.path.exists(outfile_path.with_suffix('.md'))
+    assert os.path.exists(outfile_path.with_suffix('.ipynb'))
+    assert os.path.exists(outfile_path.with_name('trivial_mapping_md_code_md_pure.py'))
     assert result.exit_code == 0

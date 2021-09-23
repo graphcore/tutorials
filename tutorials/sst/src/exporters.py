@@ -4,18 +4,16 @@ from traitlets.config import Config
 
 from src.constants import REMOVE_OUTPUT_TAG
 from src.output_types import OutputTypes
+from src.preprocessors import configure_tag_removal_preprocessor
 from src.python_exporter import PythonExporter
 
 
 def markdown_exporter_with_preprocessors(execute_enabled: bool) -> Exporter:
-    c = Config()
-    c.ExecutePreprocessor.enabled = execute_enabled
-    c.TagRemovePreprocessor.remove_all_outputs_tags = (REMOVE_OUTPUT_TAG,)
-    c.TagRemovePreprocessor.enabled = True
+    config = configure_tag_removal_preprocessor()
 
     exporter = MarkdownExporter()
-    exporter.register_preprocessor(ExecutePreprocessor(config=c))
-    exporter.register_preprocessor(TagRemovePreprocessor(config=c))
+    exporter.register_preprocessor(ExecutePreprocessor(), enabled=execute_enabled)
+    exporter.register_preprocessor(TagRemovePreprocessor(config=config))
 
     return exporter
 

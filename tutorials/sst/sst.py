@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import Tuple
 
 import click
+from tqdm import tqdm
 
 from src.exporters import exporter_factory
 from src.format_converter import py_to_ipynb
@@ -47,24 +48,14 @@ def convert2all(source: Path, output_dir: Path):
 
     output_filename = output_dir / source.stem
 
-    transform_python_file(
-        source=source,
-        output=output_filename.with_suffix('.md'),
-        type=OutputTypes.MARKDOWN_TYPE,
-        execute=True
-    )
-    transform_python_file(
-        source=source,
-        output=output_filename.with_stem(source.stem + '_pure').with_suffix('.py'),
-        type=OutputTypes.PUREPYTHON_TYPE,
-        execute=False
-    )
-    transform_python_file(
-        source=source,
-        output=output_filename.with_suffix('.ipynb'),
-        type=OutputTypes.JUPYTER_TYPE,
-        execute=False
-    )
+    configuration = [
+        [output_filename.with_suffix('.md'), OutputTypes.MARKDOWN_TYPE, True],
+        [output_filename.with_stem(source.stem + '_pure').with_suffix('.py'), OutputTypes.PUREPYTHON_TYPE, False],
+        [output_filename.with_suffix('.ipynb'), OutputTypes.JUPYTER_TYPE, False]
+    ]
+
+    for outfile, output_type, execution in tqdm(configuration):
+        transform_python_file(source=source, output=outfile, type=output_type, execute=execution)
 
 
 def set_output_extension_and_type(output: Path, type: OutputTypes) -> Tuple[Path, OutputTypes]:
