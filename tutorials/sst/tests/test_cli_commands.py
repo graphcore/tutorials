@@ -26,9 +26,33 @@ def test_cli_positive(cli_runner_instance, tmp_path, type, expected_extension, o
     expected_output_path = Path(str(outfile_path) + expected_extension)
 
     result = cli_runner_instance.invoke(cli, ['--source', example_input, "--output", outfile_path, "--type", type])
-    print(result.output)
+
+    if result.exception:
+        print(result.exception)
+
     assert result.exit_code == 0
     assert os.path.exists(expected_output_path)
+
+
+def test_py_file_with_import(cli_runner_instance, tmp_path):
+    file_path = STATIC_FILES / 'py_with_import.py'
+    expected_markdown_path = STATIC_FILES / 'py_with_import.md'
+
+    outfile = tmp_path / 'output'
+    outfile_path = tmp_path / 'output.md'
+    result = cli_runner_instance.invoke(cli, [
+        '--source', file_path, "--output", outfile, "--type", "markdown", "--execute"
+    ])
+
+    if result.exception:
+        print(result.exception)
+
+    assert result.exit_code == 0
+
+    generated_markdown = outfile_path.read_text()
+    expected_markdown = expected_markdown_path.read_text()
+
+    assert generated_markdown == expected_markdown
 
 
 def test_wrong_path_when_purepython():
