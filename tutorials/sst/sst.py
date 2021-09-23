@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Tuple
 
 import click
 
@@ -20,7 +21,7 @@ def cli(source: Path, output: Path, type: OutputTypes, execute: bool) -> None:
     """
     Command used to generate all outputs with one flow.
     """
-    set_output_extension_and_type(output, type)
+    output, type = set_output_extension_and_type(output, type)
     assert output != source, f'Your source file and the expected output file name are the same: {source}, ' \
                              f'specify different outfile name using --output flag.'
 
@@ -34,7 +35,7 @@ def cli(source: Path, output: Path, type: OutputTypes, execute: bool) -> None:
     output.write_text(output_content)
 
 
-def set_output_extension_and_type(output: Path, type: OutputTypes) -> None:
+def set_output_extension_and_type(output: Path, type: OutputTypes) -> Tuple[Path, OutputTypes]:
     """
     If output without extension but specified type -> add extension to output
     If output with extension -> overwrite current type
@@ -48,11 +49,14 @@ def set_output_extension_and_type(output: Path, type: OutputTypes) -> None:
         type = EXTENSION2TYPE[output.suffix]
     elif type is not None:
         output = Path(str(output) + TYPE2EXTENSION[type])
+        print(output)
     else:
         raise AttributeError(
             f'Please provide output file type by adding extension to outfile (.md or .ipynb) or specifying that by '
             f'--type parameter [{OutputTypes.MARKDOWN_TYPE}, {OutputTypes.JUPYTER_TYPE}] are allowed.'
         )
+
+    return output, type
 
 
 if __name__ == '__main__':
