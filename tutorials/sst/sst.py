@@ -35,6 +35,12 @@ def cli(source: Path, output: Path, type: OutputTypes, execute: bool) -> None:
 
 
 def set_output_extension_and_type(output: Path, type: OutputTypes) -> None:
+    """
+    If output without extension but specified type -> add extension to output
+    If output with extension -> overwrite current type
+    If output with extension but not allowed extension -> raise AssertionError
+    If output without extension and type is None -> raise AttributeError
+    """
     if output.suffix != '':
         allowed_extensions = list(EXTENSION2TYPE.keys())
         assert output.suffix in allowed_extensions, \
