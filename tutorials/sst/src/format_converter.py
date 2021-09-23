@@ -21,12 +21,12 @@ class CellType(Enum):
     MARKDOWN = 2
 
 
-type2func = {
+TYPE2FUNC = {
     CellType.CODE: new_code_cell,
     CellType.MARKDOWN: new_markdown_cell,
 }
 
-type2preprocessor = {
+TYPE2PREPROCESSOR = {
     CellType.CODE: code_preprocessor,
     CellType.MARKDOWN: markdown_preprocessor,
 }
@@ -64,8 +64,8 @@ def py_to_ipynb(py_file_text: str) -> NotebookNode:
 
 def create_cell_from_lines(cell_lines: List[str], cell_type: CellType) -> NotebookNode:
     source = os.linesep.join(cell_lines)
-    processed_source = type2preprocessor[cell_type](source)
-    cell = type2func[cell_type](processed_source)
+    processed_source = TYPE2PREPROCESSOR[cell_type](source)
+    cell = TYPE2FUNC[cell_type](processed_source)
 
     if cell_type == CellType.CODE:
         cell = handle_cell_tags(cell, REMOVE_OUTPUT_TAG)
