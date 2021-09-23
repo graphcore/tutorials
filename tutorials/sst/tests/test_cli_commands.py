@@ -23,8 +23,9 @@ def cli_runner_instance():
 def test_cli_positive(cli_runner_instance, tmp_path, type, expected_extension, output_filename):
     outfile_path = tmp_path / output_filename
     expected_output_path = Path(str(outfile_path) + expected_extension)
-    result = cli_runner_instance.invoke(cli, ['convert', '--source', example_input, "--output", outfile_path, "--type",
-                                              type])
+    result = cli_runner_instance.invoke(cli, [
+        'convert', '--source', example_input, "--output", outfile_path, "--type", type
+    ])
 
     if result.exception:
         print(result.exception)
