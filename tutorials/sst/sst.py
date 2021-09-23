@@ -20,6 +20,21 @@ def cli(source: Path, output: Path, type: OutputTypes, execute: bool) -> None:
     """
     Command used to generate all outputs with one flow.
     """
+    set_output_extension_and_type(output, type)
+    assert output != source, f'Your source file and the expected output file name are the same: {source}, ' \
+                             f'specify different outfile name using --output flag.'
+
+    py_text = source.read_text()
+    notebook = py_to_ipynb(py_text)
+
+    exporter = exporter_factory(type=type, execute_enabled=execute)
+    output_content, _ = exporter.from_notebook_node(notebook)
+
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(output_content)
+
+
+def set_output_extension_and_type(output: Path, type: OutputTypes) -> None:
     if output.suffix != '':
         allowed_extensions = list(EXTENSION2TYPE.keys())
         assert output.suffix in allowed_extensions, \
@@ -32,18 +47,6 @@ def cli(source: Path, output: Path, type: OutputTypes, execute: bool) -> None:
             f'Please provide output file type by adding extension to outfile (.md or .ipynb) or specifying that by '
             f'--type parameter [{OutputTypes.MARKDOWN_TYPE}, {OutputTypes.JUPYTER_TYPE}] are allowed.'
         )
-
-    assert output != source, f'Your source file and the expected output file name are the same: {source}, ' \
-                             f'specify different outfile name using --output flag.'
-
-    py_text = source.read_text()
-    notebook = py_to_ipynb(py_text)
-
-    exporter = exporter_factory(type=type, execute_enabled=execute)
-    output_content, _ = exporter.from_notebook_node(notebook)
-
-    output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(output_content)
 
 
 if __name__ == '__main__':
