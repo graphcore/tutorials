@@ -34,7 +34,7 @@ if __name__ == '__main__':
                 if line.startswith("#"):
                     mode = COMMENT
                     line = line[2:]
-                elif line == "":
+                elif line.strip() == "":
                     mode = BREAK
                 else:
                     mode = CODE
@@ -50,6 +50,9 @@ if __name__ == '__main__':
                         for lm in group:
                             of.write(lm.content)
                         of.write(SEPARATOR + os.linesep)
+                    elif mode == BREAK:
+                        if len(group) == 1:
+                            continue
                     else:
                         for lm in group:
                             of.write(lm.content)
