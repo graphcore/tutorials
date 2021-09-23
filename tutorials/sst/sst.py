@@ -8,7 +8,12 @@ from src.format_converter import py_to_ipynb
 from src.output_types import OutputTypes, supported_types, EXTENSION2TYPE, TYPE2EXTENSION
 
 
-@click.command()
+@click.group()
+def cli():
+    pass
+
+
+@cli.command()
 @click.option('--source', '-s', required=True, type=Path,
               help='Absolute or relative path to python file to be converted')
 @click.option('--output', '-o', required=True, type=Path,
@@ -17,22 +22,49 @@ from src.output_types import OutputTypes, supported_types, EXTENSION2TYPE, TYPE2
 @click.option('--type', '-f', type=click.Choice(supported_types() + [None]), default=None,
               help='Desired output file type. Parameter is ignored when --output contains specified file extension')
 @click.option('--execute/--no-execute', default=True, help='Flag whether the notebook is to be executed or not')
-def cli(source: Path, output: Path, type: OutputTypes, execute: bool) -> None:
+def convert(source: Path, output: Path, type: OutputTypes, execute: bool) -> None:
     """
     Command used to generate all outputs with one flow.
     """
     output, type = set_output_extension_and_type(output, type)
+
+    assert source.suffix == '.py', 'Only python file can be single source file'
     assert output != source, f'Your source file and the expected output file name are the same: {source}, ' \
                              f'specify different outfile name using --output flag.'
 
-    py_text = source.read_text()
-    notebook = py_to_ipynb(py_text)
+    transform_python_file(source, output, type, execute)
 
-    exporter = exporter_factory(type=type, execute_enabled=execute)
-    output_content, _ = exporter.from_notebook_node(notebook)
 
-    output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(output_content)
+@cli.command()
+@click.option('--source', '-s', required=True, type=Path,
+              help='Absolute or relative path to python file to be converted')
+@click.option('--output-dir', '-o', required=False, type=Path, help='Absolute or relative path to output directory.')
+def convert2all(source: Path, output_dir: Path):
+    assert source.suffix == '.py', 'Only python file can be single source file'
+    if output_dir is None:
+        output_dir = source.parent
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    output_filename = output_dir / source.stem
+
+    transform_python_file(
+        source=source,
+        output=output_filename.with_suffix('.md'),
+        type=OutputTypes.MARKDOWN_TYPE,
+        execute=True
+    )
+    transform_python_file(
+        source=source,
+        output=output_filename.with_stem(source.stem + '_pure').with_suffix('.py'),
+        type=OutputTypes.PUREPYTHON_TYPE,
+        execute=False
+    )
+    transform_python_file(
+        source=source,
+        output=output_filename.with_suffix('.ipynb'),
+        type=OutputTypes.JUPYTER_TYPE,
+        execute=False
+    )
 
 
 def set_output_extension_and_type(output: Path, type: OutputTypes) -> Tuple[Path, OutputTypes]:
@@ -48,7 +80,7 @@ def set_output_extension_and_type(output: Path, type: OutputTypes) -> Tuple[Path
             f'Specified outputy file has type: {output.suffix}, while only {allowed_extensions} are allowed.'
         type = EXTENSION2TYPE[output.suffix]
     elif type is not None:
-        output = Path(str(output) + TYPE2EXTENSION[type])
+        output = output.with_suffix(TYPE2EXTENSION[type])
         print(output)
     else:
         raise AttributeError(
@@ -57,6 +89,17 @@ def set_output_extension_and_type(output: Path, type: OutputTypes) -> Tuple[Path
         )
 
     return output, type
+
+
+def transform_python_file(source: Path, output: Path, type: OutputTypes, execute: bool) -> None:
+    py_text = source.read_text()
+    notebook = py_to_ipynb(py_text)
+
+    exporter = exporter_factory(type=type, execute_enabled=execute)
+    output_content, _ = exporter.from_notebook_node(notebook)
+
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(output_content)
 
 
 if __name__ == '__main__':
