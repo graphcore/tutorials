@@ -1,12 +1,11 @@
 from pathlib import Path
-from typing import Tuple
 
 import click
 from tqdm import tqdm
 
-from src.exporters import exporter_factory
-from src.format_converter import py_to_ipynb
-from src.output_types import OutputTypes, supported_types, EXTENSION2TYPE, TYPE2EXTENSION
+from src.exporters import execute_multiple_exporters, execute_single_exporter
+from src.format_converter import set_output_extension_and_type
+from src.output_types import OutputTypes, supported_types
 
 
 @click.group()
@@ -32,8 +31,7 @@ def convert(source: Path, output: Path, type: OutputTypes, execute: bool) -> Non
     assert source.suffix == '.py', 'Only python file can be single source file'
     assert output != source, f'Your source file and the expected output file name are the same: {source}, ' \
                              f'specify different outfile name using --output flag.'
-
-    transform_python_file(source, output, type, execute)
+    execute_single_exporter(source=source, output=output, output_type=type, execute=execute)
 
 
 @cli.command()
@@ -55,42 +53,28 @@ def convert2all(source: Path, output_dir: Path):
     ]
 
     for outfile, output_type, execution in tqdm(configuration):
-        transform_python_file(source=source, output=outfile, type=output_type, execute=execution)
+        execute_single_exporter(source=source, output=outfile, output_type=output_type, execute=execution)
 
 
-def set_output_extension_and_type(output: Path, type: OutputTypes) -> Tuple[Path, OutputTypes]:
+@cli.command()
+@click.option('--config', '-c', required=True, type=Path,
+              help='Absolute or relative path to YAML file with list of all tutorials to execute')
+@click.option('--input-dir', '-o', required=True, type=Path,
+              help='Absolute or relative path to directory with all tutorials, relative to which, the config YML has '
+                   'been created')
+@click.option('--output-dir', '-o', required=True, type=Path,
+              help='Absolute or relative path to output directory for all tutorials')
+@click.option('--execute/--no-execute', default=True, help='Flag whether the notebook is to be executed or not')
+def batch_convert(config: Path, input_dir: Path, output_dir: Path, execute: bool) -> None:
     """
-    If output without extension but specified type -> add extension to output
-    If output with extension -> overwrite current type
-    If output with extension but not allowed extension -> raise AssertionError
-    If output without extension and type is None -> raise AttributeError
+    Command used to generate all outputs with one flow.
     """
-    if output.suffix != '':
-        allowed_extensions = list(EXTENSION2TYPE.keys())
-        assert output.suffix in allowed_extensions, \
-            f'Specified outputy file has type: {output.suffix}, while only {allowed_extensions} are allowed.'
-        type = EXTENSION2TYPE[output.suffix]
-    elif type is not None:
-        output = output.with_suffix(TYPE2EXTENSION[type])
-        print(output)
-    else:
-        raise AttributeError(
-            f'Please provide output file type by adding extension to outfile (.md or .ipynb) or specifying that by '
-            f'--type parameter [{OutputTypes.MARKDOWN_TYPE}, {OutputTypes.JUPYTER_TYPE}] are allowed.'
-        )
-
-    return output, type
-
-
-def transform_python_file(source: Path, output: Path, type: OutputTypes, execute: bool) -> None:
-    py_text = source.read_text()
-    notebook = py_to_ipynb(py_text)
-
-    exporter = exporter_factory(type=type, execute_enabled=execute)
-    output_content, _ = exporter.from_notebook_node(notebook)
-
-    output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(output_content)
+    execute_multiple_exporters(
+        input_directory=input_dir,
+        output_directory=output_dir,
+        config_path=config,
+        execute=execute
+    )
 
 
 if __name__ == '__main__':

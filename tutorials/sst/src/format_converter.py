@@ -1,11 +1,13 @@
 import os
 from enum import Enum
-from typing import List
+from pathlib import Path
+from typing import List, Tuple
 
 from nbformat import NotebookNode
 from nbformat.v4 import new_notebook, new_markdown_cell, new_code_cell
 
 from src.constants import CELL_SEPARATOR, REMOVE_OUTPUT_TAG
+from src.output_types import OutputTypes, EXTENSION2TYPE, TYPE2EXTENSION, supported_types_pretty
 
 
 def code_preprocessor(input_source: str) -> str:
@@ -87,3 +89,26 @@ def remove_from_cell_source(cell: NotebookNode, string_to_remove: str) -> Notebo
         ]
     )
     return cell
+
+
+def set_output_extension_and_type(output: Path, type: OutputTypes) -> Tuple[Path, OutputTypes]:
+    """
+    If output without extension but specified type -> add extension to output
+    If output with extension -> overwrite current type
+    If output with extension but not allowed extension -> raise AssertionError
+    If output without extension and type is None -> raise AttributeError
+    """
+    if output.suffix != '':
+        allowed_extensions = list(EXTENSION2TYPE.keys())
+        assert output.suffix in allowed_extensions, \
+            f'Specified output file has type: {output.suffix}, while only {allowed_extensions} are allowed.'
+        type = EXTENSION2TYPE[output.suffix]
+    elif type is not None:
+        output = Path(str(output) + TYPE2EXTENSION[type])
+    else:
+        raise AttributeError(
+            f'Please provide output file type by adding extension to outfile (.md or .ipynb) or specifying that by '
+            f'--type parameter {supported_types_pretty()} are allowed.'
+        )
+
+    return output, type

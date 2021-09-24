@@ -5,4 +5,5 @@ nbformat==5.1.3
 nbconvert==6.1.0
 pytest-cov==2.12.1
 ipykernel==6.2.0
+pyyaml==5.4.1
 tqdm==4.62.3

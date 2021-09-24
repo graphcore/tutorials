@@ -5,6 +5,7 @@ import pytest
 from click.testing import CliRunner
 
 from sst import cli
+from tests.exception_utils import print_exception
 from tests.path_utils import get_tests_dir
 
 STATIC_FILES = Path(get_tests_dir() + os.sep + 'static')
@@ -27,8 +28,9 @@ def test_cli_positive(cli_runner_instance, tmp_path, type, expected_extension, o
         'convert', '--source', example_input, "--output", outfile_path, "--type", type
     ])
 
-    if result.exception:
-        print(result.exception)
+    result = cli_runner_instance.invoke(cli, ['convert', '--source', example_input, "--output", outfile_path, "--type", type])
+
+    print_exception(result)
 
     assert result.exit_code == 0
     assert os.path.exists(expected_output_path)
@@ -40,8 +42,7 @@ def test_cli_positive_when_no_type(cli_runner_instance, tmp_path, output_filenam
 
     result = cli_runner_instance.invoke(cli, ['convert', '--source', example_input, "--output", outfile_path])
 
-    if result.exception:
-        print(result.exception)
+    print_exception(result)
 
     assert result.exit_code == 0
     assert os.path.exists(outfile_path)
@@ -73,8 +74,7 @@ def test_py_file_with_import(cli_runner_instance, tmp_path):
         'convert', '--source', file_path, "--output", outfile, "--type", "markdown", "--execute"
     ])
 
-    if result.exception:
-        print(result.exception)
+    print_exception(result)
 
     assert result.exit_code == 0
 
@@ -100,8 +100,7 @@ def test_cli_positive_markdown_output_removal_by_tags(cli_runner_instance, tmp_p
         'convert', '--source', example_input, "--output", outfile, "--type", "markdown", "--execute"
     ])
 
-    if result.exception:
-        print(result.exception)
+    print_exception(result)
 
     assert result.exit_code == 0
 
@@ -112,6 +111,49 @@ def test_cli_positive_markdown_output_removal_by_tags(cli_runner_instance, tmp_p
         assert "Goodbye sunshine2!" not in actual_contents
         assert "Hello sunshine3!" not in actual_contents
         assert "Goodbye sunshine4!" not in actual_contents
+
+
+def test_cli_batch_convert(cli_runner_instance, tmp_path):
+    example_config = STATIC_FILES / "tutorial_config.yml"
+    output_dir = tmp_path / 'output_dir'
+    input_dir = STATIC_FILES.parent.parent
+
+    result = cli_runner_instance.invoke(
+        cli,
+        ['batch-convert',
+         '--config', example_config,
+         "--output-dir", output_dir,
+         "--input-dir", input_dir,
+         "--no-execute"]
+    )
+
+    print_exception(result)
+
+    assert result.exit_code == 0
+
+    assert len(os.listdir(output_dir)) == 6
+
+
+@pytest.mark.parametrize("config_path", ['tutorial_config_incorrect.yml', 'tutorial_config_empty.yml'])
+def test_cli_batch_convert_incorrect_config(cli_runner_instance, tmp_path, config_path):
+    example_config = STATIC_FILES / config_path
+    output_dir = tmp_path / 'output_dir'
+    input_dir = STATIC_FILES.parent.parent
+
+    with pytest.raises(Exception) as e_info:
+        result = cli_runner_instance.invoke(
+            cli,
+            ['batch-convert',
+             '--config', example_config,
+             "--output-dir", output_dir,
+             "--input-dir", input_dir,
+             "--no-execute"]
+        )
+
+        print_exception(result)
+
+        if result.exception:
+            raise result.exception
 
 
 def test_cli_missing_filename(cli_runner_instance):

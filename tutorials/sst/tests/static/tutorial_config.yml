@@ -1,0 +1,5 @@
+tutorials:
+  - name: Tutorial1
+    source: tests/static/trivial_mapping_md_code_md.py
+  - name: Tutorial2
+    source: tests/static/py_with_import.py
