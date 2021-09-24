@@ -7,7 +7,7 @@ from nbformat import NotebookNode
 from nbformat.v4 import new_notebook, new_markdown_cell, new_code_cell
 
 from src.constants import CELL_SEPARATOR, REMOVE_OUTPUT_TAG
-from src.output_types import OutputTypes, EXTENSION2TYPE, TYPE2EXTENSION, supported_types_pretty
+from src.output_types import OutputTypes, EXTENSION2TYPE, TYPE2EXTENSION, supported_types
 
 
 def code_preprocessor(input_source: str) -> str:
@@ -35,6 +35,16 @@ TYPE2PREPROCESSOR = {
 
 
 def py_to_ipynb(py_file_text: str) -> NotebookNode:
+    """
+    The python file content is parsed line by line. The type of fragment (markdown, codecell) is determined together
+    with tags. Based on that data, an object which represents Notebook is created.
+
+    Args:
+        py_file_text: The contents of a python file stored in a string variable
+
+    Returns:
+        NotebookNode file that represents Notebook object
+    """
     cells = []
 
     current_cell_type = CellType.CODE
@@ -65,16 +75,34 @@ def py_to_ipynb(py_file_text: str) -> NotebookNode:
 
 
 def create_cell_from_lines(cell_lines: List[str], cell_type: CellType) -> NotebookNode:
+    """
+    Args:
+        cell_lines: List of content in each line
+        cell_type: Recognized cell type
+
+    Returns:
+        NotebookNode which contains specified type and merged content
+    """
     source = os.linesep.join(cell_lines)
     processed_source = TYPE2PREPROCESSOR[cell_type](source)
     cell = TYPE2FUNC[cell_type](processed_source)
 
     if cell_type == CellType.CODE:
-        cell = handle_cell_tags(cell, REMOVE_OUTPUT_TAG)
+        cell = handle_cell_tag(cell, REMOVE_OUTPUT_TAG)
+
     return cell
 
 
-def handle_cell_tags(cell: NotebookNode, tag: str) -> NotebookNode:
+def handle_cell_tag(cell: NotebookNode, tag: str) -> NotebookNode:
+    """
+    Adds information about tag into cell data and remove line with tag from text in the cell
+    Args:
+        cell: Cell to be analyzed
+        tag: Tag we look for
+
+    Returns:
+        Updated cell
+    """
     if tag in cell.source:
         cell.metadata.update({"tags": [tag]})
         cell = remove_from_cell_source(cell, f"# {tag}")
@@ -93,6 +121,10 @@ def remove_from_cell_source(cell: NotebookNode, string_to_remove: str) -> Notebo
 
 def set_output_extension_and_type(output: Path, type: OutputTypes) -> Tuple[Path, OutputTypes]:
     """
+    Handles input given by the user. The user can define the type to which the file will be converted directly using
+    the switch or using the extension in the path to the output. In the result of the function the type variable is set
+    correctly and the file has the specified extension. Additionally, the function validates the input given by the user.
+
     If output without extension but specified type -> add extension to output
     If output with extension -> overwrite current type
     If output with extension but not allowed extension -> raise AssertionError
@@ -104,11 +136,11 @@ def set_output_extension_and_type(output: Path, type: OutputTypes) -> Tuple[Path
             f'Specified output file has type: {output.suffix}, while only {allowed_extensions} are allowed.'
         type = EXTENSION2TYPE[output.suffix]
     elif type is not None:
-        output = Path(str(output) + TYPE2EXTENSION[type])
+        output = output.with_suffix(TYPE2EXTENSION[type])
     else:
         raise AttributeError(
             f'Please provide output file type by adding extension to outfile (.md or .ipynb) or specifying that by '
-            f'--type parameter {supported_types_pretty()} are allowed.'
+            f'--type parameter {supported_types()} are allowed.'
         )
 
     return output, type

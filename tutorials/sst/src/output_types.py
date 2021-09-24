@@ -5,14 +5,13 @@ def supported_types():
     return list(OutputTypes)
 
 
-def supported_types_pretty():
-    return [t.value for t in supported_types()]
-
-
 class OutputTypes(str, Enum):
     JUPYTER_TYPE = "jupyter"
     MARKDOWN_TYPE = "markdown"
     PUREPYTHON_TYPE = "purepython"
+
+    def __repr__(self):
+        return self.value
 
 
 EXTENSION2TYPE = {

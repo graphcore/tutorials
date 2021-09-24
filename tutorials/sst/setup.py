@@ -1,4 +1,4 @@
-from setuptools import setup # pragma: no cover
+from setuptools import setup  # pragma: no cover
 
 REQUIREMENTS = [i.strip() for i in open("requirements.txt").readlines()]  # pragma: no cover
 
