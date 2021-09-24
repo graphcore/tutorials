@@ -31,7 +31,7 @@ Text placed in triple quotes without indentation is treated as markdown cell. So
 a documentation cell describing your code, you can use the example syntax: 
 ```python
 """
-This is the first cell,here you are able to use whole syntax that is available in typical markdown. For example
+This is the first cell, here you are able to use whole syntax that is available in typical markdown. For example
 **bold**, *italic*, `code`, url, images, headers, lists etc.
 """
 ```
