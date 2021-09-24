@@ -1,9 +1,9 @@
 # Single Source Tool
 
-Documentation maintenance tool for converting python files to jupyter notebooks and markdown. 
+Documentation maintenance tool for converting python files to jupyter notebooks and markdown documents. 
 
 The purpose of this software is to keep the documentation in one format (a python file with a established 
-documentation convention) when the script is able to run it and transform it to other formats (markdown or 
+documentation convention) when the script is able to run it and transform it to other formats (markdown document or 
 jupyter notebook), or hide the documentation completely and create a ready to run script (later called pure python).
 
 ## Installation
@@ -63,8 +63,8 @@ greet('John')
 
 #### Hiding outputs
 Sometimes it may happen that your post-execution file contains very long output, which when transformed to markdown 
-will take up a lot of space. You can hide output from such a cell by adding a special comment to your code: 
-`# remove_output`. For example:
+will take up a lot of space. You can hide such output from such a cell by adding a special comment to your code: 
+`# remove_output` - note that line with this tag will be hidden. For example:
 
 ```python
 for _ in range(1000):
@@ -73,7 +73,7 @@ for _ in range(1000):
 ```
 
 ## Transformation to other formats
-By default, we expect in the repository store beyond python file that is single source of truth :
+By default, beyond python file that is single source of truth we would like to store in the repository:
 - jupyter notebook which was not executed 
 - markdown file with the outputs after the execution
 - pure python file without documentation

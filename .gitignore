@@ -35,6 +35,8 @@ report.txt
 
 # Virtual environments
 *virtualenv/
-venv
+*venv
 
 *.coverage
+
+*.ipynb_checkpoints

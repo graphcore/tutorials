@@ -1,9 +1,8 @@
 from collections import namedtuple
 from pathlib import Path
-from typing import List
+from typing import List, Dict
 
 import yaml
-
 
 TutorialConfig = namedtuple("TutorialConfig", "name source")
 
@@ -11,7 +10,7 @@ TutorialConfig = namedtuple("TutorialConfig", "name source")
 def batch_config(config_path: Path) -> List[TutorialConfig]:
     parsed_configs = _parse_config(config_path).get("tutorials", [])
     if not parsed_configs:
-        raise Exception("Provided configuration file has no specified tutorials to convert!")
+        raise AttributeError("Provided configuration file has no specified tutorials to convert!")
 
     tutorial_configs = [
         TutorialConfig(
@@ -22,13 +21,11 @@ def batch_config(config_path: Path) -> List[TutorialConfig]:
     ]
 
     if any(list(tc.source is None for tc in tutorial_configs)):
-        raise Exception(f"Not all configs specify source path! {tutorial_configs}")
+        raise AttributeError(f"Not all configs specify source path! {tutorial_configs}")
 
     return tutorial_configs
 
 
-def _parse_config(config_path: Path) -> dict:
+def _parse_config(config_path: Path) -> List[Dict[str, str]]:
     with open(config_path) as f:
         return yaml.load(f)
-
-
