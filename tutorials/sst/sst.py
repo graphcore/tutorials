@@ -22,7 +22,7 @@ def cli():
                    'Output filepath can be provided without extenstion, then type is taken from --type.')
 @click.option('--type', '-t', type=click.Choice(supported_types()), default=None,
               help='Desired output file type. Parameter is ignored when --output contains specified file extension')
-@click.option('--execute/--no-execute', default=True, help='Flag whether the notebook is to be executed or not')
+@click.option('--execute/--no-execute', default=True, help='Flag whether the file is to be executed or not')
 def convert(source: Path, output: Path, type: OutputTypes, execute: bool) -> None:
     """
     Command used to generate all outputs with one flow.
