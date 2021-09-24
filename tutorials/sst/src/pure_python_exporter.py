@@ -4,7 +4,7 @@ from nbconvert import Exporter
 from nbformat import NotebookNode
 
 
-class PythonExporter(Exporter):
+class PurePythonExporter(Exporter):
     file_extension = '.py'
 
     def __init__(self, **kw):

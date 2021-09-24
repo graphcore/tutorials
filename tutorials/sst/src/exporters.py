@@ -8,7 +8,7 @@ from src.format_converter import py_to_ipynb, set_output_extension_and_type
 from src.output_types import OutputTypes
 from src.output_types import supported_types
 from src.preprocessors import configure_tag_removal_preprocessor
-from src.python_exporter import PythonExporter
+from src.pure_python_exporter import PurePythonExporter
 
 
 def markdown_exporter_with_preprocessors(execute_enabled: bool) -> Exporter:
@@ -29,7 +29,7 @@ def notebook_exporter_with_preprocessors(execute_enabled: bool) -> Exporter:
 
 
 def pure_python_exporter(execute_enabled: bool) -> Exporter:
-    return PythonExporter()
+    return PurePythonExporter()
 
 
 TYPE2EXPORTER = {
