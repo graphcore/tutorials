@@ -20,7 +20,7 @@ def cli():
 @click.option('--output', '-o', required=True, type=Path,
               help='Absolute or relative path to output file. Output file type is taken from extension. '
                    'Output filepath can be provided without extenstion, then type is taken from --type.')
-@click.option('--type', '-f', type=click.Choice(supported_types() + [None]), default=None,
+@click.option('--type', '-t', type=click.Choice(supported_types()), default=None,
               help='Desired output file type. Parameter is ignored when --output contains specified file extension')
 @click.option('--execute/--no-execute', default=True, help='Flag whether the notebook is to be executed or not')
 def convert(source: Path, output: Path, type: OutputTypes, execute: bool) -> None:

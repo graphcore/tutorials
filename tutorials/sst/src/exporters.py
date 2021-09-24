@@ -5,7 +5,7 @@ from traitlets.config import Config
 from src.constants import REMOVE_OUTPUT_TAG
 from src.output_types import OutputTypes
 from src.preprocessors import configure_tag_removal_preprocessor
-from src.python_exporter import PythonExporter
+from src.pure_python_exporter import PurePythonExporter
 
 
 def markdown_exporter_with_preprocessors(execute_enabled: bool) -> Exporter:
@@ -26,7 +26,7 @@ def notebook_exporter_with_preprocessors(execute_enabled: bool) -> Exporter:
 
 
 def pure_python_exporter(execute_enabled: bool) -> Exporter:
-    return PythonExporter()
+    return PurePythonExporter()
 
 
 TYPE2EXPORTER = {
