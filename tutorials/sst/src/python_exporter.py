@@ -11,6 +11,6 @@ class PythonExporter(Exporter):
         super().__init__(**kw)
 
     def from_notebook_node(self, notebook: NotebookNode, **kwargs):
-        code_cells = [cell.source for cell in notebook.get('cells', []) if cell.get('cell_type') == 'code']
-        py_code = os.linesep.join(code_cells + [os.linesep])
+        code_cells = [cell.source + os.linesep for cell in notebook.get('cells', []) if cell.get('cell_type') == 'code']
+        py_code = os.linesep.join(code_cells)
         return py_code, []
