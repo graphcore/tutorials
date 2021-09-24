@@ -197,9 +197,24 @@ def test_cli_convert2all_when_no_output_dir(cli_runner_instance, tmp_path):
 
 def test_cli_convert2all_when_correct_input(cli_runner_instance, tmp_path):
     result = cli_runner_instance.invoke(cli, ['convert2all', '--source', example_input, '--output-dir', tmp_path])
+    print_exception(result)
+
     outfile_path = tmp_path / Path('trivial_mapping_md_code_md')
 
     assert os.path.exists(outfile_path.with_suffix('.md'))
     assert os.path.exists(outfile_path.with_suffix('.ipynb'))
     assert os.path.exists(outfile_path.with_name('trivial_mapping_md_code_md_pure.py'))
+    assert result.exit_code == 0
+
+
+@pytest.mark.parametrize("command", ['convert', 'convert2all', 'batch-convert'])
+def test_cli_when_help_command(cli_runner_instance, command):
+    result = cli_runner_instance.invoke(cli, [command, '--help'])
+    print_exception(result)
+    assert result.exit_code == 0
+
+
+def test_cli_when_help_no_command(cli_runner_instance):
+    result = cli_runner_instance.invoke(cli, ['--help'])
+    print_exception(result)
     assert result.exit_code == 0
