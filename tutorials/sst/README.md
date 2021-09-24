@@ -80,7 +80,7 @@ By default, we expect in the repository store beyond python file that is single 
 
 You can automatically generate all 3 formats by using the command:
 ```bash
-sst convert2all --source path_to_you_python_file
+sst convert2all --source path_to_you_python_file --output-dir path_to_your_directory
 ```
 
 If you would like to create each of these format files separately use:
@@ -108,5 +108,22 @@ sst convert \
  --output outputfile.md \
  --no-execute
  ```
+
+Moreover, you can convert a whole batch of python scripts, using a yaml configuration file:
+
+```bash
+sst batch_convert \
+ --config tutorial_list.yml \
+ --source-dir tutorials/tutorials \
+ --output-dir tutorials/tutorials/my_batch \
+ --execute
+ ```
+
+Config file would look like this:
+```yaml
+tutorials:
+    - name: Tutorial1
+      source: pytorch/tutorial1/script.py
+```
 
 You can find more details by adding a `--help` switch to each command.
