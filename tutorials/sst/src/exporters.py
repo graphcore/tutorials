@@ -56,7 +56,7 @@ def execute_single_exporter(source: Path, output: Path, output_type: OutputTypes
     output.write_text(output_content)
 
 
-def execute_multiple_exporters(input_directory: Path, output_directory: Path, config_path: Path, execute: bool):
+def execute_multiple_exporters(source_directory: Path, output_directory: Path, config_path: Path, execute: bool):
     tutorial_configs = batch_config(config_path)
     output_directory.mkdir(parents=True, exist_ok=True)
 
@@ -66,6 +66,6 @@ def execute_multiple_exporters(input_directory: Path, output_directory: Path, co
             execute_single_exporter(
                 execute=execute,
                 output=output,
-                source=input_directory / tc.source,
+                source=source_directory / tc.source,
                 output_type=output_type
             )
