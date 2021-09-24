@@ -24,7 +24,8 @@ def cli():
 @click.option('--execute/--no-execute', default=True, help='Flag whether the notebook is to be executed or not')
 def convert(source: Path, output: Path, type: OutputTypes, execute: bool) -> None:
     """
-    Command used to generate all outputs with one flow.
+    Transforms source python file into specified format (jupyter notebook, markdown, pure python file without
+    documentation)
     """
     output, type = set_output_extension_and_type(output, type)
 
@@ -39,6 +40,10 @@ def convert(source: Path, output: Path, type: OutputTypes, execute: bool) -> Non
               help='Absolute or relative path to python file to be converted')
 @click.option('--output-dir', '-o', required=False, type=Path, help='Absolute or relative path to output directory.')
 def convert2all(source: Path, output_dir: Path):
+    """
+    Transforms source python file automatically into three specified formats with specified configuration:
+    jupyter notebook, executed markdown file and pure python script.
+    """
     assert source.suffix == '.py', 'Only python file can be single source file'
     if output_dir is None:
         output_dir = source.parent
@@ -59,7 +64,7 @@ def convert2all(source: Path, output_dir: Path):
 @cli.command()
 @click.option('--config', '-c', required=True, type=Path,
               help='Absolute or relative path to YAML file with list of all tutorials to execute')
-@click.option('--input-dir', '-o', required=True, type=Path,
+@click.option('--source -dir', '-s', required=True, type=Path,
               help='Absolute or relative path to directory with all tutorials, relative to which, the config YML has '
                    'been created')
 @click.option('--output-dir', '-o', required=True, type=Path,
@@ -67,7 +72,7 @@ def convert2all(source: Path, output_dir: Path):
 @click.option('--execute/--no-execute', default=True, help='Flag whether the notebook is to be executed or not')
 def batch_convert(config: Path, input_dir: Path, output_dir: Path, execute: bool) -> None:
     """
-    Command used to generate all outputs with one flow.
+    Transforms python files specified in config into all possible formats: jupyter notebook, markdown and pure python
     """
     execute_multiple_exporters(
         input_directory=input_dir,

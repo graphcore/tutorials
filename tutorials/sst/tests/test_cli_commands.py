@@ -28,7 +28,8 @@ def test_cli_positive(cli_runner_instance, tmp_path, type, expected_extension, o
         'convert', '--source', example_input, "--output", outfile_path, "--type", type
     ])
 
-    result = cli_runner_instance.invoke(cli, ['convert', '--source', example_input, "--output", outfile_path, "--type", type])
+    result = cli_runner_instance.invoke(cli, ['convert', '--source', example_input, "--output", outfile_path, "--type",
+                                              type])
 
     print_exception(result)
 
