@@ -1,13 +1,11 @@
 import os
 from enum import Enum
-from pathlib import Path
-from typing import List, Tuple
+from typing import List
 
 from nbformat import NotebookNode
 from nbformat.v4 import new_notebook, new_markdown_cell, new_code_cell
 
 from src.constants import CELL_SEPARATOR, REMOVE_OUTPUT_TAG
-from src.output_types import OutputTypes, EXTENSION2TYPE, TYPE2EXTENSION, supported_types
 
 
 def code_preprocessor(input_source: str) -> str:
@@ -40,7 +38,7 @@ def py_to_ipynb(py_file_text: str) -> NotebookNode:
     with tags. Based on that data, an object which represents Notebook is created.
 
     Args:
-        py_file_text: The contents of a python file stored in a string variable
+        py_file_text: The content of a python file stored in a string variable
 
     Returns:
         NotebookNode file that represents Notebook object
@@ -117,30 +115,3 @@ def remove_from_cell_source(cell: NotebookNode, string_to_remove: str) -> Notebo
         ]
     )
     return cell
-
-
-def set_output_extension_and_type(output: Path, type: OutputTypes) -> Tuple[Path, OutputTypes]:
-    """
-    Handles input given by the user. The user can define the type to which the file will be converted directly using
-    the switch or using the extension in the path to the output. In the result of the function the type variable is set
-    correctly and the file has the specified extension. Additionally, the function validates the input given by the user.
-
-    If output without extension but specified type -> add extension to output
-    If output with extension -> overwrite current type
-    If output with extension but not allowed extension -> raise AssertionError
-    If output without extension and type is None -> raise AttributeError
-    """
-    if output.suffix != '':
-        allowed_extensions = list(EXTENSION2TYPE.keys())
-        assert output.suffix in allowed_extensions, \
-            f'Specified output file has type: {output.suffix}, while only {allowed_extensions} are allowed.'
-        type = EXTENSION2TYPE[output.suffix]
-    elif type is not None:
-        output = output.with_suffix(TYPE2EXTENSION[type])
-    else:
-        raise AttributeError(
-            f'Please provide output file type by adding extension to outfile (.md or .ipynb) or specifying that by '
-            f'--type parameter {supported_types()} are allowed.'
-        )
-
-    return output, type

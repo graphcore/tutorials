@@ -3,9 +3,9 @@ from pathlib import Path
 import click
 from tqdm import tqdm
 
-from src.exporters import execute_multiple_exporters, execute_single_exporter
-from src.format_converter import set_output_extension_and_type
+from src.execute import execute_conversion, execute_multiple_conversions
 from src.output_types import OutputTypes, supported_types
+from src.utils.file import set_output_extension_and_type
 
 
 @click.group()
@@ -32,7 +32,7 @@ def convert(source: Path, output: Path, type: OutputTypes, execute: bool) -> Non
     assert source.suffix == '.py', 'Only python file can be single source file'
     assert output != source, f'Your source file and the expected output file name are the same: {source}, ' \
                              f'specify different outfile name using --output flag.'
-    execute_single_exporter(source=source, output=output, output_type=type, execute=execute)
+    execute_conversion(source=source, output=output, output_type=type, execute=execute)
 
 
 @cli.command()
@@ -58,7 +58,7 @@ def convert2all(source: Path, output_dir: Path) -> None:
     ]
 
     for outfile, output_type, execution in tqdm(configuration):
-        execute_single_exporter(source=source, output=outfile, output_type=output_type, execute=execution)
+        execute_conversion(source=source, output=outfile, output_type=output_type, execute=execution)
 
 
 @cli.command()
@@ -74,7 +74,7 @@ def batch_convert(config: Path, source_dir: Path, output_dir: Path, execute: boo
     """
     Transforms python files specified in config into all possible formats: jupyter notebook, markdown and pure python
     """
-    execute_multiple_exporters(
+    execute_multiple_conversions(
         source_directory=source_dir,
         output_directory=output_dir,
         config_path=config,
