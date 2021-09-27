@@ -1,0 +1,10 @@
+click==7.1.2
+pytest==6.2.5
+deepdiff==5.5.0
+nbformat==5.1.3
+nbconvert==6.0.7
+pytest-cov==2.12.1
+ipython==7.16.1
+ipykernel
+pyyaml==5.4.1
+tqdm==4.62.3

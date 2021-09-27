@@ -1,0 +1,11 @@
+{
+  "cells": [
+    {
+      "cell_type": "code",
+      "execution_count": null,
+      "metadata": {},
+      "outputs": [],
+      "source": "def hello(name):\n    print(f'Hello {name}!')\n\nhello('John')"
+    }
+  ]
+}
