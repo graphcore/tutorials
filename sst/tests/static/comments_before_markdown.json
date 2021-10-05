@@ -1,0 +1,37 @@
+{
+  "cells": [
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "execution_count": null,
+      "source": "# Comments should work here",
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "source": "Example first cell",
+      "metadata": {
+      }
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "execution_count": null,
+      "source": "def hello(name):\n    print(f'Hello {name}!') #hello",
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "source": "Example second cell",
+      "metadata": {
+      }
+    },
+    {
+      "cell_type": "code",
+      "metadata": {},
+      "execution_count": null,
+      "source": "# comments should work here",
+      "outputs": []
+    }
+  ]
+}
