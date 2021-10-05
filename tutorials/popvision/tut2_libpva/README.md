@@ -13,7 +13,7 @@ When this has completed you will find a file called profile.pop in the training 
 
     POPLAR_ENGINE_OPTIONS='{"autoReport.all":"true", "autoReport.directory":"mydirectory"}' python3 popart_mnist.py
 
-Before we start using libpva, you should familiarise yourself with the documentation which can be found here: <a href=https://docs.graphcore.ai/projects/poplar-api/en/latest/pva-python.html>PopVision Analysis Python API</a>.
+Before we start using libpva, you should familiarise yourself with the documentation which can be found here: <a href=https://docs.graphcore.ai/projects/libpva/en/latest/api-python.html>PopVision Analysis Python API</a>.
 
 Start Python in the directory that contains the profile.pop file you would like to read. Loading the profile into a Python object is easily done with the following:
 
