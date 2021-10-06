@@ -103,10 +103,12 @@ sst convert2all \
 The resulting files will have the same names as the input file with a different extension, with two exceptions:
 - the Markdown output, which is either 'README.md' or custom provided name using the optional argument `markdown-name.`
 - the Python output code, in which case to avoid overwriting the source file the suffix `_code_only` will be added to it. Example result will be placed under:
+- any images rendered in cell outputs will be saved and stored in a directory named using source name as prefix and `_outputs` as suffix
 ```bash
 path_to_your_directory/XYZ.md
 path_to_your_directory/source_file_name.ipynb
 path_to_your_directory/source_file_name_code_only.py
+path_to_your_directory/source_file_name_outputs/image1.png
 ```
 
 If you would like to create each of these format files separately use:

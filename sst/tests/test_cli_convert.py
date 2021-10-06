@@ -173,7 +173,7 @@ def test_cli_positive_markdown_output_extraction(cli_runner_instance, tmp_path):
     assert len(files) == 2
     assert output_filename in files
 
-    extracted_outputs = os.listdir(outfile_path.parent / "output-outputs")
+    extracted_outputs = os.listdir(outfile_path.parent / "output_extraction_outputs")
     assert "output_1_0.png" in extracted_outputs
 
 
