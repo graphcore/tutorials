@@ -22,7 +22,7 @@ def execute_conversion(source: Path, output: Path, output_type: OutputTypes, exe
     output_content, resources = exporter.from_notebook_node(
         notebook,
         resources={
-            NBCONVERT_RESOURCE_OUTPUT_DIR_KEY: output.parent / f"{output.stem}-{IMAGES_DIR}"
+            NBCONVERT_RESOURCE_OUTPUT_DIR_KEY: output.parent / f"{source.stem}_{IMAGES_DIR}"
         }
     )
 
