@@ -1,5 +1,26 @@
-# Keras tutorial: How to run on IPU
+"""
+Copyright (c) 2021 Graphcore Ltd. All rights reserved.
 
+Copyright holder unknown (author: François Chollet 2015)
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+This file has been modified by Graphcore Ltd.
+"""
+"""
+# Keras tutorial: How to run on IPU
+"""
+"""
 This tutorial provides an introduction on how to run Keras models on IPUs, and 
 features that allow you to fully utilise the capability of the IPU. Please 
 refer to the [TensorFlow 2 Keras API reference](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/api.html#module-tensorflow.python.ipu.keras) 
@@ -10,7 +31,8 @@ Requirements:
 * Installed the Graphcore port of TensorFlow 2
 
 Refer to the Getting Started guide for your IPU System for instructions.
-
+"""
+"""
 #### Directory Structure
 
 * `completed_demos`: Completed versions of the scripts described in this tutorial
@@ -22,7 +44,8 @@ to generate README.md and x containing also the tutorial content
 * `demo.py`: A demonstration script, where code is edited to illustrate the
 differences between running a Keras model on the CPU and IPU
 * `test`: A directory that contains test scripts
-
+"""
+"""
 #### Keras MNIST example
 
 The script below (which also can be found in `demo.py`) illustrates a simple 
@@ -48,9 +71,7 @@ Epoch 2/3
 Epoch 3/3
 938/938 [==============================] - 9s 10ms/step - loss: 0.2376 - accuracy: 0.9289
 ```
-
-
-```python
+"""
 import tensorflow.keras as keras
 import numpy as np
 
@@ -115,8 +136,9 @@ model.fit(x_train, y_train, epochs=3, batch_size=batch_size)
 
 print('\nEvaluation')
 model.evaluate(x_test, y_test, batch_size=batch_size)
-```
+# sst_hide_output
 
+"""
 #### Running the example on the IPU
 
 In this section, we will make a series of edits to `demo.py` in order to train 
@@ -128,10 +150,10 @@ First, we import the TensorFlow IPU module.
 
 Add the following import statement to the beginning of your script:
 
-
-```python
+"""
 from tensorflow.python import ipu
-```
+
+"""
 
 For the `ipu` module to function properly, we must import it directly rather 
 than accessing it through the top-level TensorFlow module.
@@ -145,17 +167,18 @@ sure the sizes of our datasets are divisible by the batch size. We introduce
 a utility function, `make_divisible`, which computes the largest number, no 
 larger than a given number, which is divisible by a given divisor. This will be 
 of further use later.
+"""
 
 
-```python
 def make_divisible(number):
     return number - number % batch_size
-```
 
+
+"""
 Adjust dataset lengths to be divisible by the batch size:
+"""
 
 
-```python
 def prepare_data_trim_to_size():
     (x_train, y_train), (x_test, y_test) = keras.datasets.mnist.load_data()
 
@@ -177,8 +200,9 @@ def prepare_data_trim_to_size():
     y_test = keras.utils.to_categorical(y_test, num_classes)
 
     return (x_train, y_train), (x_test, y_test)
-```
 
+
+"""
 With a batch size of 64, we lose 32 training examples and 48 evaluation 
 examples, which is less than 0.2% of each dataset.
 
@@ -189,44 +213,40 @@ any data, you can pad the datasets with tensors of zeros, then set
 `sample_weight` to be a vector of 1’s and 0’s according to which values are 
 real so the extra values don’t affect the training process (though this may be 
 slower than using the other methods).
-
+"""
+"""
 ##### 3. Add IPU configuration
 
 To use the IPU, you must create an IPU session configuration:
-
-
-```python
+"""
 ipu_config = ipu.config.IPUConfig()
 ipu_config.auto_select_ipus = 1
 ipu_config.configure_ipu_system()
-```
-
+# sst_hide_output
+"""
 This is all we need to get a small model up and running, though a full list of 
 configuration options is available in the [API documentation](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/api.html#tensorflow.python.ipu.config.IPUConfig).
-
+"""
+"""
 ##### 4. Specify IPU strategy
 
 Next, add the following code:
-
-
-```python
+"""
 # Create an execution strategy.
 strategy = ipu.ipu_strategy.IPUStrategy()
-```
-
+"""
 The `tf.distribute.Strategy` is an API to distribute training across multiple 
 devices. `IPUStrategy` is a subclass which targets a system with one or more 
 IPUs attached. Another subclass, [IPUMultiWorkerStrategy](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/api.html#tensorflow.python.ipu.ipu_multi_worker_strategy.IPUMultiWorkerStrategy), 
 targets a multi-system configuration.
-
+"""
+"""
 ##### 5. Wrap the model within the IPU strategy scope
 
 Creating variables and Keras models within the scope of the `IPUStrategy` 
 object will ensure that they are placed on the IPU. To do this, we create a 
 `strategy.scope()` context manager and move all the model code inside it:
-
-
-```python
+"""
 print('Keras MNIST example, running on IPU')
 (x_train, y_train), (x_test, y_test) = prepare_data_trim_to_size()
 
@@ -244,8 +264,8 @@ with strategy.scope():
 
     print('\nEvaluation')
     model.evaluate(x_test, y_test)
-```
-
+# sst_hide_output
+"""
 Note that the function `model_fn()` can be readily reused, and all we really 
 need to do is move the code inside the context of `strategy.scope()`. Prior to 
 the release of version 2.2.0 of the Poplar SDK, it would have been necessary to 
@@ -274,7 +294,8 @@ compilation time.
 
 The file `completed_demos/completed_demo_ipu.py` shows what the code looks like 
 after the above changes are made. 
-
+"""
+"""
 #### Going faster by setting `steps_per_execution`
 
 The IPU implementation above is fast, but not as fast as it could be. This is 
@@ -289,14 +310,15 @@ of the underlying IPU program.
 Now not only the number of data must divide equally into all batches, but also 
 the number of batches must divide into the number of steps, for this purpose 
 we will overload the make_divisible function:
+"""
 
 
-```python
 def make_divisible(number):
     steps_per_execution = number // batch_size
     return number - number % (batch_size * steps_per_execution)
-```
 
+
+"""
 The number of examples in the dataset must be divisible by the number of 
 examples processed per execution (that is, `steps_per_execution * batch_size`). 
 Here, we set `steps_per_execution` to be `(length of dataset) // batch_size` 
@@ -309,9 +331,7 @@ Now we update the code from `with strategy.scope():` onwards by passing
 the model with a different value of `steps_per_execution` between running 
 `model.fit()` and `model.evaluate()`, so we do so here, although it isn't 
 compulsory.
-
-
-```python
+"""
 print('Keras MNIST example, running on IPU with steps_per_execution')
 (x_train, y_train), (x_test, y_test) = prepare_data_trim_to_size()
 
@@ -332,7 +352,8 @@ with strategy.scope():
     model.compile('sgd', 'categorical_crossentropy', metrics=["accuracy"],
                   steps_per_execution=len(x_test) // batch_size)
     model.evaluate(x_test, y_test, batch_size=batch_size)
-```
+# sst_hide_output
+"""
 
 Running this code, the model trains much faster:
 
@@ -346,6 +367,8 @@ Epoch 3/3
 
 The file `completed_demos/completed_demo_faster.py` shows what the code looks 
 like after the above changes are made.
+"""
+"""
 
 #### Replication
 
@@ -355,12 +378,9 @@ each forward and backward pass. This is called _replication_, and can be
 done in Keras with very few code changes. 
 
 First, we'll add variables for the number of IPUs and the number of replicas:
-
-
-```python
+"""
 num_ipus = num_replicas = 2
-```
-
+"""
 Because our model is written for one IPU, the number of replicas will be equal 
 to the number of IPUs.
 
@@ -370,30 +390,31 @@ by the number of replicas. Also, the maximum value of `steps_per_execution` is
 now `train_data_len // (batch_size * num_replicas)`, since the number of 
 examples processed in each step is now `(batch_size * num_replicas)`. 
 We therefore add two lines to the dataset-adjustment code:
+"""
 
 
-```python
 def make_divisible(number):
     return number - number % (batch_size * num_replicas)
-```
+
+
+"""
 
 We'll need to acquire multiple IPUs, so we update the configuration step:
 
-
-```python
+"""
 ipu_config = ipu.config.IPUConfig()
 ipu_config.auto_select_ipus = num_ipus
 ipu_config.configure_ipu_system()
-```
+# sst_hide_output
 
+
+"""
 These are all the changes we need to make to replicate the model and train on 
 multiple IPUs. There is no need to explicitly copy the model or organise the 
 exchange of weight updates between the IPUs because all of these details are 
 handled automatically, as long as we select multiple IPUs and create and use 
 our model within the scope of an `IPUStrategy` object.
-
-
-```python
+"""
 print('Keras MNIST example, running on IPU with replication')
 (x_train, y_train), (x_test, y_test) = prepare_data_trim_to_size()
 
@@ -416,8 +437,8 @@ with strategy.scope():
     model.compile('sgd', 'categorical_crossentropy', metrics=["accuracy"],
                   steps_per_execution=test_steps // (batch_size * num_replicas))
     model.evaluate(x_test, y_test, batch_size=batch_size)
-```
-
+# sst_hide_output
+"""
 With replication, the model trains even faster:
 
 ```
@@ -433,6 +454,8 @@ exchanged between the IPUs before each weight update.
 The file `completed_demos/completed_demo_replicated.py` shows what the code 
 looks like after the above changes are made. 
 
+"""
+"""
 #### Pipelining
 
 Pipelining can also be enabled to split a Keras model across multiple IPUs. A 
@@ -452,14 +475,14 @@ the Technical Note on Model Parallelism in TensorFlow](https://docs.graphcore.ai
 In this final part of the tutorial, we will pipeline our model over two stages. 
 We will need to change the value of `num_replicas`, and create a variable for 
 the number of gradient accumulation steps per replica:
+"""
 
-
-```python
 num_ipus = 2
 num_replicas = num_ipus // 2
 gradient_accumulation_steps_per_replica = 8
-```
+# sst_hide_output
 
+"""
 The number of gradient accumulation steps is the number of batches for which we 
 perform the forward and backward passes before performing a weight update. 
 
@@ -482,19 +505,17 @@ fill up the requested number of IPUs. For example, if we select 8 IPUs for our
 We also need to adjust `steps_per_execution` to be divisible by the total number 
 of gradient accumulation steps across 
 all replicas, so we make a slight change to the dataset-adjusting code:
+"""
 
-
-```python
 def make_divisible(number):
     return number - number % (batch_size * num_replicas * gradient_accumulation_steps_per_replica)
-```
 
+"""
 When defining a model using the Keras Functional API, we control what parts of 
 the model go into which stages with the `PipelineStage` context manager. 
 Replace the model implementation in `demo.py` with:
 
-
-```python
+"""
 def model_fn_pipielines():
     # Input layer - "entry point" / "source vertex".
     input_layer = keras.Input(shape=input_shape)
@@ -513,8 +534,7 @@ def model_fn_pipielines():
         x = keras.layers.Dense(num_classes, activation="softmax")(x)
 
     return input_layer, x
-```
-
+"""
 Any operations created inside a `PipelineStage(x)` context manager will be 
 placed in the `x`th pipeline stage (where the stages are numbered starting from 0). 
 Here, the model has been divided into two pipeline stages that run concurrently.
@@ -526,7 +546,7 @@ Now all we need to do is configure the pipelining-specific aspects of our model.
 Add the following line just before the first call to `model.compile()`:
 
 
-```python
+"""
 print('Keras MNIST example, running on IPU with pipelining')
 (x_train, y_train), (x_test, y_test) = prepare_data_trim_to_size()
 
@@ -554,7 +574,8 @@ with strategy.scope():
     model.compile('sgd', 'categorical_crossentropy', metrics=["accuracy"],
                   steps_per_execution=test_steps_per_execution)
     model.evaluate(x_test, y_test, batch_size=batch_size)
-```
+# sst_hide_output
+"""
 
 Within the scope of an `IPUStrategy`, IPU-specific methods such as 
 `set_pipelining_options` are dynamically added to the base `keras.Model` class, 
@@ -563,7 +584,8 @@ We could use the interleaved schedule here by changing `Grouped` to `Interleaved
 
 The file `completed_demos/completed_demo_pipelining.py` shows what the code 
 looks like after the above changes are made. 
-
+"""
+"""
 #### Completed example
 
 The folder `completed_example` contains a complete implementation of the 
@@ -582,14 +604,24 @@ Note that the code in `completed_example` has been refactored into 3 parts:
 * `model.py`: Implementation of a standard Keras model and a pipelined Keras model.
 * `utils.py`: Contains functions that load the data and argument parser.
 
+"""
+"""
 #### License
 This example is licensed under the Apache License 2.0 - see the LICENSE file in 
 this directory.
-
+"""
+"""
+Copyright (c) 2021 Graphcore Ltd. All rights reserved.
+"""
+"""
 This directory contains derived work from the following:
 
 Keras simple MNIST convnet example: https://github.com/keras-team/keras-io/blob/master/examples/vision/mnist_convnet.py
-
+"""
+"""
+Copyright holder unknown (author: François Chollet 2015)
+"""
+"""
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use 
 this file except in compliance with the License. You may obtain a copy of the 
 License at
@@ -602,3 +634,4 @@ CONDITIONS OF ANY KIND, either express or implied.
 
 See the License for the specific language governing permissions and limitations 
 under the License.
+"""
