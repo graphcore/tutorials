@@ -7,6 +7,7 @@ from click.testing import CliRunner
 
 from src.utils.click import print_exception
 from sst import cli
+from tests.test_utils.logger_utils import disable_logging
 from tests.test_utils.path import get_unit_test_static_files_dir
 
 
@@ -15,6 +16,7 @@ TRIVIAL_MAPPING_SOURCE_PATH = get_unit_test_static_files_dir() / "trivial_mappin
 
 @pytest.fixture
 def cli_runner_instance():
+    disable_logging()
     return CliRunner()
 
 

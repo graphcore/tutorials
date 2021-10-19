@@ -5,6 +5,7 @@ import pytest
 from click.testing import CliRunner
 
 from src.utils.click import print_exception
+from tests.test_utils.logger_utils import disable_logging
 from tests.test_utils.path import get_unit_test_static_files_dir
 from sst import cli
 
@@ -13,6 +14,7 @@ STATIC_FILES = get_unit_test_static_files_dir()
 
 @pytest.fixture
 def cli_runner_instance():
+    disable_logging()
     return CliRunner()
 
 

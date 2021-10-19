@@ -8,6 +8,7 @@ from click.testing import CliRunner
 from src.constants import SST_HIDE_OUTPUT_TAG, COPYRIGHT_TAG
 from src.utils.click import print_exception
 from sst import cli
+from tests.test_utils.logger_utils import disable_logging
 from tests.test_utils.path import get_unit_test_static_files_dir
 
 STATIC_FILES = get_unit_test_static_files_dir()
@@ -16,6 +17,7 @@ TRIVIAL_MAPPING_SOURCE_PATH = STATIC_FILES / "trivial_mapping_md_code_md.py"
 
 @pytest.fixture
 def cli_runner_instance():
+    disable_logging()
     return CliRunner()
 
 
