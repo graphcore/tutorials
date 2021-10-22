@@ -21,6 +21,4 @@ This directory contains a number of feature examples demonstrating how to use th
 
 - [Data Callbacks](callbacks): This example creates a simple computation graph and uses callbacks to feed data and retrieve the results. Time between host-device transfer and receipt of the result on the host is computed and displayed for a range of different data sizes.
 
-- [Distributed MNIST with Horovod Training Demo](distributed_training): This example uses distributed training with a Horovod PopART extension to train a network on the MNIST dataset.
-
 - [Automatic and Manual Recomputing](recomputing): This example shows how to use manual and automatic recomputation in popART with a seven layer DNN and generated data.

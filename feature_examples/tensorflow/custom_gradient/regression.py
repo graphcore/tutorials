@@ -95,13 +95,13 @@ with tf.Session() as sess:
 
 # Test that the losses and input gradients matched at
 # every step and that the final weights match:
-if not np.allclose(custom_losses, losses, equal_nan=True):
+if not np.allclose(custom_losses, losses, atol=1e-7, equal_nan=True):
     raise RuntimeError("The losses do not match.")
 
-if not np.allclose(grads, custom_grads, equal_nan=True):
+if not np.allclose(grads, custom_grads, atol=1e-7, equal_nan=True):
     raise RuntimeError("Gradients do not match.")
 
-if not np.allclose(current_weights, current_weights_custom, equal_nan=True):
+if not np.allclose(current_weights, current_weights_custom, atol=1e-7, equal_nan=True):
     raise RuntimeError("The final weights do not match.")
 
 print("Losses, grads and weights match.")

@@ -10,9 +10,9 @@ inference is demonstrated in the executables for simplicity.
 ### File structure
 
 * `cube_op_example/cube_fn_custom_op.cpp` The C++ implementation of the cube operation  
-* `cube_op_example/Makefile` A pre-configured Makefile to build the cube op example
+* `cube_op_example/Makefile` A pre-configured Makefile to build the cube operator example
 * `leaky_relu_example/leaky_relu_custom_op.cpp` The C++ implementation of the leaky relu operation
-* `leaky_relu_example/Makefile` A pre-configured Makefile to build the leaky relu op example
+* `leaky_relu_example/Makefile` A pre-configured Makefile to build the leaky relu operator example
 * `leaky_relu_example/run_leaky_relu.py` A script to run a simple model that uses the leaky relu op
 * `leaky_relu_example/test_lrelu.py` A pytest script to test the operator
 * `README.md` This file.
@@ -22,9 +22,9 @@ inference is demonstrated in the executables for simplicity.
 
 The cube operator takes a tensor as input, then performs an element-wise
 cube operation, returning the result. This contains a main function that builds and runs 
-a simple model using this op in C++.
+a simple model using this operator in C++.
 
-### Building the Cube Op example
+### Building the Cube operator example
 
 1) Prepare the environment.
 
@@ -40,9 +40,9 @@ With your environment fully configured as above, all that remains is to build th
 
 This creates a sub directory `build` which contains an executable `cube_fn_custom_op`.
 
-### Running the Cube Op example
+### Running the Cube operator example
 
-Having built the cube op application, it can be run as follows:
+Having built the cube operator application, it can be run as follows:
 
 	Usage: cube_fn_custom_op [--help] [--ipu] <tensor_val_0> <tensor_val_1>...
 	Options:
@@ -56,7 +56,7 @@ Having built the cube op application, it can be run as follows:
 The input tensor is read from the command-line arguments and converted ready for
 use in the model.
 
-By default, the cube op model runs on the CPU; however it can be pushed onto an IPU device
+By default, the cube operator model runs on the CPU; however it can be pushed onto an IPU device
 by providing the `--ipu` flag. 
 
 
@@ -64,10 +64,10 @@ by providing the `--ipu` flag.
 
 The leaky rectified linear unit (Leaky ReLU) takes a tensor as input, then returns `x` for any 
 element `x >= 0` and `x * alpha` for any element `x < 0`, where `alpha` is provided as a scalar 
-attribute to the operator. This contains a python script that demonstrates how to load the op into the 
-python runtime, build and then execute a model that uses a custom op with the python API.
+attribute to the operator. This contains a python script that demonstrates how to load the operator into the 
+python runtime, build and then execute a model that uses a custom operator with the python API.
 
-### Building the Leaky ReLU op example
+### Building the Leaky ReLU operator example
 
 1) Prepare the environment.
 
@@ -83,7 +83,7 @@ With your environment fully configured as above, all that remains is to build th
 
 This creates a sub directory `build` which contains a C++ shared object library `custom_ops.so`.
 
-### Running the Leaky ReLU Op example
+### Running the Leaky ReLU operator example
 
 Having built the leaky relu op, the popart script can be run as follows:
 

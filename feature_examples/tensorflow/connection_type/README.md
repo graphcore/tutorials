@@ -2,7 +2,7 @@
 
 ## DeviceConnectionType example
 
-This code example demonstrates how to use `set_ipu_connection_type` to control if and when the IPU device is acquired.
+This code example demonstrates how to control if and when an IPU device is acquired using the `set_ipu_connection_type`.
 
 |Mode          |Description                                                          |
 |--------------|---------------------------------------------------------------------|

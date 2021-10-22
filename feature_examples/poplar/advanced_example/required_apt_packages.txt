@@ -1,1 +1,1 @@
-libboost-program-options-dev
+libboost-all-dev

@@ -176,7 +176,7 @@ for transferring data to and from the host by all tiles. If you subtract this fr
 You can get far more detailed insights into the behaviour of the program by using the
 PopVision Graph Analyser tool. The program writes out the ``profile.pop`` file that
 can be read by the graph analyser. For more information about PopVision, see `PopVision
-User Guide <https://docs.graphcore.ai/projects/graphcore-popvision-user-guide/>`_.
+User Guide <https://docs.graphcore.ai/projects/graphcore-popvision-user-guide/>_`.
 
 Note: 
 

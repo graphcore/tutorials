@@ -1,6 +1,6 @@
 # Feature Examples for TensorFlow 1
 
-This directory contains a number of feature examples for how to use TensorFlow 1 with IPUs. These include examples of how to measure performance, use multiple IPUs and implement custom ops in Poplar, among other things. This README provides an overview of all of the TensorFlow 1 examples.
+This directory contains a number of feature examples for how to use TensorFlow 1 with IPUs. These include examples of how to measure performance, use multiple IPUs and implement custom operators in Poplar, among other things. This README provides an overview of all of the TensorFlow 1 examples.
 
 
 ## Performance
@@ -16,11 +16,11 @@ Simple examples demonstrating and explaining different ways of using multiple IP
 
 - [PopDist training example](popdist): This shows how the PopDist API can be used to enable distributed training.
 
-## Custom ops
+## Custom operators
 
-- [Custom op example](custom_op): Code that demonstrates how to define your own custom op using Poplar and PopLibs and use it in TensorFlow 1.
+- [Custom operator example](custom_op): Code that demonstrates how to define your own custom operator using Poplar and PopLibs and use it in TensorFlow 1.
 
-- [Custom op example with gradient](custom_gradient): Code that demonstrates how to define your own custom op using Poplar and PopLibs and use it in TensorFlow 1. Also shows how to define the gradient of your custom op so that you can use automatic differentiation and operations that depend on it, such as the `minimize` method of an optimizer.
+- [Custom operator example with gradient](custom_gradient): Code that demonstrates how to define your own custom operator using Poplar and PopLibs and use it in TensorFlow 1. Also shows how to define the gradient of your custom operator so that you can use automatic differentiation and operations that depend on it, such as the `minimize` method of an optimizer.
 
 
 ## Other examples

@@ -1,30 +1,30 @@
-# Using a custom op in a PyTorch model
+# Using a custom operator in a PyTorch model
 
 
-This example shows how to use a custom op in the PopTorch
+This example shows how to use a custom operator in the PopTorch
 framework on the IPU. 
 
-To be used in PopTorch, a custom op must first be implemented as
-a PopART custom op, then be made available to PopTorch. It is this
-last stage that is shown in this example, using the custom op created
-in our [PopART custom Leaky ReLU op example](tutorials/feature_examples/popart/custom_operators/leaky_relu_example).
+To be used in PopTorch, a custom operator must first be implemented as
+a PopART custom operator, then be made available to PopTorch. It is this
+last stage that is shown in this example, using the custom operator created
+in our [PopART custom Leaky ReLU operator example](tutorials/feature_examples/popart/custom_operators/leaky_relu_example).
 
-This example shows the process of loading in a custom op and using it in a simple
+This example shows the process of loading in a custom operator and using it in a simple
 model creation and training process. This is shown with a CNN using the LeakyReLU custom
-op as an activation function, on the FashionMNIST dataset. 
+operator as an activation function, on the FashionMNIST dataset. 
 
-For more information on custom ops in PopTorch, please refer to the
-[Creating custom ops section of our PyTorch for the IPU User Guide](https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/overview.html#creating-custom-ops).
+For more information on custom operators in PopTorch, please refer to the
+[Creating custom operators section of our PyTorch for the IPU User Guide](https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/overview.html#creating-custom-ops).
 
 # File structure
 
 * `Makefile` Simple makefile which builds the Poplar code
 * `requirements.txt` Required packages to run the Python file.
 * `test_poptorch_custom_op.py` Script for testing this example.
-* `poptorch_custom_op.py` PopTorch CNN program using the custom op.
+* `poptorch_custom_op.py` PopTorch CNN program using the custom operator.
 
-In the [PopART custom Leaky ReLU op example](tutorials/feature_examples/popart/custom_operators/leaky_relu_example):
-* `leaky_relu_custom_op.cpp` Custom code which defines and generates the custom op.
+In the [PopART custom Leaky ReLU operator example](tutorials/feature_examples/popart/custom_operators/leaky_relu_example):
+* `leaky_relu_custom_op.cpp` Custom code which defines and generates the custom operator.
 
 # Using the example
 
@@ -35,7 +35,7 @@ In the [PopART custom Leaky ReLU op example](tutorials/feature_examples/popart/c
        ```
        pip3 install -r requirements.txt
        ```
-2) Build the custom op in the [PopART Leaky ReLU example](../../popart/custom_operators/leaky_relu_example) (after making sure that the `Makefile` and `leaky_relu_custom_op.cpp` files are present):
+2) Build the custom operator in the [PopART Leaky ReLU example](../../popart/custom_operators/leaky_relu_example) (after making sure that the `Makefile` and `leaky_relu_custom_op.cpp` files are present):
       ```
       cd ../../popart/custom_operators/leaky_relu_example
       make

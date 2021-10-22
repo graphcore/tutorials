@@ -19,11 +19,11 @@ Each of the tutorials contains its own README file with full instructions.
 - [Tutorial 1: Porting a simple example](tensorflow1/basics/tut1_porting_a_model)
 - [Tutorial 2: Loops and data pipelines](tensorflow1/basics/tut2_loops_data_pipeline)
 - [Training a model using half- and mixed-precision](tensorflow1/half_precision_training)
+- [Converting a model to run on multiple IPUs with pipelining](tensorflow1/pipelining)
 
 ## TensorFlow 2
 
 - [TensorFlow 2 Keras: How to run on the IPU](tensorflow2/keras)
-- [Optimising for the IPU: Computational Graph Recompilation and Executable Switching in TensorFlow](tensorflow2/recompilation)
 - [Tensorflow 2: How to use infeed/outfeed queues](tensorflow2/infeed_outfeed)
 
 ## PyTorch
