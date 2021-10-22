@@ -324,24 +324,27 @@ def run_python_script_helper(cwd, script, want_std_err=False, env=None, **kwargs
 
 def run_test_helper(subprocess_function, total_run_time=None,
                     total_run_time_tolerance=0.1, **kwargs):
-    """Helper function for running tests
+    """Checks that a function executes within a given time tolerance
 
-    Takes in testable parameters, runs the test and checks the relevant
-    parameters against test results
+    Takes in test keyword parameters, runs the test and checks that the
+    test function executed within a tolerance of the specified duration.
+
+    Note:
+        If `total_run_time` is not specified this function does nothing.
 
     Args:
         subprocess_function: the function that runs a subprocess of
             the model in question
-        total_run_time_range: tuple float representing the expected
-            upper and lower bounds for the total time taken to run
-            the test
+        total_run_time: float or None, the expected run time of the
+            `subprocess_function` callable.
+        total_run_time_tolerance: The range away from `total_run_time` which
+            is considered to be acceptable.
 
     Returns:
-        A String representing the raw output of the models subprocess
+        A String representing the raw output of the models subprocess.
 
     Raises:
-        AssertionError: If the accuracy, time taken etc. are not within
-            the expected bounds
+        AssertionError: If time taken is not within the expected bounds.
     """
 
     start_time = time.time()

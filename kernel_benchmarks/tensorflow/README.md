@@ -1,10 +1,6 @@
-## Graphcore benchmarks: Grouped convolution, GRU, LSTM and RNN layers with TensorFlow
+# Kernel benchmarks: Grouped convolution, GRU, LSTM and RNN layers with TensorFlow
 
-This README describes how to run the benchmarks for models with a single type of layer and synthetic data in training and inference.
-
-## Benchmarking
-
-To reproduce the published Mk2 throughput benchmarks, please follow the setup instructions in this README, and then follow the instructions in [README_Benchmarks.md](README_Benchmarks.md) 
+This README describes how to run benchmarks for models with a single type of layer and synthetic data in training and inference.
 
 ## Overview
 
@@ -33,25 +29,25 @@ The structure of the repo is as follows:
 | `dense.py`                                      | Benchmark program for 1 Dense layer                                    |
 | `README.md`                                     | This file                                                              |
 | `test/`                                         | Test code that can be run via pytest                                   |
+| `requirements.txt`                              | Required packages to install                                           |
 
 ## Quick start guide
 
-### Prepare the environment
+1. Prepare the environment. Install the Poplar SDK following the instructions
+   in the Getting Started guide for your IPU system. Make sure to source the `enable.sh` 
+   script for Poplar and activate a Python virtualenv with the tensorflow-1 wheel
+   from the Poplar SDK installed.
+2. Run the training program. For example:
 
-  Install the Poplar SDK following the instructions in the Getting Started guide for your IPU system.
-  Make sure to source the `enable.sh` script for Poplar and activate a Python
-  virtualenv with the tensorflow-1 wheel from the Poplar SDK installed.
+   `python3 program.py`
 
-### Run the programs
+   Each benchmark can be executed multiple times using the `--steps`
+   option.
 
-Each benchmark can be executed multiple times using the `--steps`
-option.
+   `python3 program.py --steps 5`
+   
+   Use `--help` or `-h` to show all available options.
 
-```
-python3 program.py --steps 5
-```
-
-Use `--help` or `-h` to see all available options.
 
 ### Profiling
 

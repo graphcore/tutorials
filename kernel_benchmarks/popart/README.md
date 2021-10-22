@@ -1,23 +1,36 @@
-# Synthetic benchmarks on IPUs
+# Kernel benchmarks: Convolutional and LSTM layers with PopART
 
-This readme describes how to run synthetic benchmarks for models with a single type of layer and synthetic data in training and inference.
+This README describes how to run benchmarks for models with a single type of layer and synthetic data in training and inference.
 
 ## Overview
 
-#### LSTM Layer
+Each program creates a model with only one type of layer for benchmarking.
+* LSTM (Long Short-Term Memory) are used in sequential data with long dependencies.
+* Convolutional layers are used in image and video recognition, recommender systems, image classification, medical image analysis, natural language processing, and financial time series
 
-This example uses an LSTM model for benchmarking. LSTM (Long Short-Term Memory) is used in sequential data with long dependencies.
 
-#### 2D Convolutional Layer
+## Running the model
 
-This example uses a Convolutional layer for benchmarking. Convolutional layer employs a mathematical operation called convolution, and is used in image and video recognition, recommender systems, image classification, medical image analysis, natural language processing, and financial time series.
+This repo contains the code required to run the kernel model.
+
+The structure of the repo is as follows:
+
+| File                                            | Description			                                                   |
+| ----------------------------------------------- | ---------------------------------------------------------              |
+| `lstm.py`                                       | Benchmark program for 1 LSTM layer                                     |
+| `conv.py`                                       | Benchmark program for 1 2D Convolutional layer                         |
+| `README.md`                                     | This file                                                              |
+| `test/`                                         | Test code that can be run via pytest                                   |
+| `requirements.txt`                              | Required packages to install                                           |
 
 ## Quick start guide
 
 1. Prepare the environment. Install the Poplar SDK following the instructions
    in the Getting Started guide for your IPU system.
 2. Run the training program. For example:
+
    `python3 lstm.py`
+   
    Use `--help` to show all available options.
 
 ### Profiling
@@ -34,15 +47,3 @@ export POPLAR_ENGINE_OPTIONS='{"autoReport.all":"true", "autoReport.directory":"
 After running a benchmark, the resulting report can be opened using the PopVision Graph Analyser. 
 See the PopVision user guide for more information:
 [PopVision User Guide](https://docs.graphcore.ai/projects/graphcore-popvision-user-guide/en/latest/index.html).
-
-
-## File structure
-
-|            |                           |
-|------------|---------------------------|
-| `lstm.py`          | Benchmark program for 1 LSTM layer                       |
-| `conv.py`          | Benchmark program for 1 2D Convolutional layer           |
-
-
-----
-

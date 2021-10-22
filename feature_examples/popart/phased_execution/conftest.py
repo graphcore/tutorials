@@ -5,7 +5,7 @@ import subprocess
 
 
 def remote_buffers_available():
-    output = subprocess.run(["gc-info -d 0 -i | grep 'remote buffers: 1'"],
+    output = subprocess.run(["gc-info -d 0 -i | grep 'remote buffers supported: 1'"],
                             stdout=subprocess.DEVNULL,
                             stderr=subprocess.DEVNULL,
                             shell=True,

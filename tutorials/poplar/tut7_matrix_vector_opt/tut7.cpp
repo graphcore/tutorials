@@ -344,9 +344,9 @@ int main(int argc, char **argv) {
 
   // Create host buffers for the inputs and outputs and fill the inputs
   // with sample data.
-  auto hMatrix = std::unique_ptr<float[]>(new float[numRows * numCols]);
-  auto hInput = std::unique_ptr<float[]>(new float[numCols]);
-  auto hOutput = std::unique_ptr<float[]>(new float[numRows]);
+  auto hMatrix = std::vector<float>(numRows * numCols);
+  auto hInput = std::vector<float>(numCols);
+  auto hOutput = std::vector<float>(numRows);
 
   for (unsigned col = 0; col < numCols; ++col) {
     hInput[col] = col;
@@ -372,15 +372,15 @@ int main(int argc, char **argv) {
                 Sequence(Copy(inStreamV, inputVector), Copy(inStreamM, matrix),
                          mulProg, Copy(outputVector, outStream)), engineOpts);
   engine.load(device);
-  engine.connectStream("inputVector", hInput.get());
-  engine.connectStream("inputMatrix", hMatrix.get());
-  engine.connectStream("out", hOutput.get());
+  engine.connectStream("inputVector", hInput.data());
+  engine.connectStream("inputMatrix", hMatrix.data());
+  engine.connectStream("out", hOutput.data());
 
   std::cout << "Running graph program to multiply matrix by vector\n";
   engine.run();
 
   // Check the results match what is expected.
-  int err = checkResult(&hMatrix[0], &hInput[0], &hOutput[0], numRows, numCols);
+  int err = checkResult(hMatrix.data(), hInput.data(), hOutput.data(), numRows, numCols);
   if (err)
     return err;
 

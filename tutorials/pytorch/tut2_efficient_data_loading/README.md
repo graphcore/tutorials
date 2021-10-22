@@ -69,6 +69,9 @@ class ClassificationModel(nn.Module):
 
 if __name__ == '__main__':   
     model = ClassificationModel()
+    model.train()  # Switch the model to training mode
+    # Models are initialised in training mode by default, so the line above will
+    # have no effect. Its purpose is to show how the mode can be set explicitly.
     training_model = poptorch.trainingModel(model, opts, torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9))
 
     # Create a fake dataset from random data
@@ -78,7 +81,7 @@ if __name__ == '__main__':
 ```
 
 We are using larger images (128x128) to simulate a heavier data load.
-This will cause the input size of the layer `fc1` to change from  `self.fc1 = nn.Linear(972, 100)` to `self.fc1 = nn.Linear(41772, 100)` 
+This will cause the input size of the layer `fc1` to change from  `self.fc1 = nn.Linear(972, 100)` to `self.fc1 = nn.Linear(41772, 100)`.
 
 Let’s set up a PopTorch DataLoader with asynchronous mode.
 ```python 
@@ -114,6 +117,12 @@ From the host point of view, this will correspond to a single call to the model 
 ```python
 training_model(data, labels)
 ```
+
+##### A note on returned data
+
+The number of batches of data returned to the host depends on the option `poptorch.Options.anchorMode`. It defaults to `Final` for `trainingModel` and `All` for `inferenceModel`. This is because you will usually want to receive all the output tensors when you use a `inferenceModel()` while you will often not need to receive all or any of the output tensors when you use a `trainingModel`. See the [documentation](https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/reference.html?highlight=anchormode#poptorch.Options.anchorMode) for more information about `poptorch.Options.anchorMode`. 
+
+In this case presented above, we are using a `trainingModel` and `poptorch.Options.anchorMode` is therefore set to `Final`. Since `poptorch.Options.replicationFactor` defaults to 1, the number of data elements returned to the host will just be 16, which is the batch size. The tensor shape will then be (16, 1, 128, 128). 
 
 #### Gradient accumulation
 

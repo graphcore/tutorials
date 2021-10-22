@@ -1,8 +1,13 @@
 Tutorial 7: matrix-vector multiplication optimisation
 -----------------------------------------------------
 
-For a massively parallel machine such as the IPU, the strategy in
-tutorial 6 is not the most efficient. In particular:
+As always, do not hesitate to read through the `Poplar and PopLibs User
+Guide <https://docs.graphcore.ai/projects/poplar-user-guide/en/latest/index.html>`_
+to complement this tutorial.
+
+In the previous tutorial, we learnt how to build a more complex vertex that multiplies
+a matrix by a vector. However, for a massively parallel machine such as the IPU, the
+strategy in tutorial 6 is not the most efficient. In particular:
 
 * Allocating one vertex to each row may not create enough vertices to
   occupy all the workers on the machine.
@@ -158,7 +163,7 @@ This is the average number of compute cycles *across all tiles* and is pretty cl
 to the program estimate of 3996. Note that since ``IPUModel`` is used here, numbers
 given when profiling are estimated and might differ from the execution profiling when
 running on hardware (see this `explanation of IPUModel 
-<https://docs.graphcore.ai/projects/poplar-user-guide/en/latest/poplar_programs.html>`).
+<https://docs.graphcore.ai/projects/poplar-user-guide/en/latest/poplar_programs.html>`_).
 
 The "Total cycles" line is the overall time taken to run the program; you can also
 think of this as the number of cycles taken by a single tile. It is the total cycles
@@ -171,7 +176,7 @@ for transferring data to and from the host by all tiles. If you subtract this fr
 You can get far more detailed insights into the behaviour of the program by using the
 PopVision Graph Analyser tool. The program writes out the ``profile.pop`` file that
 can be read by the graph analyser. For more information about PopVision, see `PopVision
-User Guide <https://docs.graphcore.ai/projects/graphcore-popvision-user-guide/>`.
+User Guide <https://docs.graphcore.ai/projects/graphcore-popvision-user-guide/>`_.
 
 Note: 
 
@@ -189,20 +194,20 @@ Note:
 
 The execution profile will look like:
 
-```console
-Execution:
+.. code-block:: console
 
-Programs executed:
+    Execution:
 
-<anonymous>.
+    Programs executed:
 
-Total cycles:                                         25,444,984 (approx 19,131.6 microseconds)
-Tile average compute cycles (including idle threads): 28,300.3 (0.1% of total)
-Tile average IPU exchange cycles:                     8,743.1 (0.0% of total)
-Tile average global exchange cycles:                  0.0 (0.0% of total)
-Tile average host exchange cycles:                    2,641,488.4 (10.4% of total)
-Tile average sync cycles:                             135,849.6 (0.5% of total)
-```
+    <anonymous>.
+
+      Total cycles:                                         25,444,984 (approx 19,131.6 microseconds)
+      Tile average compute cycles (including idle threads): 28,300.3 (0.1% of total)
+      Tile average IPU exchange cycles:                     8,743.1 (0.0% of total)
+      Tile average global exchange cycles:                  0.0 (0.0% of total)
+      Tile average host exchange cycles:                    2,641,488.4 (10.4% of total)
+      Tile average sync cycles:                             135,849.6 (0.5% of total)
 
 Note that the total cycles per tile using IPU hardware is signifcantly larger
 than when using the IPU Model. The main overhead comes from the `StreamCopyBegin`

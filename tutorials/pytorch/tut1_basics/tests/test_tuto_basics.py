@@ -16,4 +16,4 @@ class TestComplete(SubProcessChecker):
         # Check whether the model compiles and executes.
         self.run_command("python3 walkthrough.py",
                          working_path,
-                         "Model training and evaluation ran successfully")
+                         "Eval accuracy:")

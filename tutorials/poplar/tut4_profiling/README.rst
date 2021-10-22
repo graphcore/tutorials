@@ -248,7 +248,7 @@ The environment variables can be made to persist using ``export``,
 however common usage is to specify them on the same line as the
 program to be profiled to scope them. Experiment with turning different
 profiling functionality on and off. Note that the Poplar progam only overwrites
-those files in t folder that correspond to the functionality turned on for that run.
+those files in the folder that correspond to the functionality turned on for that run.
 So it won't delete files that aren't written in that run.
 
 This is fully detailed in the `Capturing IPU Reports
@@ -359,7 +359,7 @@ Open one of your reports from above, and click on the ``Memory`` tab icon on the
 * In the top right there is a ``Select Tile`` box - type in a tile you are
   interested in and see how the Details section shows details on just that specific tile.
 
-  - You can enter two tile or more tile numbers, comma separated, to compare two or more different tiles.
+  - You can enter multiple tile numbers, comma separated, to compare two or more different tiles.
   - You can also Shift-click on the lines of the graph to achieve the same behaviour.
 
 *  In the top right there is also a set of options. Turn on ``Include Gaps`` and ``Show Max Memory``.

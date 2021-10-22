@@ -44,7 +44,7 @@ class ResNextModel(nn.Module):
 def run_model(batch_size=20, availableMemoryProportion=0.8):
 
     model = ResNextModel()
-    model.eval()
+    model.eval()  # Switch the model to inference mode
 
     opts = poptorch.Options().deviceIterations(1)
     opts.setAvailableMemoryProportion({"IPU0": availableMemoryProportion})

@@ -1,11 +1,11 @@
 # Copyright (c) 2020 Graphcore Ltd. All rights reserved.
-import os
 import pytest
+from filelock import FileLock
+from pathlib import Path
+
 # NOTE: The import below is dependent on 'pytest.ini' in the root of
 # the repository
 from examples_tests.test_util import SubProcessChecker
-from pathlib import Path
-
 
 build_dir = Path(__file__).parent.parent.resolve()
 
@@ -14,8 +14,8 @@ class TestPopartCustomOperatorCube(SubProcessChecker):
     """Tests for example of Popart cube custom operator"""
 
     def setUp(self):
-        self.run_command("make clean", build_dir, [])
-        self.run_command("make", build_dir, [])
+        with FileLock(__file__ + '.lock'):
+            self.run_command("make", build_dir, [])
 
     @pytest.mark.ipus(1)
     @pytest.mark.category1

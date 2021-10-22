@@ -2,8 +2,10 @@ Tutorial 6: matrix-vector multiplication
 ----------------------------------------
 
 This tutorial builds up a more complex calculation on vertices: multiplying a
-matrix by a vector. Use
-``tut6_matrix_vector/start_here`` as your working directory.
+matrix by a vector. Do not hesitate to read through the `Poplar and PopLibs User
+Guide <https://docs.graphcore.ai/projects/poplar-user-guide/en/latest/index.html>`_
+to complement this tutorial.
+Use ``tut6_matrix_vector/start_here`` as your working directory.
 
 The file ``matrix-mul-codelets.cpp`` contains the outline for the vertex code
 that will perform a dot product. Its input and output fields are already

@@ -153,7 +153,7 @@ def get_data_loader(
             )
         )
         data_set = datasets.MNIST(
-            "../data",
+            "~/.torch/datasets",
             train=is_train,
             download=True,
             transform=transforms.Compose(

@@ -42,12 +42,14 @@ for t in tensors:
 transform = torchvision.transforms.Compose([
     torchvision.transforms.ToTensor(),
     torchvision.transforms.Normalize((0.5,), (0.5,))])
-train_data = torchvision.datasets.MNIST("./datasets/", transform=transform, download=True, train=True)
+train_data = torchvision.datasets.MNIST("~/.torch/datasets", transform=transform, download=True, train=True)
 train_loader = poptorch.DataLoader(opts, train_data, batch_size=batch_size_train, shuffle=True, num_workers=1)
 
 # Intialize the PopTorch training model
 model = BasicLinearModel()
-model.train()
+model.train()  # Switch the model to training mode
+# Models are initialised in training mode by default, so the line above will
+# have no effect. Its purpose is to show how the mode can be set explicitly.
 optimizer = poptorch.optim.SGD(model.parameters(), lr=0.01)
 poptorch_model = poptorch.trainingModel(model, options=opts, optimizer=optimizer)
 
@@ -74,7 +76,9 @@ gradient[idx] = torch.log2(gradient[idx])
 gradient[~idx] = torch.min(gradient) - 2
 gradient_data = gradient.numpy()
 
-# Process the gradient data to create the histogram
+# We can process the gradient data to create the histogram.  Don't hesitate to
+# experiment: you can then compare your histogram with the
+# [histogram provided in the `static` folder](static/GradientHistogram.png).
 fig, axs = plt.subplots(tight_layout=True)
 axs.hist(gradient_data, bins=50)
 axs.set(title = "Gradient Histogram", ylabel='Frequency')

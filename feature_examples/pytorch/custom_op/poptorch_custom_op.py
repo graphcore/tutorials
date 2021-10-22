@@ -1,27 +1,27 @@
 # Copyright (c) 2021 Graphcore Ltd. All rights reserved.
 
 import pathlib
-import ctypes
 import torch
 import torch.nn as nn
 import torchvision
 import poptorch
 import os
 from pathlib import Path
+
 # This example shows the process of loading in and using in a custom op in PopTorch. The
 # code shows a simple CNN trained on the FashionMNIST dataset, replacing the activations
 # in the model with a LeakyReLU custom activation, and then shows a short training process.
 
 # Once you have implemented a custom op in C++ along with a Makefile, pathlib is used to verify
 # the path to the generated .so file, and the op is loaded into the code.
-custom_op_rel_path = Path(__file__).parent.parent.parent.joinpath("popart/custom_operators/leaky_relu_example/build/")
+custom_op_rel_path = Path(__file__).resolve().parent.parent.parent.joinpath("popart/custom_operators/leaky_relu_example/build/")
 
 myso = pathlib.Path(os.path.join(custom_op_rel_path, 'custom_ops.so'))
-assert myso, 'Failed to find Leaky ReLU Custom op file: `custom_ops.so`. Have you run the `make` command to generate this file?'
+assert myso.exists(), 'Failed to find Leaky ReLU Custom op file: `custom_ops.so`. Have you run the `make` command to generate this file?'
 
-# Use ctypes to load the shared library file (.so) generated, to allow the C++ functionalities
+# Load the shared library file (.so) to allow the C++ functionalities
 # to be called from this Python file when using poptorch.custom_ops.
-ctypes.cdll.LoadLibrary(myso)
+torch.ops.load_library(myso)
 
 # Loading and preprocessing of the dataset
 transform = torchvision.transforms.Compose([
@@ -29,7 +29,7 @@ transform = torchvision.transforms.Compose([
     torchvision.transforms.Normalize((0.5, ), (0.5, ))
 ])
 
-train_data = torchvision.datasets.FashionMNIST("./datasets/", transform=transform, download=True, train=True)
+train_data = torchvision.datasets.FashionMNIST("~/.torch/datasets", transform=transform, download=True, train=True)
 
 
 # Load the custom op in as a function here for easy reusability. This function could also be defined
@@ -77,6 +77,9 @@ class CNNwithLeakyReLU(nn.Module):
 
 # Define the model
 model = CNNwithLeakyReLU()
+model.train()  # Switch the model to training mode
+# Models are initialised in training mode by default, so the line above will
+# have no effect. Its purpose is to show how the mode can be set explicitly.
 
 # Use PopTorch's dataloader for efficient data batching for the train stage
 opts = poptorch.Options()
@@ -104,4 +107,4 @@ for epoch in range(epochs):
     mean_loss = (total_loss/n_batches).item()
     mean_acc = (total_acc/n_batches).item()
 
-    print("Epoch " % epoch, "| Loss: %.2f" % mean_loss, "| Accuracy: %.2f" % mean_acc)
+    print("Epoch %d" % epoch, "| Loss: %.2f" % mean_loss, "| Accuracy: %.2f" % mean_acc)

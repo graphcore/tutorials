@@ -34,6 +34,7 @@ class TestTensorFlowLSTMBenchmarks(SubProcessChecker):
 
     @pytest.mark.category1
     @pytest.mark.ipus(1)
+    @pytest.mark.ipu_version("ipu2")
     def test_inference_b128_s50_h1536(self):
         self.run_command("python3 lstm.py --batch-size 128 --timesteps 50 --hidden-size 1536 --popnn --save-graph",
                          working_path,

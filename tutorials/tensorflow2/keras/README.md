@@ -1,7 +1,7 @@
 Keras tutorial: How to run on IPU
 -----------------------------------
 
-This tutorial provides an introduction on how to run Keras models on IPUs, and features that allow you to fully utilise the capability of the IPU. Please refer to the [TensorFlow 2 Keras API reference](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/api.html#module-tensorflow.python.ipu.keras) for full details of all available features.
+This tutorial provides an introduction on how to run Keras models on IPUs, and features that allow you to fully utilise the capability of the IPU. Please refer to the [TensorFlow 2 documentation - Keras with IPUs](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/keras_tf2.html) and the TensorFlow 2 Keras API reference sections on [IPU extensions](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/api.html#module-tensorflow.python.ipu.keras.extensions), and IPU-specific [Keras layers](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/api.html#keras-layers), [Keras losses](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/api.html#module-tensorflow.python.ipu.keras.losses) and [Keras optimizers](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/api.html#module-tensorflow.python.ipu.keras.losses) for full details of all available features.
 
 Requirements:
 * Installed and enabled Poplar
@@ -14,14 +14,20 @@ Refer to the Getting Started guide for your IPU System for instructions.
 * `completed_demos`: Completed versions of the scripts described in this tutorial
 * `completed_example`: A completed example of running Keras models on the IPU
 * `demo.py`: A demonstration script, where code is edited to illustrate the differences between running a Keras model on the CPU and IPU
+* `pipeline_time_seq_training.png`: A diagram showing the pipelining process on 3 IPUs during training
 * `README.md`: This file
 * `test`: A directory that contains test scripts
 
 #### Table of Contents
 
-* [Keras MNIST example](#keras-mnist-example)
-* [Running the example on the IPU](#running-the-example-on-the-ipu)
-* [Going faster by setting `steps_per_execution`]
+- [Keras MNIST example](#keras-mnist-example)
+- [Running the example on the IPU](#running-the-example-on-the-ipu)
+- [Going faster by setting `steps_per_execution`](#going-faster-by-setting-steps_per_execution)
+- [Replication](#replication)
+- [Pipelining](#pipelining)
+- [Completed example](#completed-example)
+- [License](#license)
+
 
 #### Keras MNIST example
 
@@ -144,7 +150,9 @@ Epoch 3/3
 937/937 [==============================] - 3s 3ms/step - loss: 0.2358 - accuracy: 0.9294
 ```
 
-The training time has been significantly reduced by use of the IPU. We ignore the reported total for the first epoch because this time includes the model's compilation time.
+The training time has been significantly reduced by use of the IPU. We ignore the reported total for the first epoch because this time includes the model's compilation time. 
+
+>To avoid recompiling the same code every time a TensorFlow process is started, you can [turn on caching of the executable](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/compiling.html#compiling-and-pre-compiling-executables).
 
 The file `completed_demos/completed_demo_ipu.py` shows what the code looks like after the above changes are made. If your code  is not working, you may find it useful to compare your code to that in `completed_demos/completed_demo_ipu.py`.
 
@@ -266,9 +274,19 @@ The file `completed_demos/completed_demo_replicated.py` shows what the code look
 
 #### Pipelining
 
-Pipelining can also be enabled to split a Keras model across multiple IPUs. A pipelined model will execute multiple sections (called _stages_) of a model on individual IPUs concurrently by pipelining mini-batches of data through the stages.
+For models that require multiple IPUs, for example due to their size, pipelining can be used to maximise the use of the IPUs involved by executing different parts of the model in parallel. A pipelined model assigns sections (called _stages_) of the model to different IPUs, concurrently processing different mini-batches of data through each stage.
 
-One of the key features of pipelining on the IPU is _gradient accumulation_. Forward and backward passes will be performed on several batches without performing a weight update. Instead, a cumulative sum of the gradients is updated after each forward and backward pass, and the weight update is applied only after a certain number of batches have been processed. This helps ensure consistency between the weights used in the forward and backward passes, and can be used to train with a batch size that wouldn't fit otherwise. To learn more about the specifics of pipelining, you can read [the relevant section of the Technical Note on Model Parallelism in TensorFlow](https://docs.graphcore.ai/projects/tf-model-parallelism/en/latest/pipelining.html).
+Below, you can see a diagram of the pipelining process on 3 IPUs during training:
+
+![Pipeline time sequence during model training](pipeline_time_seq_training.png)
+
+In order to maximise the utilisation of IPUs during execution of a pipelined model you should aim to increase the time spent in the _main execution phase_.  Pipelining has 3 phases: ramp up, main execution, and ramp down. During the ramp up and down phases not all the IPUs are in use, by increasing the number of mini-batches that are processed before performing a weight update, we increase the amount of time spent in the main execution phase, improving the utilisation of the IPUs and speeding up computation.
+
+One of the key features of the IPU which enables efficient pipelining is [_gradient accumulation_](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/perf_training.html?highlight=pipelining#id3). With gradient accumulation, instead of updating the weights between each mini-batch, forward and backward passes are performed on several mini-batches, while keeping a cumulative sum of the gradients. A weight update is applied based on this accumulated gradient after the specified number of mini-batches has been processed. This ensures consistency between the weights used in the forward and backward passes while increasing the time spent in the main execution phase. We call the processing of a mini-batch a _gradient accumulation step_, and the number of mini-batches processed between weight updates is the number of gradient accumulation steps.
+
+By processing multiple mini-batches between weight updates, gradient accumulation increases the effective batch size of our training process. With gradient accumulation the _effective_ batch size is the size of the mini-batch multiplied by the number of gradient accumulation steps. This allows us to train models with batch sizes which would not fit directly in the memory of the IPU.
+
+To learn more about about pipelining you may want to read [the relevant section of the Technical Note on Model Parallelism in TensorFlow](https://docs.graphcore.ai/projects/tf-model-parallelism/en/latest/pipelining.html), our [pipelining documentation specific to TensorFlow](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/perf_training.html?highlight=pipelining#pipelined-training), or complete [the TensorFlow 1 pipelining tutorial](../../tensorflow1/pipelining/README.md).
 
 In this final part of the tutorial, we will pipeline our model over two stages. Start by making a copy of `completed_demos/completed_demo_replicated.py` from which to work. We will need to change the value of `num_replicas`, and create a variable for the number of gradient accumulation steps per replica:
 
@@ -281,8 +299,6 @@ num_ipus = 2
 num_replicas = num_ipus // 2
 gradient_accumulation_steps_per_replica = 8
 ```
-
-The number of gradient accumulation steps is the number of batches for which we perform the forward and backward passes before performing a weight update. 
 
 There are multiple ways to execute a pipeline, called _schedules_. The grouped and interleaved schedules are the most efficient because they execute stages in parallel, while the sequential schedule is mostly used for debugging. In this tutorial, we will use the grouped schedule, which is the default.
 

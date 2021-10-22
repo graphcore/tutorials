@@ -1,6 +1,10 @@
 CXX ?= c++
-all:
+all: cpu ipu
+
+cpu:
 	$(CXX) -g -std=c++11 tut6_complete.cpp -lpoplar -o tut6_cpu
+
+ipu:
 	$(CXX) -g -std=c++11 tut6_ipu_hardware_complete.cpp -lpoplar -o tut6_ipu
 
 clean:

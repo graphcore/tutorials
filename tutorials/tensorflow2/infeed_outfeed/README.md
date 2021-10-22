@@ -1,5 +1,35 @@
 # Using Infeed and Outfeed Queues in TensorFlow 2
 
+In this tutorial, you will write code for training a simple fully connected network on the MNIST dataset to illustrate how to use infeed and outfeed queues with a custom training function.
+
+Requirements:
+
+* Installed and enabled Poplar
+* Installed the Graphcore port of TensorFlow 2
+
+Refer to the [Getting Started guide for your IPU System](https://docs.graphcore.ai/en/latest/getting-started.html) for instructions.
+
+#### Directory Structure
+
+* `completed_code`: Completed versions of the scripts described in this tutorial
+* `execution_trace`: Execution traces of the scripts described in this tutorial
+* `README.md`: This file
+* `test`: A directory that contains test scripts
+
+#### Table of Contents
+
+- [Introduction](#introduction)
+- [Example](#example)
+    - [Import the necessary APIs](#import-the-necessary-apis)
+    - [Define hyperparameters](#define-hyperparameters)
+    - [Prepare the dataset](#prepare-the-dataset)
+    - [Define the model](#define-the-model)
+    - [Define the custom training loop](#define-the-custom-training-loop)
+    - [Configure the hardware](#configure-the-hardware)
+    - [Create data pipeline and execute the training loop](#create-data-pipeline-and-execute-the-training-loop)
+- [Additional Notes](#additional-notes)
+
+
 ## Introduction
 
 The combination of TensorFlow, XLA and Poplar provides the ability to combine an entire training graph into a single operation in a TensorFlow graph. This accelerates training by removing the need to pass control to the IPU for each individual operation in the graph.
@@ -20,7 +50,7 @@ You need to do the following in order to construct a system that trains in a loo
 
 This example illustrates how to build pipelines manually with custom functions. However, the IPU-specific versions of the Keras Model and Sequential classes automatically add an infeed and outfeed to the model's `fit`, `evaluate` and `predict` methods. These methods call the `run` function internally.
 
-In this tutorial, you will write code for training a simple fully connected network on the MNIST dataset to illustrate how to use infeed and outfeed queues with a custom training function. The completed code is in the folder `completed_code`. 
+In this tutorial, you will write code for training a simple fully connected network on the MNIST dataset to illustrate how to use infeed and outfeed queues with a custom training function. Copy the code snippets below into a new python file. The completed code is available for comparison in the folder [completed_code](completed_code).
 
 ### Import the necessary APIs
 

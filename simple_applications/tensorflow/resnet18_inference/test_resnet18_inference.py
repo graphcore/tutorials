@@ -15,6 +15,7 @@
 import os
 
 import pytest
+import filelock
 # NOTE: The import below is dependent on 'pytest.ini' in the root of
 # the repository
 from examples_tests.test_util import SubProcessChecker
@@ -27,17 +28,22 @@ working_path = os.path.dirname(__file__)
 class TestResnet18Inference(SubProcessChecker):
     """High-level integration tests for ResNet-18 inference"""
 
-    def setUp(self):
+    @pytest.fixture(scope="class", autouse=True)
+    def download_dataset(self):
         # download files only if not downloaded already
         images_path = os.path.join(working_path, "images")
         weights_path = os.path.join(working_path, "weights")
-        if not os.path.exists(images_path) or not os.path.exists(weights_path):
-            self.run_command("./get_images_and_weights.sh",
-                             working_path,
-                             ["Fetching images224.tar.gz",
-                              "Unpacking ResNet18.tar.gz"],
-                             env=None,
-                             timeout=5*60)
+        # Use a lockfile to avoid race conditions when using with pytest-xdist
+        timeout = 5*60
+        lock_file_path = os.path.join(working_path, "images224.tar.gz.lock")
+        with filelock.FileLock(str(lock_file_path), timeout=timeout):
+            if not os.path.exists(images_path) or not os.path.exists(weights_path):
+                self.run_command("./get_images_and_weights.sh",
+                                 working_path,
+                                 ["Fetching images224.tar.gz",
+                                  "Unpacking ResNet18.tar.gz"],
+                                 env=None,
+                                 timeout=timeout)
 
     def test_help(self):
         self.run_command("python3 classify_images.py -h",

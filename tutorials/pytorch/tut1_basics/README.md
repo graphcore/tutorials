@@ -96,8 +96,8 @@ transform = torchvision.transforms.Compose([
     torchvision.transforms.ToTensor(),
     torchvision.transforms.Normalize((0.5,), (0.5,))])
 
-train_dataset = torchvision.datasets.FashionMNIST("./datasets/", transform=transform, download=True, train=True)
-test_dataset = torchvision.datasets.FashionMNIST("./datasets/", transform=transform, download=True, train=False)
+train_dataset = torchvision.datasets.FashionMNIST("~/.torch/datasets", transform=transform, download=True, train=True)
+test_dataset = torchvision.datasets.FashionMNIST("~/.torch/datasets", transform=transform, download=True, train=False)
 classes = ("T-shirt", "Trouser", "Pullover", "Dress", "Coat", "Sandal", "Shirt", "Sneaker", "Bag", "Ankle boot")
 ```
 
@@ -113,6 +113,12 @@ for i, (image, label) in enumerate(train_dataset):
     ax = plt.subplot(5, 5, i + 1)
     ax.set_title(classes[label])
     plt.imshow(image[0])
+```
+
+We then save this visualisation of the sample images.
+
+```python
+plt.savefig("sample_images.png")
 ```
 
 ![png](static/from_0_to_1_10_0.png)
@@ -155,6 +161,7 @@ class ClassificationModel(nn.Module):
         return x
 
 model = ClassificationModel()
+model.train()
 ```
 
 >**NOTE**: `self.training` is inherited from `torch.nn.Module` which initialises its value to `True`. Use `model.eval()` to set it to `False` and `model.train()` to switch it back to `True`.
@@ -221,7 +228,8 @@ poptorch_model.detachFromDevice()
 
 #### Save the trained model
 
-We can simply use PyTorch's API to save a model in a file, with the original instance of `ClassificationModel` and not the wrapped model.
+We can simply use PyTorch's API to save a model in a file, with the original instance of `ClassificationModel` and not the wrapped model. 
+Do not hesitate to experiment with different models: the model provided in this tutorial is saved in the `static` folder if you need it.
 
 
 ```python
@@ -230,9 +238,9 @@ torch.save(model.state_dict(), "classifier.pth")
 
 ### Evaluate the model
 
-Since we have detached our model from it's training device, the device is now free again and we can use it for the evaluation stage, instead of using the CPU. It is a good idea to use an IPU when evaluating your model on a CPU is slow - be it because the test dataset is large and/or the model is complex - since IPUs are blazing [fast](https://www.graphcore.ai/posts/new-graphcore-ipu-benchmarks).
+The model can be evaluated on a CPU but it is a good idea to use the IPU - since [IPUs are blazing fast](https://www.graphcore.ai/posts/new-graphcore-ipu-benchmarks). Evaluating your model on a CPU is slow if the test dataset is large and/or the model is complex.
 
-The steps taken below to define the model for evaluation essentially allow it to run in inference mode. Therefore, you can follow the same steps to use the model to make predictions once it has been deployed.
+Since we have detached our model from its training device, the device is now free again and we can use it for the evaluation stage. The steps taken below to define the model for evaluation essentially allow it to run in inference mode. Therefore, you can follow the same steps to use the model to make predictions once it has been deployed.
 
 For this, it is first essential to switch the model to evaluation mode. This step is realised as usual.
 
@@ -294,7 +302,7 @@ cm_plot = ConfusionMatrixDisplay(cm, display_labels=classes).plot(xticks_rotatio
 
 As you can see, although we've got an accuracy score of ~88%, the model's performance across the different classes isn't equal. Trousers are very well classified, with more than 96-97% accuracy whereas shirts are harder to classify with less than 60% accuracy, and it seems they often get confused with T-shirts, pullovers and coats. So, some work's still required here to improve your model for all the classes!
 
-We can save this visualisation of the confusion matrix.
+We can save this visualisation of the confusion matrix. Don't hesitate to experiment: you can then compare your confusion matrix with the [visualisation provided in the `static` folder](static/confusion_matrix.png).
 
 
 ```python

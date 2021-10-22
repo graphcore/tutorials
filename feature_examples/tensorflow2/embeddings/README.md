@@ -5,19 +5,19 @@ Graphcore
 These examples train an IPU model with an embedding layer and an
 LSTM to predict the sentiment of an IMDB review.
 
-There are variants covering the use of `ipu.keras.Model` and `ipu.keras.Sequential`
-for single IPU execution. Additionally, there are 2 IPU variants for
-`ipu.keras.PipelineModel` and `ipu.keras.PipelineSequential`.
+There are variants covering the use of `keras.Model` and `keras.Sequential`
+for single IPU execution. Additionally, there are 2 IPU variants showing how to
+use pipelining with either a `keras.Model` or a `keras.Sequential` model on the IPU.
 
 These examples were derived from this Keras example:
 https://github.com/keras-team/keras/blob/1a3ee8441933fc007be6b2beb47af67998d50737/examples/imdb_lstm.py
 
 ### File structure
 
-* `imdb.py` Python script to train the 2 IPU pipelined model.
-* `imdb_sequential.py` Python script to train the 2 IPU pipelined sequential model.
-* `imdb_single_ipy.py` Python script to train the single IPU model.
-* `imdb_single_ipu_sequential.py` Python script to train the single IPU sequential model.
+* `imdb.py` Python script to train the 2-IPU pipelined model.
+* `imdb_sequential.py` Python script to train the 2-IPU pipelined sequential model.
+* `imdb_single_ipy.py` Python script to train the single-IPU model.
+* `imdb_single_ipu_sequential.py` Python script to train the single-IPU sequential model.
 * `README.md` This file.
 * `requirements.txt` Required packages for the tests
 * `test_imdb.py` Integration tests

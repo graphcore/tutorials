@@ -12,8 +12,8 @@ working_path = Path(__file__).parent.parent.joinpath("complete")
 class TestComplete(SubProcessChecker):
 
     def setUp(self):
-        ''' Compile the complete version of the tutorial code '''
-        self.run_command("make all", working_path, [])
+        ''' Compile the CPU version of the tutorial code '''
+        self.run_command("make cpu", working_path, [])
 
     @pytest.mark.category1
     def test_run_complete(self):

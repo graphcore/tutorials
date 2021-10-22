@@ -50,7 +50,7 @@ You can also use the PopTorch option anchor modes to control how much of the ten
  * `anchor_tensor_example.py` Code example for anchoring tensors directly to generate a gradient histogram.
  * `datasets` Folder containing MNIST dataset for the example.
  * `requirements.txt` File containing the requirements for the example.
- * `GradientHistogram.png` Picture of the gradient histogram created by the example.
+ * `static` Folder containing a picture of the gradient histogram created by the example.
  * `README.md` This file.
 
 # Method 1 Print tensor
@@ -96,6 +96,9 @@ First we define our inputs and compile our model
 input = torch.rand(10, 10)
 label = torch.rand(10, 10)
 model = Model()
+model.train()  # Switch the model to training mode
+# Models are initialised in training mode by default, so the line above will
+# have no effect. Its purpose is to show how the mode can be set explicitly.
 poptorch_model = poptorch.trainingModel(model)
 poptorch_model(input, label) # compiling the model
 ```
@@ -173,8 +176,9 @@ You can also run the example code file `anchor_tensor_example.py` via the comman
 ```bash
 python3 anchor_tensor_example.py
 ```
-This example shows how to compute gradient histograms using tensor anchoring. A graph is saved as `GradientHistogram.png` in this folder.
-![Gradient Histogram](./GradientHistogram.png)  
+This example shows how to compute gradient histograms using tensor anchoring. A graph will be saved as `GradientHistogram.png` in the current folder. You can compare this with the histogram provided in the `static` folder:
+
+![Gradient Histogram](./static/GradientHistogram.png)
 
 ## Import packages
 
@@ -239,7 +243,7 @@ We will use the MNIST dataset that we download from `torchvision`.
 transform = torchvision.transforms.Compose([
     torchvision.transforms.ToTensor(),
     torchvision.transforms.Normalize((0.5,), (0.5,))])
-train_data = torchvision.datasets.MNIST("./datasets/", transform=transform, download=True, train=True)
+train_data = torchvision.datasets.MNIST("~/.torch/datasets", transform=transform, download=True, train=True)
 train_loader = poptorch.DataLoader(opts, train_data, batch_size=batch_size_train, shuffle=True)
 ```
 
@@ -249,7 +253,9 @@ Here we initialise the PyTorch model and optimizer and then create the PopTorch 
 
 ```python
 model = BasicLinearModel()
-model.train()
+model.train()  # Switch the model to training mode
+# Models are initialised in training mode by default, so the line above will
+# have no effect. Its purpose is to show how the mode can be set explicitly.
 optimizer = poptorch.optim.SGD(model.parameters(), lr=0.01)
 poptorch_model = poptorch.trainingModel(model, options=opts, optimizer=optimizer)
 

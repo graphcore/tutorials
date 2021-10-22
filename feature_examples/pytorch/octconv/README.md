@@ -24,14 +24,14 @@ This full example uses PopTorch to train the model and then evaluate it on the I
 The classification model can be configured to use one of the following convolution modes:
 
 * `vanilla`: the standard `torch.nn.Conv2d` implementation is used for all convolutions.
-* `octave`: use the Octave convolution `octconv.OctConv2d` in place of all convolutions. 
+* `octave`: use the Octave convolution `octconv.OctConv2d` in place of all convolutions.
 * `multi-octave`: uses `poptorch.MultiConv` to execute the data-parallel convolutions that make-up an Octave convolution in parallel.
 
 The Octave convolutions are parameterized by the `alpha` value which defines the ratio of low-frequency maps.
 
 These options can be selected from the command-line:
 ```:bash
-python3 octconv_example.py --conv-mode octconv --alpha 0.8
+python3 octconv_example.py --conv-mode octave --alpha 0.8
 ```
 
 ## Full Usage

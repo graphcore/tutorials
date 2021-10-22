@@ -47,6 +47,7 @@ def get_test_accuracy(output):
 @pytest.mark.parametrize("use_multi", [True, False])
 def test_octconv_block(use_multi):
     block = OctConvBlock(3, 6, (0., .5), use_multi=use_multi)
+    block.eval()  # Switch the model to inference mode
 
     # N, C, H, W
     x = torch.randn(5, 3, 10, 10)
@@ -62,6 +63,7 @@ def test_octconv_block(use_multi):
 @pytest.mark.parametrize("conv_mode", ["vanilla", "octave", "multi-octave"])
 def test_inference_model(conv_mode):
     model = ClassificationModel(conv_mode)
+    model.eval()  # Switch the model to inference mode
 
     # N, C, H, W
     x = torch.randn(5, 3, 32, 32)
@@ -80,6 +82,10 @@ def test_training_model(conv_mode):
     x = torch.randn(5, 3, 32, 32)
     labels = torch.randint(low=1, high=10, size=(5,))
     out, loss = model(x, labels)
+
+    model.train()  # Switch the model to training mode
+    # Models are initialised in training mode by default, so the line above will
+    # have no effect. Its purpose is to show how the mode can be set explicitly.
 
     pop_model = poptorch.trainingModel(
         model, poptorch.Options(), poptorch.optim.SGD(model.parameters(), lr=0.01))

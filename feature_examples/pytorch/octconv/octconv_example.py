@@ -232,6 +232,7 @@ def setupTraining(model, args):
     """
     opts = setupOptions(args, train=True)
     optimizer = optim.SGD(model.parameters(), lr=args.lr)
+    model.train()  # Switch the model to training mode
     training_model = poptorch.trainingModel(model, opts, optimizer)
     dataset = cifar10(args.data_dir, train=True)
 
@@ -284,6 +285,7 @@ def setupInference(model, args):
     using the time that the IPU is running to load the next batch on the CPU.
     """
     opts = setupOptions(args, train=False)
+    model.eval()  # Switch the model to inference mode
     inference_model = poptorch.inferenceModel(model, opts)
     dataset = cifar10(args.data_dir, train=False)
 
@@ -318,6 +320,7 @@ def profile(model, args):
     """
     opts = setupOptions(args)
     optimizer = optim.SGD(model.parameters(), lr=args.lr)
+    model.train()  # Switch the model to training mode
     training_model = poptorch.trainingModel(model, opts, optimizer)
 
     # Generate a random dataset for profiling
@@ -375,7 +378,7 @@ def parseArgs():
     parser.add_argument(
         "--data-dir",
         type=str,
-        default="data",
+        default="~/.torch/datasets",
         help="Location to use for loading the CIFAR-10 dataset from.")
 
     parser.add_argument("--expansion",

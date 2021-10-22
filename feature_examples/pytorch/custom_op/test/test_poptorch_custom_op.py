@@ -4,6 +4,10 @@ import pytest
 from pathlib import Path
 from examples_tests.test_util import SubProcessChecker
 
+# Set seed to make test deterministic and we can test exact results
+import torch
+torch.manual_seed(42)
+
 working_path = Path(__file__).parent.parent
 
 
@@ -15,4 +19,4 @@ class runFileTest(SubProcessChecker):
         # Check whether the model compiles and trains
         self.run_command("python3 poptorch_custom_op.py",
                          working_path,
-                         "Model using Leaky ReLU custom op")
+                         "Epoch 4 | Loss: 0.67 | Accuracy: 74.23")

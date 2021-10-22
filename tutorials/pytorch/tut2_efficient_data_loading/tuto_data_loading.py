@@ -63,6 +63,9 @@ if __name__ == '__main__':
         opts.enableSyntheticData(True)
 
     model = ClassificationModel()
+    model.train()  # Switch the model to training mode
+    # Models are initialised in training mode by default, so the line above will
+    # have no effect. Its purpose is to show how the mode can be set explicitly.
     print_parameters(args)
     # Setup a Poptorch training model
     training_model = poptorch.trainingModel(model, opts, poptorch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9))

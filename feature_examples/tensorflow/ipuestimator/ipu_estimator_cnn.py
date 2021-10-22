@@ -32,6 +32,10 @@ from tensorflow.python import ipu
 from tensorflow.python.ipu.ipu_session_run_hooks import IPULoggingTensorHook
 
 NUM_CLASSES = 10
+SEED = 42
+
+ipu.utils.reset_ipu_seed(SEED)
+np.random.seed(SEED)
 
 
 def model_fn(features, labels, mode, params):
@@ -127,6 +131,7 @@ def create_ipu_estimator(args):
         log_step_count_steps=None,
         save_summary_steps=args.summary_interval,
         model_dir=args.model_dir,
+        tf_random_seed=SEED
     )
 
     return ipu.ipu_estimator.IPUEstimator(
@@ -153,7 +158,7 @@ def train(ipu_estimator, args, x_train, y_train):
         dataset = tf.data.Dataset.from_generator(generator, types, shapes)
         dataset = dataset.prefetch(len(x_train)).cache()
         dataset = dataset.repeat()
-        dataset = dataset.shuffle(len(x_train))
+        dataset = dataset.shuffle(len(x_train), seed=SEED)
         dataset = dataset.batch(args.batch_size, drop_remainder=True)
 
         return dataset

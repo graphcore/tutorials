@@ -1,7 +1,12 @@
 Tutorial 1: programs and variables
 ----------------------------------
 
-Using ``tut1_variables/start_here`` as your working directory, open ``tut1.cpp`` in an editor. The file contains the outline of a C++ program
+Before starting this tutorial, take time to familiarise yourself with the IPU's architecture by reading the `IPU Programmer's Guide
+<https://docs.graphcore.ai/projects/ipu-overview/en/latest/programming_model.html>`_. You can learn more about the Poplar programming model
+in the corresponding section of our documentation: `Poplar and PopLibs User Guide: Poplar programming
+model <https://docs.graphcore.ai/projects/poplar-user-guide/en/latest/poplar_programs.html#poplar-programming-model>`_.
+
+Then, using ``tut1_variables/start_here`` as your working directory, open ``tut1.cpp`` in an editor. The file contains the outline of a C++ program
 including some Poplar library headers and a namespace.
 
 Graphs, variables and programs

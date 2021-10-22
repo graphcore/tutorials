@@ -17,14 +17,14 @@ urllib.request.install_opener(opener)
 
 def get_mnist_data(opts):
     training_data = torch.utils.data.DataLoader(
-                    torchvision.datasets.MNIST('mnist_data/', train=True, download=True,
+                    torchvision.datasets.MNIST('~/.torch/datasets', train=True, download=True,
                                                transform=torchvision.transforms.Compose([
                                                 torchvision.transforms.ToTensor(),
                                                 torchvision.transforms.Normalize((0.1307, ), (0.3081, ))])),
                     batch_size=opts.batch_size * opts.batches_per_step, shuffle=True, drop_last=True)
 
     validation_data = torch.utils.data.DataLoader(
-                      torchvision.datasets.MNIST('mnist_data/', train=False, download=True,
+                      torchvision.datasets.MNIST('~/.torch/datasets', train=False, download=True,
                                                  transform=torchvision.transforms.Compose([
                                                     torchvision.transforms.ToTensor(),
                                                     torchvision.transforms.Normalize((0.1307, ), (0.3081, ))])),
@@ -129,11 +129,13 @@ if __name__ == '__main__':
     model = Network()
     model_with_loss = TrainingModelWithLoss(model)
     model_opts = poptorch.Options().deviceIterations(opts.batches_per_step)
-    training_model = poptorch.trainingModel(model_with_loss, model_opts, optimizer=optim.SGD(model.parameters(), lr=opts.lr))
 
-    inference_model = poptorch.inferenceModel(model)
 
     # run training, on IPU
+    model_with_loss.train()  # Switch the model to training mode
+    # Models are initialised in training mode by default, so the line above will
+    # have no effect. Its purpose is to show how the mode can be set explicitly.
+    training_model = poptorch.trainingModel(model_with_loss, model_opts, optimizer=optim.SGD(model.parameters(), lr=opts.lr))
     train(training_model, training_data, opts)
 
     # Update the weights in model by copying from the training IPU. This updates (model.parameters())
@@ -142,4 +144,6 @@ if __name__ == '__main__':
     # Check validation loss on IPU once trained. Because PopTorch will be compiled on first call the
     # weights in model.parameters() will be copied implicitly. Subsequent calls will need to call
     # inference_model.copyWeightsToDevice()
+    model.eval()  # Switch the model to inference mode
+    inference_model = poptorch.inferenceModel(model)
     test(inference_model, test_data)

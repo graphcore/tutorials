@@ -1,23 +1,30 @@
 # Using a custom op in a PyTorch model
 
-This example describes the use of a custom op created in Poplar for the PopTorch
-framework on the IPU. It does not describe the *creation* of a custom op with
-Poplar in C++, only the use of the op when developing a PyTorch model.
 
-To see what a created custom op looks like, see [this example](tutorials/feature_examples/popart/custom_operators/leaky_relu_example) of
-the Leaky ReLU custom op.
+This example shows how to use a custom op in the PopTorch
+framework on the IPU. 
+
+To be used in PopTorch, a custom op must first be implemented as
+a PopART custom op, then be made available to PopTorch. It is this
+last stage that is shown in this example, using the custom op created
+in our [PopART custom Leaky ReLU op example](tutorials/feature_examples/popart/custom_operators/leaky_relu_example).
 
 This example shows the process of loading in a custom op and using it in a simple
 model creation and training process. This is shown with a CNN using the LeakyReLU custom
 op as an activation function, on the FashionMNIST dataset. 
 
+For more information on custom ops in PopTorch, please refer to the
+[Creating custom ops section of our PyTorch for the IPU User Guide](https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/overview.html#creating-custom-ops).
+
 # File structure
 
-* `leaky_relu_custom_op.cpp` Custom code which defines and generates the custom op.
 * `Makefile` Simple makefile which builds the Poplar code
 * `requirements.txt` Required packages to run the Python file.
 * `test_poptorch_custom_op.py` Script for testing this example.
 * `poptorch_custom_op.py` PopTorch CNN program using the custom op.
+
+In the [PopART custom Leaky ReLU op example](tutorials/feature_examples/popart/custom_operators/leaky_relu_example):
+* `leaky_relu_custom_op.cpp` Custom code which defines and generates the custom op.
 
 # Using the example
 

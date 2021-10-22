@@ -1,9 +1,18 @@
-Tutorial 1: Instrumenting applications
---------------------------------------
+# Tutorial 1: Instrumenting applications
 
-For this tutorial we are going to use a PopART MNIST example and add instrumentation that can be viewed using the PopVision System Analyser. You can download the PopVision System Analyser from the Downloads Portal: <https://downloads.graphcore.ai/>
+In this tutorial you will learn to use:
 
-The PopART MNIST example is in the `start_here` directory (this is a subset of the code from the [simple_applications/popart/mnist](../../../simple_applications/popart/mnist) directory). Enter the `start_here` directory and follow the instructions in the README.md to install the required modules and download the data.
+- the PopVision System Analyser, a desktop tool for profiling the execution of IPU-targeted software on your host system processors;
+- the `libpvti` module in python which can be used to profile, time, and log information from your IPU applications and plot it directly in the PopVision System Analyser.
+
+## Setup
+
+For this tutorial we are going to use a PopART MNIST example and add instrumentation that can be viewed using the PopVision System Analyser. Make sure the PopVision System Analyser is installed on your local machine, it can be downloaded from the [Downloads Portal](https://downloads.graphcore.ai/).
+
+
+The PopART MNIST example is in the `start_here` directory (this is a subset of the code from the [simple_applications/popart/mnist](../../../simple_applications/popart/mnist) directory). Enter the `start_here` directory and follow the instructions in the [README.md](start_here/README.md) to install the required modules and download the data.
+
+## Generating and opening reports
 
 Once you have followed the instructions and been able to run the MNIST example we will re-run the MNIST example with instrumentation enabled. Note: A new report file will be created each time you run this command so you will need to close and open the new report each time.
 
@@ -19,6 +28,8 @@ Open the PopVision System Analyser and then select "Open a report" and select th
 You should then see the following profile information.
 
 ![PopVision System Analyser screenshot of mnist](./screenshots/mnist.png)
+
+## Profiling execution of epochs
 
 We are now going to modify the MNIST example to add instrumentation to clearly show the epochs. (You can find the completed tutorial in the `complete` directory)
 
@@ -43,7 +54,10 @@ We leave it as an exercise for the reader to add instrumentation of the training
 
 ![PopVision System Analyser screenshot of instrumented mnist](./screenshots/mnist_instrumented.png)
 
-Next, we are going to add instrumentation so the PopVision System Analyser can graph the loss reported by PopART. (This is a Poplar SDK 2.1 feature.)
+## Logging the training and validation losses
+
+In addition to displaying function profiling, the System Analyser can plot numerical data captured by the `libpvti` library.
+In this section, we are going to add instrumentation to our python script to allow the System Analyser to plot the loss reported by PopART. (This is a Poplar SDK 2.1 feature.)
 
 We have added the libpvti import in the previous section, so we need first to create a pvti Graph object and then create series in the graph.
 
@@ -77,8 +91,10 @@ When we view the resulting pvti report in the System Analyser (you may need to s
 
 (Note: The option to `merge all charts` has been enabled to combine all threads into a single row, to make it easier to align the flame graph with the line graph)
 
+## Going further
+
 We leave it as an exercise for the reader to add additional instrumentation. The completed example also
-records the graph for accuracy in the same way as loss and CPU load using the psutil library.
+calculates accuracy of the model, and CPU load using the `psutil` library, and plots both of them.
 
 ![PopVision System Analyser screenshot of instrumented mnist loss, accuracy & cpuload](./screenshots/mnist_instrumented_loss_accuracy_cpuload.png)
 

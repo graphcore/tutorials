@@ -5,6 +5,8 @@ In this tutorial we will look at how compute steps are built up from running
 pieces of work (the *vertices* of the compute graph) in parallel as *compute sets*. The
 process for constructing compute sets described here is the same method that the
 PopLibs libraries use.
+To learn more about vertices, please refer to our `Poplar and PopLibs User Guide:
+Understanding Vertices <https://docs.graphcore.ai/projects/poplar-user-guide/en/latest/vertices_overview.html>`_.
 
 Using ``tut3_vertices/start_here`` as your working directory, open ``tut3.cpp`` in an
 editor. This file has an outline program like tutorial 2, but does not use the

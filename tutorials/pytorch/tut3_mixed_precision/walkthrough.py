@@ -75,11 +75,11 @@ else:
                                     transforms.ToTensor(),
                                     transforms.Normalize((0.5,), (0.5,))])
 
-train_dataset = torchvision.datasets.FashionMNIST("./datasets/",
+train_dataset = torchvision.datasets.FashionMNIST("~/.torch/datasets",
                                                   transform=transform,
                                                   download=True,
                                                   train=True)
-test_dataset = torchvision.datasets.FashionMNIST("./datasets/",
+test_dataset = torchvision.datasets.FashionMNIST("~/.torch/datasets",
                                                  transform=transform,
                                                  download=True,
                                                  train=False)
@@ -114,6 +114,10 @@ train_dataloader = poptorch.DataLoader(opts,
                                        batch_size=12,
                                        shuffle=True,
                                        num_workers=40)
+model.train()  # Switch the model to training mode
+# Models are initialised in training mode by default, so the line above will
+# have no effect. Its purpose is to show how the mode can be set explicitly.
+
 poptorch_model = poptorch.trainingModel(model,
                                         options=opts,
                                         optimizer=optimizer)
@@ -126,7 +130,7 @@ for epoch in tqdm(range(epochs), desc="epochs"):
         total_loss += loss
 
 # Evaluate the model
-model.eval()
+model.eval()  # Switch the model to inference mode
 poptorch_model_inf = poptorch.inferenceModel(model, options=opts)
 test_dataloader = poptorch.DataLoader(opts,
                                       test_dataset,

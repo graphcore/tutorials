@@ -148,11 +148,11 @@ transform = transforms.Compose([transforms.Resize(128),
                                 transforms.Normalize((0.5,), (0.5,)),
                                 transforms.ConvertImageDtype(torch.half)])
 
-train_dataset = torchvision.datasets.FashionMNIST("./datasets/",
+train_dataset = torchvision.datasets.FashionMNIST("~/.torch/datasets",
                                                   transform=transform,
                                                   download=True,
                                                   train=True)
-test_dataset = torchvision.datasets.FashionMNIST("./datasets/",
+test_dataset = torchvision.datasets.FashionMNIST("~/.torch/datasets",
                                                  transform=transform,
                                                  download=True,
                                                  train=False)
@@ -220,7 +220,7 @@ train_dataloader = poptorch.DataLoader(opts,
 We first make sure our model is in training mode, and then wrap it with `poptorch.trainingModel`.
 
 ```python
-model.train()
+model.train()  # Switch the model to training mode
 poptorch_model = poptorch.trainingModel(model,
                                         options=opts,
                                         optimizer=optimizer)
@@ -244,7 +244,7 @@ Our new model is now trained and we can start its evaluation.
 Some PyTorch's operations, such as CNNs, are not supported in FP16 on the CPU, so we will evaluate our fine-tuned model in mixed precision on an IPU using `poptorch.inferenceModel`.
 
 ```python
-model.eval()
+model.eval()  # Switch the model to inference mode
 poptorch_model_inf = poptorch.inferenceModel(model, options=opts)
 
 test_dataloader = poptorch.DataLoader(opts,
@@ -292,6 +292,7 @@ class Model(torch.nn.Module):
         return x + y
 
 native_model = Model()
+native_model.eval()  # Switch the model to inference mode
 
 float16_tensor = torch.tensor([1.0], dtype=torch.float16)
 float32_tensor = torch.tensor([1.0], dtype=torch.float32)

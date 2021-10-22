@@ -9,9 +9,10 @@
 // information
 #include <iostream>
 #include <memory>
+#include <vector>
+
 #include <popart/builder.hpp>
 #include <popart/devicemanager.hpp>
-#include <popart/logging.hpp>
 #include <popart/ndarraywrapper.hpp>
 #include <popart/op.hpp>
 #include <popart/op/l1.hpp>
@@ -21,6 +22,7 @@
 #include <popart/popx/opx.hpp>
 #include <popart/popx/opxmanager.hpp>
 #include <popart/session.hpp>
+#include <popart/sgd.hpp>
 #include <popart/tensordata.hpp>
 #include <popart/tensorinfo.hpp>
 #include <popart/tensornames.hpp>
@@ -356,8 +358,7 @@ auto main(int argc, char **argv) -> int {
 
   // Create the session
   auto session = popart::TrainingSession::createFromOnnxModel(
-      proto, dataFlow, loss, optimizer, device, popart::InputShapeInfo(), {},
-      popart::Patterns({popart::PreAliasPatternType::PreUniRepl}));
+      proto, dataFlow, loss, optimizer, device, popart::InputShapeInfo());
 
   // prepare the anchors buffers. The anchors are what were specified in 2.3
   // for data streaming: the tensors which will be returned from the device
@@ -365,12 +366,12 @@ auto main(int argc, char **argv) -> int {
   // 1) the output tensor (i.e. the output of the forward pass)
   // float rawOutputData[2] = {0, 0};
 
-  float *rawOutputData = new float[tensorLength]{0};
-  popart::NDArrayWrapper<float> outData(rawOutputData, {tensorLength});
+  auto rawOutputData = std::vector<float>(tensorLength, 0);
+  popart::NDArrayWrapper<float> outData(rawOutputData.data(), {tensorLength});
 
   // 2) and the gradient of input tensor
-  float *rawGradInputData = new float[tensorLength]{0};
-  popart::NDArrayWrapper<float> gradInData(rawGradInputData, {tensorLength});
+  auto rawGradInputData = std::vector<float>(tensorLength, 0);
+  popart::NDArrayWrapper<float> gradInData(rawGradInputData.data(), {tensorLength});
   std::map<popart::TensorId, popart::IArray &> anchors = {
       {outputs[0], outData},
       {popart::reservedGradientPrefix() + input, gradInData},
@@ -391,13 +392,6 @@ auto main(int argc, char **argv) -> int {
   std::cout << "Input Data:  " << inData << "\n";
   std::cout << "Output Data: " << outData << "\n";
   std::cout << "Input Grad:  " << gradInData << std::endl;
-
-  popart::logging::ir::err("input : {}", inData);
-  popart::logging::ir::err("output : {}", outData);
-  popart::logging::ir::err("dInput : {}", gradInData);
-
-  delete[] rawOutputData;
-  delete[] rawGradInputData;
 
   return 0;
 }
