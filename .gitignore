@@ -1,7 +1,6 @@
 *.tar.gz
 
 **/weights
-**/images
 
 **/model
 **/data
