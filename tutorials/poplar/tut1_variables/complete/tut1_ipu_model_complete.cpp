@@ -5,10 +5,11 @@
    See the Poplar user guide for details
 */
 
-#include <iostream>
 #include <poplar/Engine.hpp>
 #include <poplar/Graph.hpp>
 #include <poplar/IPUModel.hpp>
+
+#include <iostream>
 
 using namespace poplar;
 

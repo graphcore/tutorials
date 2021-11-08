@@ -1,8 +1,10 @@
-// Copyright (c) 2021 Graphcore Ltd. All rights reserved.
+// Copyright (c) 2018 Graphcore Ltd. All rights reserved.
 
-#include <iostream>
 #include <poplar/DeviceManager.hpp>
 #include <poplar/Engine.hpp>
+
+#include <algorithm>
+#include <iostream>
 #include <vector>
 
 using namespace poplar;
@@ -64,32 +66,30 @@ Program buildMultiplyProgram(Graph &graph, Tensor matrix, Tensor in,
 
 int main(int argc, char **argv) {
   // Create the DeviceManager which is used to discover devices
-  DeviceManager manager = DeviceManager::createDeviceManager();
+  auto manager = DeviceManager::createDeviceManager();
 
   // Attempt to attach to a single IPU:
-  Device device;
-  bool success = false;
-  // Loop over all single IPU devices on the host
-  // Break the loop when an IPU is successfully acquired
-  for (auto &hwDevice : manager.getDevices(poplar::TargetType::IPU, 1)) {
-    device = std::move(hwDevice);
-    std::cerr << "Trying to attach to IPU " << device.getId() << std::endl;
-    if ((success = device.attach())) {
-      std::cerr << "Attached to IPU " << device.getId() << std::endl;
-      break;
-    }
-  }
-  if (!success) {
-    std::cerr << "Error attaching to device" << std::endl;
+  auto devices = manager.getDevices(poplar::TargetType::IPU, 1);
+  std::cout << "Trying to attach to IPU\n";
+  auto it = std::find_if(devices.begin(), devices.end(), [](Device &device) {
+     return device.attach();
+  });
+
+  if (it == devices.end()) {
+    std::cerr << "Error attaching to device\n";
     return -1;
   }
 
-  Target target = device.getTarget();
+  auto device = std::move(*it);
+  std::cout << "Attached to IPU " << device.getId() << std::endl;
+
+  auto target = device.getTarget();
 
   if (argc != 3) {
     std::cerr << "usage: " << argv[0] << " numRows numCols\n";
     return 1;
   }
+
   unsigned numRows = std::atoi(argv[1]);
   unsigned numCols = std::atoi(argv[2]);
   std::cout << "Multiplying matrix of size " << numRows << "x" << numCols
@@ -123,15 +123,15 @@ int main(int argc, char **argv) {
   }
 
   // Create a device program to multiply two tensors together.
-  Program mulProg =
+  auto mulProg =
       buildMultiplyProgram(graph, matrix, inputVector, outputVector);
 
   // Set up data streams to copy data in and out of graph
-  DataStream inStreamV =
+  auto inStreamV =
       graph.addHostToDeviceFIFO("inputVector", FLOAT, numCols);
-  DataStream inStreamM =
+  auto inStreamM =
       graph.addHostToDeviceFIFO("inputMatrix", FLOAT, numCols * numRows);
-  DataStream outStream = graph.addDeviceToHostFIFO("out", FLOAT, numRows);
+  auto outStream = graph.addDeviceToHostFIFO("out", FLOAT, numRows);
 
   // Create a program that copies data from the host buffers, multiplies
   // the result and copies the result back to the host.

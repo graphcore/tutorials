@@ -177,7 +177,7 @@ While higher values of `loss_scaling` minimize underflows, values that are too h
 
 ## Set PopTorch's options
 
-To configure some features of the IPU and to be able to use PopTorch's classes in the next sections, we will need to create an instance of `poptorch.Options` which stores the options we will be using. We covered some of the available options in the [introductory tutorial for PopTorch](https://github.com/graphcore/examples/tree/master/tutorials/pytorch/tut1_basics).
+To configure some features of the IPU and to be able to use PopTorch's classes in the next sections, we will need to create an instance of `poptorch.Options` which stores the options we will be using. We covered some of the available options in the [introductory tutorial for PopTorch](https://github.com/graphcore/tutorials/tree/master/tutorials/pytorch/tut1_basics).
 
 Let's initialise our options object before we talk about the options we will use:
 

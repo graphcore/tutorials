@@ -1,7 +1,8 @@
 // Copyright (c) 2018 Graphcore Ltd. All rights reserved.
 
-#include <iostream>
 #include <poplar/Engine.hpp>
+
+#include <iostream>
 #include <vector>
 
 using namespace poplar;
@@ -39,7 +40,7 @@ Program buildMultiplyProgram(Graph &graph, Tensor matrix, Tensor in,
   // performs a dot-product placing the result in an element of the
   // output vector.
 
-  // The returned program justs executes the 'mulCS' compute set i.e. executes
+  // The returned program just executes the 'mulCS' compute set i.e. executes
   // every vertex calculation in parallel.
   return Execute(mulCS);
 }
@@ -49,6 +50,7 @@ int main(int argc, char **argv) {
     std::cerr << "usage: " << argv[0] << " numRows numCols\n";
     return 1;
   }
+
   unsigned numRows = std::atoi(argv[1]);
   unsigned numCols = std::atoi(argv[2]);
   std::cout << "Multiplying matrix of size " << numRows << "x" << numCols
@@ -79,10 +81,12 @@ int main(int argc, char **argv) {
   }
 
   // Create a device program to multiply two tensors together.
-  auto mulProg = buildMultiplyProgram(graph, matrix, inputVector, outputVector);
+  auto mulProg =
+      buildMultiplyProgram(graph, matrix, inputVector, outputVector);
 
   // Set up data streams to copy data in and out of graph
-  auto inStreamV = graph.addHostToDeviceFIFO("inputVector", FLOAT, numCols);
+  auto inStreamV =
+      graph.addHostToDeviceFIFO("inputVector", FLOAT, numCols);
   auto inStreamM =
       graph.addHostToDeviceFIFO("inputMatrix", FLOAT, numCols * numRows);
   auto outStream = graph.addDeviceToHostFIFO("out", FLOAT, numRows);

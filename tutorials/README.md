@@ -32,6 +32,7 @@ Each of the tutorials contains its own README file with full instructions.
 - [Tutorial 2: Efficient data loading with PopTorch](pytorch/tut2_efficient_data_loading)
 - [Tutorial 3: Half and mixed precision in PopTorch](pytorch/tut3_mixed_precision)
 - [Tutorial 4: Observing tensors in PopTorch](pytorch/tut4_observing_tensors)
+- [Tutorial 5: Fine-tuning BERT with HuggingFace and PopTorch](pytorch/tut_finetuning_bert)
 
 ## PopVision
 

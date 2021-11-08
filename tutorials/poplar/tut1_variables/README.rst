@@ -6,25 +6,63 @@ Before starting this tutorial, take time to familiarise yourself with the IPU's 
 in the corresponding section of our documentation: `Poplar and PopLibs User Guide: Poplar programming
 model <https://docs.graphcore.ai/projects/poplar-user-guide/en/latest/poplar_programs.html#poplar-programming-model>`_.
 
-Then, using ``tut1_variables/start_here`` as your working directory, open ``tut1.cpp`` in an editor. The file contains the outline of a C++ program
-including some Poplar library headers and a namespace.
+In this tutorial you will:
+
+- learn about the structure of Graphcore's low level C++ Poplar library for programming on the IPU;
+- learn how graphs, variables and programs can be used to execute computations on the IPU;
+- learn how streams can be used to exchange data efficiently between the host CPU and the IPU;
+- complete a small example program which communicates and adds data on the IPU;
+- optionally you will run this program on the IPU hardware.
+
+A brief `summary`_ and a list of additional resources are included at the end this tutorial.
+Graphcore also provides tutorials using Python deep learning frameworks `PyTorch <../../pytorch/>`_,
+`TensorFlow 1 <../../tensorflow/>`_, and `TensorFlow 2 <../../tensorflow2/>`_.
+
+Setup
+......
+
+In order to complete this tutorial you will need to have the Poplar SDK installed and
+enabled on your machine, you can download the latest release in the `Graphcore downloads centre
+<https://downloads.graphcore.ai/>`_ . Before you start, make sure to activate the SDK. How
+this is done will depend on whether you are using
+an `IPU-POD system <https://docs.graphcore.ai/projects/ipu-pod-getting-started/en/latest/i
+nstallation.html#setting-up-the-sdk-environment>`_,
+an `IPU-POD Direct Attach <https://docs.graphcore.ai/projects/ipu-pod-da-getting-started/en
+/latest/sw-installation.html#setting-up-the-sdk-environment>`_,
+or `Graphcloud <https://docs.graphcore.ai/projects/graphcloud-getting-started/en/latest/ins
+tallation.html#setting-up-the-sdk-environment>`_.
+
+You will also need a C++ toolchain compatible with the C++11 standard, build commands in this tutorial use GCC.
+
+Using ``tut1_variables/start_here`` as your working directory, open ``tut1.cpp`` in a
+code editor. The file contains the outline of a C++ program with a ``main`` function,
+some Poplar library headers and the ``poplar`` namespace. In the rest of this
+tutorial, you will be adding code snippets to the ``main`` function at the indicated locations.
 
 Graphs, variables and programs
 ..............................
+
+Poplar programs are built of three main components:
+
+- a graph, which targets specific hardware devices;
+- variables, which are part of a graph and store the data on which an IPU can operate;
+- a program, which controls the operations applied to the graph and to its variables.
+
+Creating the graph
+^^^^^^^^^^^^^^^^^^
 
 All Poplar programs require a ``Graph`` object to construct the computation
 graph. Graphs are always created for a specific target (where the target is a
 description of the hardware being targeted, such as an IPU). To obtain the
 target we need to choose a device.
 
-The tutorials use a simulated target by default, so will run on any
-machine even if it has no Graphcore hardware attached. On systems with
-accelerator hardware, the header file ``poplar/DeviceManager.hpp`` contains API
+By default, these Poplar tutorials use a simulated target. As a result, they can run on any
+machine, even if it has no Graphcore hardware attached. On systems with
+Graphcore accelerator hardware, the header file ``poplar/DeviceManager.hpp`` contains API
 calls to enumerate and return ``Device`` objects for the attached hardware.
-
-Simulated devices are created with the ``IPUModel`` class, which models the
-functionality of an IPU on the host. The ``createDevice`` function creates a new
-virtual device to work with. Once we have this device we can create a ``Graph``
+The simulated devices are created with the ``IPUModel`` class, which mimics the
+functionality of an IPU on the host. The ``createDevice`` method creates a new
+virtual device to work with. Once we have this device, we can create a ``Graph``
 object to target it.
 
 * Add the following code to the body of ``main``:
@@ -38,6 +76,17 @@ object to target it.
 
     // Create the Graph object
     Graph graph(target);
+
+While the ``IPUModel`` provides a convenient way to build and debug Poplar programs
+without using IPU resources it is not a perfect representation of the hardware. As
+a result it is preferable to use an IPU if one is available. A description of the
+limitations of the ``IPUModel`` is provided in the `Poplar developer guide <https:
+//docs.graphcore.ai/projects/poplar-user-guide/en/latest/poplar_programs.html#prog
+ramming-with-poplar>`_. Instructions on how to use the hardware with this tutorial
+example is available in the last section of this tutorial: `(Optional) Using the IPU`_.
+
+Adding variables and mapping them to IPU tiles
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Any program running on an IPU needs data to work on. These are defined as
 *variables* in the graph.
@@ -90,6 +139,9 @@ over multiple tiles.
 
 * Add code to allocate ``v3`` and ``v4`` to other tiles.
 
+Adding the control program
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 Now that we have created some variables in the graph, we can create a control
 program to run on the device. Programs are represented as sub-classes of the
 ``Program`` class. In this example we will use the ``Sequence`` sub-class, which
@@ -122,7 +174,7 @@ deployed on the device. To do this we must first create an ``Engine`` object.
 This object represents the compiled graph and program, which are ready to run on
 the device.
 
-* Add code to run the control program:
+* Add the following code after the engine initialisation to run the control program:
 
   .. code-block:: c++
 
@@ -131,7 +183,12 @@ the device.
     engine.run(0);
     std::cout << "Program complete\n";
 
-* Now compile the host program (remembering to link in the Poplar library using
+Compiling the poplar executable
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The first version of our ``main`` function is complete and ready to be compiled.
+
+* In a terminal, compile the host program (remembering to link in the Poplar library using
   the ``-lpoplar`` flag):
 
   .. code-block:: bash
@@ -154,8 +211,8 @@ we allocated a variable in the graph which is never initialised or written to:
 Initialising variables
 ......................
 
-In addition to variables, the graph can contain constant values. This is one way
-to initialise data in the graph.
+One way to initialise data in the graph is to use constant values:
+unlike variables, constants are set in the graph at compile time.
 
 * After the code adding variables to the graph, add the following:
 
@@ -199,7 +256,7 @@ shows initialised values:
 
   v1-debug: {1,1.5,2,2.5}
 
-Copying can also be used between variables.
+Copying can also be used between variables:
 
 * After the ``v1`` debug print command, add the following:
 
@@ -309,14 +366,17 @@ Re-compile and re-run the program to see the results:
 Data streams
 ............
 
+During training and inference of machine learning applications, efficiently
+passing data from the host to the IPU is often critical to enabling high throughput.
 The most efficient way to get data in and out of the device is to use data
-streams (see the the `Poplar and PopLibs User Guide
-<https://docs.graphcore.ai/projects/poplar-user-guide/en/latest/poplar_programs.html#data-streams-and-remote-buffers>`_
+streams (see the the `Poplar and PopLibs User Guide: data streams
+<https://docs.graphcore.ai/projects/poplar-user-guide/en/latest/
+poplar_programs.html#data-streams-and-remote-buffers>`_
 for more information).
-
-During machine learning training, for example, data streams are the best
-mechanism to use for getting example data into the device. Data streams need to be
-created and explicitly named in the graph.
+In Poplar, data streams need to be created and explicitly named in the graph;
+in the code snippets below we add a first-in-first-out (FIFO) input stream,
+connect it to a memory buffer (a vector of length 30), and we
+stream chunks of 10 elements of that buffer to the device.
 
 * Add the following code to the program definition:
 
@@ -363,8 +423,11 @@ memory buffer:
 ........................
 
 This section describes how to modify the program to use the IPU hardware.
+The only changes are needed are related to making sure an IPU is available
+and acquiring it.
 
-* Copy ``tut1.cpp`` to ``tut1_ipu_hardware.cpp`` and open it in an editor.
+We will create a new file by copying ``tut1.cpp`` to ``tut1_ipu_hardware.cpp`` and
+open it in an editor.
 
 * Remove the import declaration:
 
@@ -372,11 +435,12 @@ This section describes how to modify the program to use the IPU hardware.
 
     #include <poplar/IPUModel.hpp>
 
-* Add this import declaration:
+* Add these import declarations:
 
   .. code-block:: c++
 
     #include <poplar/DeviceManager.hpp>
+    #include <algorithm>
 
 * Replace the following lines from the start of ``main``:
 
@@ -391,25 +455,22 @@ This section describes how to modify the program to use the IPU hardware.
   .. code-block:: c++
 
     // Create the DeviceManager which is used to discover devices
-    DeviceManager manager = DeviceManager::createDeviceManager();
+    auto manager = DeviceManager::createDeviceManager();
 
     // Attempt to attach to a single IPU:
-    Device device;
-    bool success = false;
-    // Loop over all single IPU devices on the host
-    // Break the loop when an IPU is successfully acquired
-    for (auto &hwDevice : manager.getDevices(poplar::TargetType::IPU, 1)) {
-      device = std::move(hwDevice);
-      std::cerr << "Trying to attach to IPU " << device.getId() << std::endl;
-      if ((success = device.attach())) {
-        std::cerr << "Attached to IPU " << device.getId() << std::endl;
-        break;
-      }
-    }
-    if (!success) {
-      std::cerr << "Error attaching to device" << std::endl;
+    auto devices = manager.getDevices(poplar::TargetType::IPU, 1);
+    std::cout << "Trying to attach to IPU\n";
+    auto it = std::find_if(devices.begin(), devices.end(), [](Device &device) {
+       return device.attach();
+    });
+
+    if (it == devices.end()) {
+      std::cerr << "Error attaching to device\n";
       return -1;
     }
+
+    auto device = std::move(*it);
+    std::cout << "Attached to IPU " << device.getId() << std::endl;
 
 This gets a list of all devices consisting of a single IPU that are attached to
 the host and tries to attach to each one in turn until successful.
@@ -417,15 +478,15 @@ This is a useful approach if there are multiple users on the host.
 It is also possible to get a specific device using its device-manager ID with the
 ``getDevice`` function.
 
-* Compile the program.
+* You are now ready to compile the program:
 
   .. code-block:: bash
 
     $ g++ --std=c++11 tut1_ipu_hardware.cpp -lpoplar -o tut1_ipu_hardware
 
 Before running this you need to make sure that you have set the environment
-variables for the Graphcore drivers (see the Getting Started Guide for your IPU
-system).
+variables for the Graphcore drivers (see the `Getting Started Guide for your IPU
+system <https://docs.graphcore.ai/en/latest/getting-started.html>`_).
 
 * Run the program to see the same results.
 
@@ -435,5 +496,32 @@ system).
 
 You can make similar modifications to the programs in the other tutorials
 in order to use the IPU hardware.
+
+Summary
+.......
+
+In this tutorial, we learnt how to build a simple application targeting the
+Graphcore IPU using Poplar. We used the `Graph` object to map tensors to
+specific tiles of the IPU and used the `Sequence` class to define a program
+with simple operations. Finally, we used data streams to pass data into the
+device and return results of the operations back to the host CPU process.
+This process and the classes used in this tutorial are summarised in the
+`Poplar and PopLibs User Guide: Using Poplar <https://docs.graphcore.ai/
+projects/poplar-user-guide/en/latest/poplarlib.html>`_.
+
+These three steps form the basis of Poplar applications and will be reused
+in the next tutorials. In the `second tutorial <../tut2_operations/README.rst>`_ you will
+learn to use the ``popops`` library which streamlines the definition of graphs and
+programs that include mathematical and tensor operations in Poplar.
+
+To learn more about the programming model of the IPU discussed in this tutorial
+you may want to consult the `IPU Programmer's Guide <https://docs.graphcore.ai/projects/ipu-overview/en/
+latest/programming_model.html>`_ or alternatively
+the `Poplar and PopLibs User Guide <https://docs.graphcore.ai/projects/poplar-user-guide/
+en/latest/poplar_programs.html>`_. For a detailed reference, consult the `API documentation
+<https://docs.graphcore.ai/projects/poplar-api/en/latest/>`_.
+Graphcore also provides tutorials targeted at new users of the IPU using common Python
+deep learning frameworks `PyTorch <../../pytorch/>`_, `TensorFlow 1 <../../tensorflow/>`_,
+and `TensorFlow 2 <../../tensorflow2/>`_.
 
 Copyright (c) 2018 Graphcore Ltd. All rights reserved.

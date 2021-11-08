@@ -27,4 +27,4 @@ Simple examples demonstrating and explaining different ways of using multiple IP
 
 - [IPUEstimator](ipuestimator): Example of using the IPU implementation of the TensorFlow Estimator API.
 
-- [Configuring IPU connections](connection_type): A code example which demonstrates how to use `ipu.utils.set_ipu_connection_type` to control if and when the IPU device is acquired.
+- [Configuring IPU connections](connection_type): A code example which demonstrates how to control if and when the IPU device is acquired using the `device_connection.type` configuration option.

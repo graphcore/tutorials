@@ -56,8 +56,7 @@ class TestPopDistTraining(unittest.TestCase):
                 for i in range(1, NUM_INSTANCES):
                     value_instance_i = tf.train.load_variable(
                         instances[i], var_name)
-                    self.assertListEqual(
-                        value_instance_0.tolist(), value_instance_i.tolist())
+                    self.assertEqual(value_instance_0.tolist(), value_instance_i.tolist())
 
 
 if __name__ == '__main__':

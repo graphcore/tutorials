@@ -2,10 +2,6 @@
 
 #pragma once
 
-#include <iostream>
-#include <fstream>
-#include <string>
-
 #include <poplar/Graph.hpp>
 #include <poplar/Engine.hpp>
 #include <poplar/IPUModel.hpp>
@@ -13,6 +9,10 @@
 
 #include <boost/program_options.hpp>
 
+#include <algorithm>
+#include <iostream>
+#include <fstream>
+#include <string>
 namespace utils {
 
 struct Options {
@@ -25,7 +25,6 @@ struct Options {
   bool profile;
 };
 
-inline
 Options parseOptions(int argc, char** argv) {
   Options options;
   std::string modeString;
@@ -87,12 +86,10 @@ Options parseOptions(int argc, char** argv) {
   return options;
 }
 
-inline
 std::string getExeFileName(const Options &options) {
   return options.exeName + ".poplar";
 }
 
-inline
 poplar::Executable compileOrLoadExe(
     poplar::Graph &graph,
     const std::vector<poplar::program::Program> &progs,
@@ -114,29 +111,27 @@ poplar::Executable compileOrLoadExe(
 // Return a HW device with the requested number of IPUs.
 // Exception is thrown if no devices with the requested
 // number are available.
-inline
 poplar::Device getIpuHwDevice(std::size_t numIpus) {
   auto dm = poplar::DeviceManager::createDeviceManager();
   auto hwDevices = dm.getDevices(poplar::TargetType::IPU, numIpus);
-  if (hwDevices.size() > 0) {
-    for (auto &d : hwDevices) {
-      if (d.attach()) {
-        return std::move(d);
-      }
-    }
+  auto it = std::find_if(hwDevices.begin(), hwDevices.end(), [](poplar::Device &device) {
+     return device.attach();
+  });
+
+  if (it != hwDevices.end()) {
+    return std::move(*it);
   }
+
   throw std::runtime_error("No IPU hardware available.");
 }
 
 // Return an IPU Model device with the requested number of IPUs.
-inline
 poplar::Device getIpuModelDevice(std::size_t numIpus) {
   poplar::IPUModel ipuModel;
   ipuModel.numIPUs = numIpus;
   return ipuModel.createDevice();
 }
 
-inline
 poplar::Device getDeviceFromOptions(const Options& options) {
     poplar::Device device;
     if(options.useIpuModel) {

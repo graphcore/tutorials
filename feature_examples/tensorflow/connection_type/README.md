@@ -1,8 +1,8 @@
 # Graphcore
 
-## DeviceConnectionType example
+## Device Connection Type example
 
-This code example demonstrates how to control if and when an IPU device is acquired using the `set_ipu_connection_type`.
+This code example demonstrates how to control if and when an IPU device is acquired using the `device_connection.type` configuration option.
 
 |Mode          |Description                                                          |
 |--------------|---------------------------------------------------------------------|

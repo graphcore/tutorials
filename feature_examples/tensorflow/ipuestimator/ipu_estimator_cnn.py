@@ -92,7 +92,6 @@ def model_fn(features, labels, mode, params):
             formatter=lambda dct: ' '.join(
                 {f" {name} = {np.mean(val):.3f}" for name, val in dct.items()}
             ),
-            feed_name="loss_logging_hook",
             # The frequency of logging does not have to align with the frequency
             # of device loops. However note that, while outfeeds can
             # theoretically be concurrently enqueued and dequeued, Estimators

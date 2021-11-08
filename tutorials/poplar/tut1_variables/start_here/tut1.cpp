@@ -1,14 +1,18 @@
 // Copyright (c) 2018 Graphcore Ltd. All rights reserved.
 
-/* This file contains the starting point for Poplar tutorial 1.
-   See the Poplar user guide for details.
-*/
+/* This file is the starting point for Poplar tutorial 1.*/
 
-#include <iostream>
 #include <poplar/Engine.hpp>
 #include <poplar/Graph.hpp>
 #include <poplar/IPUModel.hpp>
 
+#include <iostream>
+
 using namespace poplar;
 
-int main() { return 0; }
+int main() {
+
+  /* #### ADD TUTORIAL CODE HERE #### */
+
+  return 0;
+}

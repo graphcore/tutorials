@@ -2,9 +2,6 @@
 
 #include "mnist.h"
 
-#include <iomanip>
-#include <iostream>
-#include <memory>
 #include <poplar/DeviceManager.hpp>
 #include <poplar/Engine.hpp>
 #include <poplar/IPUModel.hpp>
@@ -17,6 +14,10 @@
 #include <popops/ScaledAdd.hpp>
 #include <popops/codelets.hpp>
 #include <poputil/TileMapping.hpp>
+
+#include <algorithm>
+#include <iostream>
+#include <memory>
 #include <random>
 #include <vector>
 
@@ -51,9 +52,6 @@ int main(int argc, char **argv) {
   assert(numberOfImages == 60000);
   assert(imageSize == 784);
 
-  unsigned int hNumCorrect = 0;
-
-  Device dev;
   bool useModel = true;
 
   // Default number of epochs which can be changed by passing an argument
@@ -80,34 +78,32 @@ int main(int argc, char **argv) {
     }
   }
 
+  Device device;
   if (useModel) {
     IPUModel ipuModel;
     ipuModel.numIPUs = 1;
     ipuModel.tilesPerIPU = 4;
-    dev = ipuModel.createDevice();
+    device = ipuModel.createDevice();
   } else {
-    // The DeviceManager is used to discover IPU devices
-    DeviceManager manager = DeviceManager::createDeviceManager();
+    auto manager = DeviceManager::createDeviceManager();
 
-    // Attempt to connect to a single IPU
-    bool success = false;
-    for (auto &d : manager.getDevices(poplar::TargetType::IPU, 1)) {
-      dev = std::move(d);
-      std::cerr << "Trying to attach to IPU " << dev.getId();
-      if ((success = dev.attach())) {
-        std::cerr << " - attached" << std::endl;
-        break;
-      } else {
-        std::cerr << std::endl;
-      }
-    }
-    if (!success) {
-      std::cerr << "Error attaching to device" << std::endl;
+    // Attempt to attach to a single IPU:
+    auto devices = manager.getDevices(poplar::TargetType::IPU, 1);
+    std::cout << "Trying to attach to IPU\n";
+    auto it = std::find_if(devices.begin(), devices.end(), [](Device &device) {
+       return device.attach();
+    });
+
+    if (it == devices.end()) {
+      std::cerr << "Error attaching to device\n";
       return -1;
     }
+
+    device = std::move(*it);
+    std::cout << "Attached to IPU " << device.getId() << std::endl;
   }
 
-  Graph graph(dev.getTarget());
+  Graph graph(device.getTarget());
   popops::addCodelets(graph);
   poplin::addCodelets(graph);
   popnn::addCodelets(graph);
@@ -165,6 +161,8 @@ int main(int argc, char **argv) {
       graph.addDeviceToHostFIFO("hostNumCorrect", UNSIGNED_INT, 1);
 
   Sequence trainProg;
+  unsigned int hNumCorrect = 0;
+
   // Initialize the numCorrect tensor to 0
   Tensor zero = graph.addConstant(UNSIGNED_INT, {1}, 0);
   graph.setTileMapping(zero, 0);
@@ -176,7 +174,7 @@ int main(int argc, char **argv) {
 
   // Create a Poplar engine.
   Engine engine(graph, trainProg);
-  engine.load(dev);
+  engine.load(device);
 
   // Connect up the data streams
   engine.connectStream("data", &data[0], &data[numberOfImages * imageSize]);

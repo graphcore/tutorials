@@ -87,15 +87,20 @@ int main(int argc, char *argv[]) {
   const unsigned repeat = 5;
   const unsigned numIpus = 1;
 
+  // Obtain list of available devices
   auto manager = DeviceManager::createDeviceManager();
   auto devices = manager.getDevices(poplar::TargetType::IPU, numIpus);
   if (devices.empty()) {
     throw poplar::poplar_error("No devices found");
   }
-  auto device = std::move(devices[0]);
-  if (!device.attach()) {
-    throw poplar::poplar_error("Failed to attach");
+
+  // Connect to first available device
+  auto it = std::find_if(devices.begin(), devices.end(), [](Device &d){ return d.attach(); });
+  if (it == devices.end()) {
+    throw poplar::poplar_error("Could not attach to any device");
   }
+
+  auto device = std::move(*it);
 
   // Graph elements
   Graph graph(device);

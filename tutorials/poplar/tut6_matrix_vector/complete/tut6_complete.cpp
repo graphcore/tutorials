@@ -1,7 +1,8 @@
 // Copyright (c) 2018 Graphcore Ltd. All rights reserved.
 
-#include <iostream>
 #include <poplar/Engine.hpp>
+
+#include <iostream>
 #include <vector>
 
 using namespace poplar;
@@ -65,6 +66,7 @@ int main(int argc, char **argv) {
     std::cerr << "usage: " << argv[0] << " numRows numCols\n";
     return 1;
   }
+
   unsigned numRows = std::atoi(argv[1]);
   unsigned numCols = std::atoi(argv[2]);
   std::cout << "Multiplying matrix of size " << numRows << "x" << numCols
@@ -95,15 +97,15 @@ int main(int argc, char **argv) {
   }
 
   // Create a device program to multiply two tensors together.
-  Program mulProg =
+  auto mulProg =
       buildMultiplyProgram(graph, matrix, inputVector, outputVector);
 
   // Set up data streams to copy data in and out of graph
-  DataStream inStreamV =
+  auto inStreamV =
       graph.addHostToDeviceFIFO("inputVector", FLOAT, numCols);
-  DataStream inStreamM =
+  auto inStreamM =
       graph.addHostToDeviceFIFO("inputMatrix", FLOAT, numCols * numRows);
-  DataStream outStream = graph.addDeviceToHostFIFO("out", FLOAT, numRows);
+  auto outStream = graph.addDeviceToHostFIFO("out", FLOAT, numRows);
 
   // Create a program that copies data from the host buffers, multiplies
   // the result and copies the result back to the host.

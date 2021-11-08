@@ -1,29 +1,49 @@
 # Copyright (c) 2021 Graphcore Ltd. All rights reserved.
+from tensorflow.python.keras.layers.pooling import MaxPool2D
 import popdist
 import popdist.tensorflow
-import tensorflow.compat.v1 as tf
+
 import numpy as np
 
+import tensorflow.compat.v1 as tf
 from tensorflow.python import ipu
 from tensorflow.python.ipu import horovod as hvd
 from tensorflow.python.ipu.horovod import ipu_multi_replica_strategy
-from tensorflow.keras.layers import (Conv2D, MaxPooling2D, Dense,
-                                     Activation, Flatten)
-from tensorflow.python.ipu.keras.layers import Dropout
 
 tf.disable_v2_behavior()
 
-
 BATCH_SIZE = 32
-NUM_CLASSES = 10
+LEARNING_RATE = 0.01
 NUM_EPOCHS = 100
 
-# Configure the IPU system with the PopDist configuration.
+
+def initialize_model():
+    return tf.keras.models.Sequential([
+        tf.keras.layers.Conv2D(
+            32, 3, activation='relu'),
+        tf.keras.layers.Conv2D(
+            32, 3, activation='relu'),
+        tf.keras.layers.MaxPool2D((2, 2)),
+        tf.keras.layers.Dropout(0.25),
+
+        tf.keras.layers.Conv2D(
+            64, 3, activation='relu'),
+        tf.keras.layers.Conv2D(
+            64, 3, activation='relu'),
+        tf.keras.layers.MaxPool2D((2, 2)),
+        tf.keras.layers.Dropout(0.25),
+
+        tf.keras.layers.Flatten(),
+        tf.keras.layers.Dense(512, activation='relu'),
+        tf.keras.layers.Dropout(0.5),
+        tf.keras.layers.Dense(10)
+    ])
+
+# Initialize IPU configuration.
 config = ipu.config.IPUConfig()
 popdist.tensorflow.set_ipu_config(config, ipus_per_replica=1)
 config.configure_ipu_system()
 
-# Initialize Horovod.
 hvd.init()
 
 # Create distribution strategy.
@@ -33,6 +53,11 @@ strategy = ipu_multi_replica_strategy.IPUMultiReplicaStrategy()
 (train_x, train_y), _ = tf.keras.datasets.cifar10.load_data()
 train_x = train_x.astype(np.float32) / 255.0
 train_y = train_y.astype(np.int32)
+
+# Calculate global batch size and number of iterations.
+num_total_replicas = popdist.getNumTotalReplicas()
+global_batch_size = num_total_replicas * BATCH_SIZE
+num_iterations = (len(train_y) // global_batch_size // num_total_replicas) * num_total_replicas
 
 # Create dataset and shard it across the instances.
 dataset = tf.data.Dataset.from_tensor_slices((train_x, train_y))
@@ -45,75 +70,49 @@ dataset = dataset.shuffle(
 dataset = dataset.repeat()
 dataset = dataset.batch(batch_size=BATCH_SIZE, drop_remainder=True)
 
-global_batch_size = BATCH_SIZE * popdist.getNumTotalReplicas()
-steps_per_epoch = len(train_y) // global_batch_size
-
-print(f"Global batch size {global_batch_size}:",
-      f"{steps_per_epoch} steps per epoch")
-
-# Create the model under the strategy scope.
 with strategy.scope():
+    model = initialize_model()
+
+    # The TensorFlow optimizers are distribution-aware, meaning that they will
+    # automatically insert cross-replica sums of the gradients when invoked inside
+    # the scope of a distribution strategy. Since we are also inside an IPU scope,
+    # this cross-replica sum will be performed on the IPU using the Graphcore
+    # Communication Library (GCL).
+    optimizer = tf.keras.optimizers.SGD(learning_rate=LEARNING_RATE)
 
     infeed_queue = ipu.ipu_infeed_queue.IPUInfeedQueue(dataset)
 
     def per_replica_step(loss_sum, x, y):
-        # Build a simple convolutional model with the Keras API.
-        x = Conv2D(32, (3, 3), padding="same")(x)
-        x = Activation("relu")(x)
-        x = Conv2D(32, (3, 3))(x)
-        x = Activation("relu")(x)
-        x = MaxPooling2D((2, 2))(x)
-        x = Dropout(0.25)(x, training=True)
+        with tf.GradientTape() as tape:
+            logits = model(x, training=True)
+            per_example_loss = tf.keras.losses.sparse_categorical_crossentropy(
+                y_true=y, y_pred=logits, from_logits=True)
 
-        x = Conv2D(64, (3, 3), padding="same")(x)
-        x = Activation("relu")(x)
-        x = Conv2D(64, (3, 3))(x)
-        x = Activation("relu")(x)
-        x = MaxPooling2D((2, 2))(x)
-        x = Dropout(0.25)(x, training=True)
+            # Normalize the loss by the global batch size.
+            loss = tf.nn.compute_average_loss(per_example_loss,
+                                              global_batch_size=global_batch_size)
 
-        x = Flatten()(x)
-        x = Dense(512)(x)
-        x = Activation("relu")(x)
-        x = Dropout(0.5)(x, training=True)
-        logits = Dense(NUM_CLASSES)(x)
-
-        per_example_loss = tf.keras.losses.sparse_categorical_crossentropy(
-            y_true=y, y_pred=logits, from_logits=True)
-
-        # Normalize the loss by the global batch size.
-        loss = tf.nn.compute_average_loss(
-            per_example_loss, global_batch_size=global_batch_size)
         loss_sum += loss
-
-        # The TensorFlow optimizers are distribution-aware, meaning that they will
-        # automatically insert cross-replica sums of the gradients when invoked inside
-        # the scope of a distribution strategy. Since we are also inside an IPU scope,
-        # this cross-replica sum will be performed on the IPU using the Graphcore
-        # Communication Library (GCL).
-        optimizer = tf.train.GradientDescentOptimizer(learning_rate=0.01)
-        train_op = optimizer.minimize(loss)
+        gradients = tape.gradient(loss, model.trainable_variables)
+        train_op = optimizer.apply_gradients(
+            zip(gradients, model.trainable_variables))
 
         return loss_sum, train_op
 
     def per_replica_loop():
-        loss_sum = ipu.loops.repeat(
-            steps_per_epoch,
-            per_replica_step,
-            infeed_queue=infeed_queue,
-            inputs=[0.0])
-        # Return the average (per-replica) loss across the epoch.
-        return loss_sum / steps_per_epoch
+        return ipu.loops.repeat(num_iterations, per_replica_step, infeed_queue=infeed_queue, inputs=[0.0])
 
-    def model():
+    def run_model():
         per_replica_loss = strategy.experimental_run_v2(per_replica_loop)
+
         # Since the loss is already normalized by the global batch size above, we
         # compute the sum rather than the average here. Note that since we are still
         # inside an IPU scope, this will also be performed on the IPU using GCL.
-        return strategy.reduce(tf.distribute.ReduceOp.SUM, per_replica_loss)
+        # Divide by number of iterations to return the average (per-replica) loss across the epoch.
+        return strategy.reduce(tf.distribute.ReduceOp.SUM, per_replica_loss) / num_iterations
 
     with ipu.scopes.ipu_scope("/device:IPU:0"):
-        compiled_model = ipu.ipu_compiler.compile(model)
+        compiled_model = ipu.ipu_compiler.compile(run_model)
 
     with tf.Session() as sess:
         sess.run(infeed_queue.initializer)

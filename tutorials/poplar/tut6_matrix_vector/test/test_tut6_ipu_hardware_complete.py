@@ -13,7 +13,7 @@ class TestComplete(SubProcessChecker):
 
     def setUp(self):
         ''' Compile the IPU version of the tutorial code '''
-        self.run_command("make ipu", working_path, [])
+        self.run_command("make tut6_ipu", working_path, [])
 
     @pytest.mark.category1
     def test_run_complete(self):

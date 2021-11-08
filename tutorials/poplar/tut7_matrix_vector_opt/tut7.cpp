@@ -1,14 +1,16 @@
 // Copyright (c) 2018 Graphcore Ltd. All rights reserved.
 
-#include <cmath>
-#include <iostream>
-#include <fstream>
-#include <string>
-#include <limits>
-#include <memory>
+#include <poplar/DeviceManager.hpp>
 #include <poplar/Engine.hpp>
 #include <poplar/IPUModel.hpp>
-#include <poplar/DeviceManager.hpp>
+
+#include <algorithm>
+#include <cmath>
+#include <fstream>
+#include <iostream>
+#include <limits>
+#include <memory>
+#include <string>
 
 // This example performs matrix multiplication on the IPU by decomposing
 // the column axis (i.e. the number of columns) into N partial sums.
@@ -307,24 +309,22 @@ int main(int argc, char **argv) {
 
   if (strcmp(dev, "ipu") == 0) {
     // The DeviceManager is used to discover IPU devices
-    DeviceManager manager = DeviceManager::createDeviceManager();
+    auto manager = DeviceManager::createDeviceManager();
 
-    // Attempt to connect to a single IPU
-    bool success = false;
-    for (auto &d : manager.getDevices(poplar::TargetType::IPU, 1)) {
-      device = std::move(d);
-      std::cerr << "Trying to attach to IPU " << device.getId();
-      if ((success = device.attach())) {
-        std::cerr << " - attached" << std::endl;
-        break;
-      } else {
-        std::cerr << std::endl;
-      }
-    }
-    if (!success) {
-      std::cerr << "Error attaching to device" << std::endl;
+    // Attempt to attach to a single IPU:
+    auto devices = manager.getDevices(poplar::TargetType::IPU, 1);
+    std::cout << "Trying to attach to IPU\n";
+    auto it = std::find_if(devices.begin(), devices.end(), [](Device &device) {
+       return device.attach();
+    });
+
+    if (it == devices.end()) {
+      std::cerr << "Error attaching to device\n";
       return -1;
     }
+
+    device = std::move(*it);
+    std::cout << "Attached to IPU " << device.getId() << std::endl;
   } else {
     char ipuVersion[] = "ipu1";
     strncpy(ipuVersion, &dev[6], strlen(ipuVersion));

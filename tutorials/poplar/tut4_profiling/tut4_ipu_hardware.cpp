@@ -5,7 +5,6 @@
   See the Poplar user guide for details.
 */
 
-#include <iostream>
 #include <poplar/DeviceManager.hpp>
 #include <poplar/Engine.hpp>
 #include <poplar/Graph.hpp>
@@ -14,30 +13,30 @@
 #include <popops/codelets.hpp>
 #include <poputil/TileMapping.hpp>
 
+#include <algorithm>
+#include <iostream>
+
 using namespace poplar;
 using namespace poplar::program;
 
 int main() {
   // Create the DeviceManager which is used to discover devices
-  DeviceManager manager = DeviceManager::createDeviceManager();
+  auto manager = DeviceManager::createDeviceManager();
 
   // Attempt to attach to a single IPU:
-  Device device;
-  bool success = false;
-  // Loop over all single IPU devices on the host
-  // Break the loop when an IPU is successfully acquired
-  for (auto &hwDevice : manager.getDevices(poplar::TargetType::IPU, 1)) {
-    device = std::move(hwDevice);
-    std::cerr << "Trying to attach to IPU " << device.getId() << std::endl;
-    if ((success = device.attach())) {
-      std::cerr << "Attached to IPU " << device.getId() << std::endl;
-      break;
-    }
-  }
-  if (!success) {
-    std::cerr << "Error attaching to device" << std::endl;
+  auto devices = manager.getDevices(poplar::TargetType::IPU, 1);
+  std::cout << "Trying to attach to IPU\n";
+  auto it = std::find_if(devices.begin(), devices.end(), [](Device &device) {
+     return device.attach();
+  });
+
+  if (it == devices.end()) {
+    std::cerr << "Error attaching to device\n";
     return -1;
   }
+
+  auto device = std::move(*it);
+  std::cout << "Attached to IPU " << device.getId() << std::endl;
 
   Target target = device.getTarget();
 

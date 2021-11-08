@@ -51,8 +51,7 @@ Use estimators:
 a simple CNN.
 
 Control IPU use:
-- [Connection Type](tensorflow/connection_type): a demonstration of controlling if and when an IPU device is acquired
-using the `set_ipu_connection_type`.
+- [Connection Type](tensorflow/connection_type): a demonstration of controlling if and when an IPU device is acquired using the `device_connection.type` configuration option.
 
 Define custom operators:
 - [Custom operator](tensorflow/custom_op): a simple custom operator that adds two vectors of arbitrary size, created in Poplar
@@ -66,6 +65,9 @@ operator and its gradient in Poplar, then used in a TensorFlow model.
 Debugging and analysis:
 - [Inspecting tensors](tensorflow2/inspecting_tensors): an example that shows how outfeed queues can be used to
 return activation and gradient tensors to the host for inspection.
+
+Efficiently use multiple IPUs and handle large models:
+- [PopDist](tensorflow/popdist): an example showing how to make an application ready for distributed training and inference by using the PopDist
 
 Use estimators:
 - [IPU Estimator](tensorflow2/ipu_estimator): an example showing how to use the IPUEstimator to train and evaluate

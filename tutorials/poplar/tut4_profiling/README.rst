@@ -303,8 +303,8 @@ so for this section we'll assume you're using hardware.
 
   .. code-block:: c++
 
-    Tensor m1 = graph.addVariable(FLOAT, {9000, 6000}, "m1");
-    Tensor m2 = graph.addVariable(FLOAT, {6000, 300}, "m2");
+    Tensor m1 = graph.addVariable(FLOAT, {9000, 7500}, "m1");
+    Tensor m2 = graph.addVariable(FLOAT, {7500, 300}, "m2");
 
   (remember this is on hardware, so modify ``tut4_ipu_hardware.cpp``).
 
@@ -320,7 +320,7 @@ so for this section we'll assume you're using hardware.
   .. code-block:: bash
 
     terminate called after throwing an instance of 'poplar::graph_memory_allocation_error'
-      what():  Out of memory on tile 1: 674752 bytes used but tiles only have 638976 bytes of memory
+    what():  Out of memory: Cannot fit all variable data onto one or more tiles. Profile saved to: ./report_OOM/profile.pop
 
   And the folder ``/report_OOM`` contains a set of profile files.
 
