@@ -693,7 +693,7 @@ print(metrics)
 # | BERT-Large                             | Exact Match | F1 Score |
 # |----------------------------------------|:-----------:|:--------:|
 # | Reference (Devling et al. 2018)        | 84.1        | 90.9     |
-# | IPU-POD16 with IPU pre-trained weights | 84.5        | 91.1     |
+# | IPU-POD16 with IPU pre-trained weights | 84.7        | 91.1     |
 
 # ## 6. Inference
 #

@@ -1,7 +1,7 @@
 Tutorial on BERT Fine-tuning on IPU
 ===================================
 
-This tutorial demonstrates how to fine-tune a pre-trained BERT model with PyTorch on the Graphcore IPU-POD16 system. It uses a BERT-Large model and fine-tunes it on the SQuADv1 Question/Answering task. The tutorial is in `Fine-tuning-BERT.ipynb`.
+This tutorial demonstrates how to fine-tune a pre-trained BERT model with PyTorch on the Graphcore IPU-POD16 system. It uses a BERT-Large model and fine-tunes it on the SQuADv1 Question/Answering task. The tutorial is in [Fine-tuning-BERT.ipynb](./Fine-tuning-BERT.ipynb).
 
 ### File structure
 

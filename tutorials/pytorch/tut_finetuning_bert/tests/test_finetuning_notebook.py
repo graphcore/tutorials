@@ -2,6 +2,7 @@
 
 import shutil
 from pathlib import Path
+import pytest
 from examples_tests.test_util import SubProcessChecker
 
 
@@ -16,6 +17,6 @@ class TestComplete(SubProcessChecker):
         cmd = "ipython Fine-tuning-BERT.py"
         self.run_command(cmd,
                          working_path,
-                         "Notebook finished successfully")
+                         "Question: What speed-up can one expect from using sequence packing for training BERT on IPU?")
         shutil.rmtree(working_path/"checkpoints")
         shutil.rmtree(working_path/"exe_cache")
