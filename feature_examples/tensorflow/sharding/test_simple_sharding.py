@@ -8,7 +8,7 @@ import pytest
 import numpy as np
 # NOTE: The import below is dependent on 'pytest.ini' in the root of
 # the repository
-from examples_tests.assert_util import assert_result_equals_tensor_value
+from tutorials_tests.assert_util import assert_result_equals_tensor_value
 
 
 def run_simple_sharding():

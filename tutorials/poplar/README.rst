@@ -4,12 +4,11 @@ Tutorials
 These tutorials provide hands-on programming exercises to enable you to
 familiarise yourself with creating and running programs using Poplar and
 PopLibs. They are intended to complement the `Poplar and PopLibs User Guide
-<https://docs.graphcore.ai/projects/poplar-user-guide/>`_.
+<https://docs.graphcore.ai/projects/poplar-user-guide/>`_ and the `Poplar and
+PopLibs API Reference <https://docs.graphcore.ai/projects/poplar-api/>`_.
 It is assumed that you have already downloaded and installed Poplar, and that
 you are familiar with C++ and command-line compilation tools.
 
-You can find the documentation for the Poplar framework on the Graphcore
-developer site: https://www.graphcore.ai/developer-documentation
 
 For most of the tutorials we've included two directories. One, called
 ``start_here``, contains the bare structure of the tutorial as a starting point
@@ -27,9 +26,8 @@ Each of the tutorials contains its own README file with full instructions.
 * Tutorial 2: using PopLibs
 * Tutorial 3: writing vertex code
 * Tutorial 4: profiling output
-* Tutorial 5: a basic machine learning example
-* Tutorial 6: matrix-vector multiplication
-* Tutorial 7: matrix-vector multiplication optimisation
+* Tutorial 5: matrix-vector multiplication
+* Tutorial 6: matrix-vector multiplication optimisation
 
 Copyright (c) 2018 Graphcore Ltd. All rights reserved.
 

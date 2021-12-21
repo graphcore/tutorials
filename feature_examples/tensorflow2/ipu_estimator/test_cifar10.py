@@ -3,7 +3,7 @@ import os
 import subprocess
 import unittest
 import pytest
-from examples_tests.test_util import parse_results_for_accuracy
+from tutorials_tests.testing_util import parse_results_for_accuracy
 
 
 def run_cifar10(file_name):

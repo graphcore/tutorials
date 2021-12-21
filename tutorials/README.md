@@ -10,9 +10,8 @@ Each of the tutorials contains its own README file with full instructions.
 - [Tutorial 2: Using PopLibs](poplar/tut2_operations)
 - [Tutorial 3: Writing vertex code](poplar/tut3_vertices)
 - [Tutorial 4: Profiling output](poplar/tut4_profiling)
-- [Tutorial 5: A basic machine learning example](poplar/tut5_ml)
-- [Tutorial 6: Matrix-vector multiplication](poplar/tut6_matrix_vector)
-- [Tutorial 7: Matrix-vector multiplication optimisation](poplar/tut7_matrix_vector_opt)
+- [Tutorial 5: Matrix-vector multiplication](poplar/tut5_matrix_vector)
+- [Tutorial 6: Matrix-vector multiplication optimisation](poplar/tut6_matrix_vector_opt)
 
 ## TensorFlow 1
 

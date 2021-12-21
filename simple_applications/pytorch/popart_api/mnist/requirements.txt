@@ -1,4 +1,0 @@
-torchvision==0.10.0
-pytest==5.4.1
-pytest-pythonpath==0.7.3
-six==1.15.0

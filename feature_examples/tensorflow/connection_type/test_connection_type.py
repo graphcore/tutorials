@@ -8,9 +8,9 @@ from tempfile import TemporaryDirectory
 
 # NOTE: The imports below are dependent on 'pytest.ini' in the root of
 # the repository
-from examples_tests.test_util import run_python_script_helper
-from examples_tests.assert_util import assert_result_equals_tensor_value
-from examples_tests.assert_util import assert_result_equals_string
+from tutorials_tests.testing_util import run_python_script_helper
+from tutorials_tests.assert_util import assert_result_equals_tensor_value
+from tutorials_tests.assert_util import assert_result_equals_string
 
 
 # Strings used to identify lines from trace that

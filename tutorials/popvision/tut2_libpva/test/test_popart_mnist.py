@@ -8,7 +8,7 @@ from tempfile import TemporaryDirectory
 import pytest
 # NOTE: The import below is dependent on 'pytest.ini' in the root of
 # the repository
-from examples_tests.test_util import run_python_script_helper, parse_results_for_accuracy
+from tutorials_tests.testing_util import run_python_script_helper, parse_results_for_accuracy
 
 # Variable which points to the root directory of this tutorial
 TUT2LIBPVA_ROOT_PATH = pathlib.Path(__file__).parents[1]

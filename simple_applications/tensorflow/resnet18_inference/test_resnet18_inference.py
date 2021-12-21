@@ -18,7 +18,7 @@ import pytest
 import filelock
 # NOTE: The import below is dependent on 'pytest.ini' in the root of
 # the repository
-from examples_tests.test_util import SubProcessChecker
+from tutorials_tests.testing_util import SubProcessChecker
 
 working_path = os.path.dirname(__file__)
 

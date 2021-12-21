@@ -2,8 +2,8 @@
 
 In this tutorial you will learn to use:
 
-- the PopVision System Analyser, a desktop tool for profiling the execution of IPU-targeted software on your host system processors;
-- the `libpvti` module in python which can be used to profile, time, and log information from your IPU applications and plot it directly in the PopVision System Analyser.
+- the [PopVision System Analyser](https://docs.graphcore.ai/projects/system-analyser-userguide/en/latest/), a desktop tool for profiling the execution of IPU-targeted software on your host system processors;
+- the [`libpvti` module](https://docs.graphcore.ai/projects/libpvti/en/latest/index.html) in python which can be used to profile, time, and log information from your IPU applications and plot it directly in the PopVision System Analyser.
 
 ## Setup
 
@@ -99,6 +99,6 @@ calculates accuracy of the model, and CPU load using the `psutil` library, and p
 ![PopVision System Analyser screenshot of instrumented mnist loss, accuracy & cpuload](./screenshots/mnist_instrumented_loss_accuracy_cpuload.png)
 
 
-This is a very simple use case for adding instrumentation. The PopVision trace instrumentation library (libpvti) provides other functions, classes & methods to instrument your Python and C++ code. For more information please see the <a href=https://docs.graphcore.ai/projects/graphcore-popvision-user-guide/en/latest/system/system.html#using-the-libpvti-api>PVTI library section in the PopVision User Guide</a>.
+This is a very simple use case for adding instrumentation. The PopVision trace instrumentation library (libpvti) provides other functions, classes & methods to instrument your Python and C++ code. For more information please see the [PVTI library documentation](https://docs.graphcore.ai/projects/libpvti/en/latest/index.html).
 
 Copyright (c) 2020 Graphcore Ltd. All rights reserved.

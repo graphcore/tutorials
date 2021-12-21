@@ -183,9 +183,10 @@ print("Program ran successfully")
 
 And we're done! You should see that this change results in a dramatic increase in throughput compared to the code from Part 1.
 
-We can examine the reasons for the speedup using the PopVision System Analyser, which is available for download [here](https://downloads.graphcore.ai/) and is documented [here](https://docs.graphcore.ai/projects/graphcore-popvision-user-guide/en/latest/system/system.html). When the `ipu.loops` API is not used, the program that executes the training loop has to be destroyed and rebuilt between batches. When it is used, there is no need and the program can run continuously.
+We can examine the reasons for the speedup using the PopVision System Analyser, which is available for download on the [Graphcore Downloads Portal](https://downloads.graphcore.ai/).
+When the `ipu.loops` API is not used, the program that executes the training loop has to be destroyed and rebuilt between batches. When it is used, there is no need and the program can run continuously.
 
 ![PopVision System Analyser trace without `ipu.loops`](system_trace_without_ipu_loops.png)
 ![PopVision System Analyser trace with `ipu.loops`](system_trace_with_ipu_loops.png)
 
-
+For more information on the PopVision System Analyser, head to the [PopVision System Analyser User Guide](https://docs.graphcore.ai/projects/system-analyser-userguide/en/latest/).

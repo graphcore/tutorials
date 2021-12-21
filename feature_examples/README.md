@@ -68,6 +68,7 @@ return activation and gradient tensors to the host for inspection.
 
 Efficiently use multiple IPUs and handle large models:
 - [PopDist](tensorflow/popdist): an example showing how to make an application ready for distributed training and inference by using the PopDist
+library, and how to launch it with the PopRun distributed launcher.
 
 Use estimators:
 - [IPU Estimator](tensorflow2/ipu_estimator): an example showing how to use the IPUEstimator to train and evaluate
@@ -79,6 +80,10 @@ LSTM, trained on the IPU to predict the sentiment of an IMDB review.
 
 
 ## PyTorch
+
+Efficiently use multiple IPUs and handle large models:
+- [PopDist](pytorch/popdist): an example showing how to make an application ready for distributed training and inference by using the PopDist
+library, and how to launch it with the PopRun distributed launcher.
 
 Define custom operators:
 - [Custom operators](pytorch/custom_op): an example showing how to make a PopART custom operator available

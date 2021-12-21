@@ -1,4 +1,4 @@
-torchvision @ https://download.pytorch.org/whl/cpu/torchvision-0.10.0%2Bcpu-cp36-cp36m-linux_x86_64.whl
+torchvision==0.11.1
 tqdm
 sklearn
 matplotlib

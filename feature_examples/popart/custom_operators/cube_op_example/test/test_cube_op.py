@@ -5,7 +5,7 @@ from pathlib import Path
 
 # NOTE: The import below is dependent on 'pytest.ini' in the root of
 # the repository
-from examples_tests.test_util import SubProcessChecker
+from tutorials_tests.testing_util import SubProcessChecker
 
 build_dir = Path(__file__).parent.parent.resolve()
 

@@ -1,5 +1,5 @@
 # Copyright (c) 2021 Graphcore Ltd. All rights reserved.
-#!/usr/bin/env python
+
 # coding: utf-8
 
 # # BERT Fine-tuning on IPU
@@ -37,6 +37,7 @@ import numpy as np
 from tqdm.notebook import trange, tqdm
 from datasets import load_dataset, load_metric
 import time
+from pathlib import Path
 
 # To run on IPU we import popart and poptorch packages
 import popart
@@ -72,7 +73,7 @@ warnings.filterwarnings("ignore")
 # In[ ]:
 
 
-datasets = load_dataset("squad", cache_dir="~/.torch/datasets/")
+datasets = load_dataset("squad", cache_dir=Path.home() / ".torch/datasets/")
 
 
 # The SQuAD dataset consists of pre-defined training and validation splits.
@@ -374,9 +375,9 @@ def ipu_training_options(gradient_accumulation, replication_factor, device_itera
 
     # Available Transcient Memory For matmuls and convolutions operations
     opts.setAvailableMemoryProportion({f"IPU{i}": mp
-                                       for i, mp in enumerate([0.08, 0.28, 0.32, 0.32, 0.36, 0.38, 0.4, 0.32])})
+                                       for i, mp in enumerate([0.08, 0.28, 0.32, 0.32, 0.36, 0.38, 0.4, 0.1])})
 
-    ## Advanced performance options ##
+    # Advanced performance options #
 
     # Only stream needed tensors back to host
     opts._Popart.set("disableGradAccumulationTensorStreams", True)
@@ -390,6 +391,12 @@ def ipu_training_options(gradient_accumulation, replication_factor, device_itera
                      int(popart.AccumulateOuterFragmentSchedule.OverlapMemoryOptimized))
     opts._Popart.set(
         "accumulateOuterFragmentSettings.excludedVirtualGraphs", ["0"])
+
+    # Limit number of sub-graphs that are outlined (to preserve memory)
+    opts._Popart.set("outlineThreshold", 10.0)
+
+    # Only attach to IPUs after compilation has completed.
+    opts.connectionType(poptorch.ConnectionType.OnDemand)
     return opts
 
 
@@ -547,7 +554,7 @@ model.save_pretrained("checkpoints/squad_large_2x8")
 # In[32]:
 
 
-micro_batch_size = 6
+micro_batch_size = 4
 replication_factor = 8
 global_batch_size = micro_batch_size * replication_factor
 device_iterations = 2

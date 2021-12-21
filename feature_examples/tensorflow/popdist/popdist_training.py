@@ -8,7 +8,7 @@ import numpy as np
 import tensorflow.compat.v1 as tf
 from tensorflow.python import ipu
 from tensorflow.python.ipu import horovod as hvd
-from tensorflow.python.ipu.horovod import ipu_multi_replica_strategy
+from tensorflow.python.ipu.horovod import popdist_strategy
 
 tf.disable_v2_behavior()
 
@@ -47,7 +47,7 @@ config.configure_ipu_system()
 hvd.init()
 
 # Create distribution strategy.
-strategy = ipu_multi_replica_strategy.IPUMultiReplicaStrategy()
+strategy = popdist_strategy.PopDistStrategy()
 
 # Get and normalize the training data.
 (train_x, train_y), _ = tf.keras.datasets.cifar10.load_data()

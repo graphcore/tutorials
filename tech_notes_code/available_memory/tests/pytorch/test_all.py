@@ -3,7 +3,7 @@
 from pathlib import Path
 import pytest
 from subprocess import CalledProcessError
-from examples_tests.test_util import SubProcessChecker, run_python_script_helper
+from tutorials_tests.testing_util import SubProcessChecker, run_python_script_helper
 
 
 working_path = Path(__file__).parent.parent.parent

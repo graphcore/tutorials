@@ -5,11 +5,11 @@ import unittest
 import pytest
 # NOTE: The import below is dependent on 'pytest.ini' in the root of
 # the repository
-from examples_tests import test_util
+from tutorials_tests import testing_util
 
 
 def run_popart_mnist_training(**kwargs):
-    out = test_util.run_python_script_helper(
+    out = testing_util.run_python_script_helper(
         os.path.dirname(__file__), "popart_mnist_conv.py", **kwargs
     )
     return out
@@ -33,12 +33,12 @@ class TestPopARTMNISTImageClassificationConvolution(unittest.TestCase):
     def test_mnist_train(self):
         """Generic test on default arguments in training"""
         py_args = self.generic_arguments.copy()
-        out = test_util.run_test_helper(
+        out = testing_util.run_test_helper(
             run_popart_mnist_training,
             **py_args
         )
         expected_accuracy = [98.41]
-        test_util.parse_results_for_accuracy(
+        testing_util.parse_results_for_accuracy(
             out, expected_accuracy, self.accuracy_tolerances
         )
 
@@ -50,7 +50,7 @@ class TestPopARTMNISTImageClassificationConvolution(unittest.TestCase):
         py_args["--epochs"] = 2
         py_args["--batch-size"] = 10
         py_args["--batches-per-step"] = 1000
-        test_util.run_test_helper(
+        testing_util.run_test_helper(
             run_popart_mnist_training,
             **py_args
         )
@@ -62,7 +62,7 @@ class TestPopARTMNISTImageClassificationConvolution(unittest.TestCase):
         py_args = self.generic_arguments.copy()
         py_args["--log-graph-trace"] = ""
         py_args["--epochs"] = 1
-        test_util.run_test_helper(
+        testing_util.run_test_helper(
             run_popart_mnist_training,
             **py_args
         )
@@ -76,7 +76,7 @@ class TestPopARTMNISTImageClassificationConvolution(unittest.TestCase):
         py_args["--batch-size"] = 1
         py_args["--batches-per-step"] = 1
         py_args["--epochs"] = 1
-        test_util.run_test_helper(
+        testing_util.run_test_helper(
             run_popart_mnist_training,
             **py_args
         )

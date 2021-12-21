@@ -5,8 +5,8 @@ import pytest
 
 # NOTE: The imports below are dependent on 'pytest.ini' in the root of
 # the repository
-from examples_tests.test_util import SubProcessChecker
-from examples_tests.xdist_util import lock
+from tutorials_tests.testing_util import SubProcessChecker
+from tutorials_tests.xdist_util import lock
 
 build_dir = Path(__file__).parent.parent
 

@@ -122,7 +122,7 @@ int main(int argc, char *argv[]) {
 
   // Program
   auto prog = Repeat(
-      repeat, Sequence(Copy(inStream, t), Execute(cs), Copy(t, outStream)));
+      repeat, Sequence({Copy(inStream, t), Execute(cs), Copy(t, outStream)}));
 
   // Compile program
   OptionFlags options{{"exchange.streamBufferOverlap", "none"},

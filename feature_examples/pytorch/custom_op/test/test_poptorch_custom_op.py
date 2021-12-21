@@ -2,7 +2,7 @@
 
 import pytest
 from pathlib import Path
-from examples_tests.test_util import SubProcessChecker
+from tutorials_tests.testing_util import SubProcessChecker
 
 # Set seed to make test deterministic and we can test exact results
 import torch

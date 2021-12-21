@@ -3,6 +3,10 @@
 
 This directory contains a number of basic applications written in different frameworks targeting the IPU.
 
+## Poplar
+
+- [Simple MNIST training example](poplar/mnist): this example shows how to build a training model to classify digits from the MNIST dataset.
+
 ## TensorFlow 1
 
 - [Classifying hand-written digits](tensorflow/mnist) from the MNIST dataset is a well-known example of a basic machine learning task. An example of its implementation on IPUs can be found in `mnist`. This example also shows how to use `ipu.dataset_benchmark` to determine the maximum achievable throughput for a given dataset.
@@ -22,10 +26,6 @@ This directory contains a number of basic applications written in different fram
 ### Pre-trained models
 
 - [Hugging Face's BERT](pytorch/bert) is a pre-trained BERT model made available by Hugging Face and which is implemented in PyTorch. This example consists of running one of the pre-trained BERT model on an IPU for an inference session.
-
-### Other examples
-
-- [PopART's MNIST](pytorch/popart_api/mnist) is an example on how to export a PyTorch model as an ONNX file and reuse this file with Graphcore's PopART.
 
 ## Popart
 

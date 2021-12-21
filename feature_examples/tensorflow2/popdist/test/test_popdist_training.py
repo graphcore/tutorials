@@ -5,8 +5,6 @@ import pytest
 import os
 import sys
 import subprocess
-import tempfile
-import tensorflow as tf
 import unittest
 
 from pathlib import Path
@@ -19,12 +17,18 @@ from pathlib import Path
 # (by the instances).
 @pytest.mark.category1
 @pytest.mark.ipus(16)
-class TestPopDistTraining(unittest.TestCase):
-    def test_instances_in_sync_after_training(self):
-
+class TestPopDistTraining:
+    def test_instances_in_sync_after_training(self, tmpdir):
         NUM_TOTAL_REPLICAS = 4
         NUM_INSTANCES = 2
+        self.check_instances_in_sync_after_training(NUM_TOTAL_REPLICAS, NUM_INSTANCES, tmpdir)
 
+    def test_1_replica_per_instance(self, tmpdir):
+        NUM_TOTAL_REPLICAS = 2
+        NUM_INSTANCES = 2
+        self.check_instances_in_sync_after_training(NUM_TOTAL_REPLICAS, NUM_INSTANCES, tmpdir)
+
+    def check_instances_in_sync_after_training(self, NUM_TOTAL_REPLICAS, NUM_INSTANCES, tmpdir):
         scriptdir = Path(os.path.realpath(__file__)).parent.parent
         cmd = [
             "poprun",
@@ -34,19 +38,21 @@ class TestPopDistTraining(unittest.TestCase):
             str(scriptdir / "popdist_training.py")
         ]
 
-        with tempfile.TemporaryDirectory() as tempdir:
-            logging.info(f"Executing: {cmd} in {tempdir}")
-            subprocess.check_call(cmd, cwd=tempdir)
+        logging.info(f"Executing: {cmd} in {tmpdir}")
+        subprocess.check_call(cmd, cwd=tmpdir)
 
-            # The checkpoint files from all the instances.
-            instances = [os.path.join(
-                tempdir, f"instance_{i}.h5") for i in range(NUM_INSTANCES)]
-            logging.info(f"Instance checkpoints: {instances}")
+        # The checkpoint files from all the instances.
+        instances = [os.path.join(
+            tmpdir, f"instance_{i}.h5") for i in range(NUM_INSTANCES)]
+        logging.info(f"Instance checkpoints: {instances}")
 
-            checksums = [hashlib.md5(Path(file).read_bytes()).hexdigest() for file in instances]
+        checksums = [hashlib.md5(Path(file).read_bytes()).hexdigest() for file in instances]
 
-            for checksum in checksums:
-                self.assertEqual(checksums[0], checksum)
+        non_matching_instances = [instance for checksum, instance in zip(
+            checksums, instances) if checksum != checksums[0]]
+        assert not non_matching_instances, (
+            "Not all checkpoint files matched " +
+            f"{instances[0]}: {non_matching_instances}")
 
 
 if __name__ == '__main__':

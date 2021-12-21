@@ -1,7 +1,7 @@
 Keras tutorial: How to run on IPU
 -----------------------------------
 
-This tutorial provides an introduction on how to run Keras models on IPUs, and features that allow you to fully utilise the capability of the IPU. Please refer to the [TensorFlow 2 documentation - Keras with IPUs](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/keras_tf2.html) and the TensorFlow 2 Keras API reference sections on [IPU extensions](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/api.html#module-tensorflow.python.ipu.keras.extensions), and IPU-specific [Keras layers](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/api.html#keras-layers), [Keras losses](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/api.html#module-tensorflow.python.ipu.keras.losses) and [Keras optimizers](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/api.html#module-tensorflow.python.ipu.keras.losses) for full details of all available features.
+This tutorial provides an introduction on how to run Keras models on IPUs, and features that allow you to fully utilise the capability of the IPU. Please refer to the [TensorFlow 2 documentation - Keras with IPUs](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/keras_tf2.html) and the TensorFlow 2 Keras API reference sections on [IPU extensions](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/api.html#module-tensorflow.python.ipu.keras.extensions), and IPU-specific [Keras layers](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/api.html#keras-layers), [Keras losses](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/api.html#module-tensorflow.python.ipu.keras.losses) and [Keras optimizers](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/api.html#module-tensorflow.python.ipu.keras.optimizers) for full details of all available features.
 
 Requirements:
 * Installed and enabled Poplar
@@ -150,7 +150,7 @@ Epoch 3/3
 937/937 [==============================] - 3s 3ms/step - loss: 0.2358 - accuracy: 0.9294
 ```
 
-The training time has been significantly reduced by use of the IPU. We ignore the reported total for the first epoch because this time includes the model's compilation time. 
+The training time has been significantly reduced by use of the IPU. We ignore the reported total for the first epoch because this time includes the model's compilation time.
 
 >To avoid recompiling the same code every time a TensorFlow process is started, you can [turn on caching of the executable](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/compiling.html#compiling-and-pre-compiling-executables).
 

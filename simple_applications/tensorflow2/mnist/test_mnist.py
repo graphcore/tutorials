@@ -3,7 +3,7 @@ import unittest
 import os
 import pytest
 import tensorflow as tf
-from examples_tests.test_util import SubProcessChecker
+from tutorials_tests.testing_util import SubProcessChecker
 
 working_path = os.path.dirname(__file__)
 

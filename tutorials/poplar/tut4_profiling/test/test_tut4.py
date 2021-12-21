@@ -7,8 +7,8 @@ from shutil import copy
 
 # NOTE: The import below is dependent on 'pytest.ini' in the root of
 # the repository
-from examples_tests.test_util import SubProcessChecker
-from examples_tests.xdist_util import lock
+from tutorials_tests.testing_util import SubProcessChecker
+from tutorials_tests.xdist_util import lock
 
 working_path = Path(__file__).parent
 

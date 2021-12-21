@@ -8,7 +8,7 @@ import subprocess
 import unittest
 from tempfile import TemporaryDirectory
 
-import examples_tests.test_util as test_util
+import tutorials_tests.testing_util as testing_util
 
 
 def run_pipelining_example(py_args):
@@ -39,7 +39,7 @@ class TestPipeliningTensorFlow(unittest.TestCase):
         out = run_pipelining_example({})
         # Get the final loss
         loss_regex = r"loss: ([\d.]+)"
-        result = test_util.parse_results_with_regex(out, loss_regex)
+        result = testing_util.parse_results_with_regex(out, loss_regex)
         # Get the last loss
         loss = result[0][-1]
         self.assertGreater(loss, 0.001)

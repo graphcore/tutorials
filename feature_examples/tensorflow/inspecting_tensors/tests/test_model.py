@@ -3,7 +3,7 @@
 from pathlib import Path
 import pytest
 
-from examples_tests.test_util import SubProcessChecker
+from tutorials_tests.testing_util import SubProcessChecker
 
 working_path = Path(__file__).resolve().parent.parent
 
