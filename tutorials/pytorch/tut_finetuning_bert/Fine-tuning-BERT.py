@@ -1,4 +1,5 @@
 # Copyright (c) 2021 Graphcore Ltd. All rights reserved.
+
 #!/usr/bin/env python
 # coding: utf-8
 
@@ -37,6 +38,7 @@ import numpy as np
 from tqdm.notebook import trange, tqdm
 from datasets import load_dataset, load_metric
 import time
+from pathlib import Path
 
 # To run on IPU we import popart and poptorch packages
 import popart
@@ -72,7 +74,7 @@ warnings.filterwarnings("ignore")
 # In[ ]:
 
 
-datasets = load_dataset("squad", cache_dir="~/.torch/datasets/")
+datasets = load_dataset("squad", cache_dir=Path.home() / ".torch/datasets/")
 
 
 # The SQuAD dataset consists of pre-defined training and validation splits.
@@ -376,7 +378,7 @@ def ipu_training_options(gradient_accumulation, replication_factor, device_itera
     opts.setAvailableMemoryProportion({f"IPU{i}": mp
                                        for i, mp in enumerate([0.08, 0.28, 0.32, 0.32, 0.36, 0.38, 0.4, 0.32])})
 
-    ## Advanced performance options ##
+    # Advanced performance options #
 
     # Only stream needed tensors back to host
     opts._Popart.set("disableGradAccumulationTensorStreams", True)

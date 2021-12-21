@@ -264,7 +264,7 @@ We obtained an accuracy of approximately 84% on the test dataset.
 
 # Visualise the memory footprint
 
-We can visually compare the memory footprint on the IPU of the model trained in FP16 and FP32, thanks to Graphcore's [PopVision Graph Analyser](https://docs.graphcore.ai/projects/graphcore-popvision-user-guide/en/latest/graph/graph.html).
+We can visually compare the memory footprint on the IPU of the model trained in FP16 and FP32, thanks to Graphcore's [PopVision Graph Analyser](https://docs.graphcore.ai/projects/graph-analyser-userguide/en/latest/index.html).
 
 We generated memory reports of the same training session as covered in this tutorial for both cases: with and without downcasting the model with `model.half()`. Here is the figure of both memory footprints, where "source" and "target" represent the model trained in FP16 and FP32 respectively:
 
@@ -327,4 +327,4 @@ assert poptorch_model(float32_tensor, float16_tensor).dtype == torch.float32
     - Loss scaling: `poptorch.optim.SGD(..., loss_scaling=1000)`
     - Stochastic rounding: `opts.Precision.enableStochasticRounding(True)`
     - Upcast partials data types: `opts.Precision.setPartialsType(torch.float)`
-- The [PopVision Graph Analyser](https://docs.graphcore.ai/projects/graphcore-popvision-user-guide/en/latest/graph/graph.html) can be used to inspect the memory usage of a model and to help debug issues.
+- The [PopVision Graph Analyser](https://docs.graphcore.ai/projects/graph-analyser-userguide/en/latest/index.html) can be used to inspect the memory usage of a model and to help debug issues.

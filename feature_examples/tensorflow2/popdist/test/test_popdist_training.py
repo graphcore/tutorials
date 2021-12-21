@@ -28,6 +28,8 @@ class TestPopDistTraining(unittest.TestCase):
         scriptdir = Path(os.path.realpath(__file__)).parent.parent
         cmd = [
             "poprun",
+            # The CI runs as root, we need to allow that on SDK <= 2.3
+            "--mpi-global-args", "--allow-run-as-root --tag-output",
             "--num-replicas", str(NUM_TOTAL_REPLICAS),
             "--num-instances", str(NUM_INSTANCES),
             sys.executable,

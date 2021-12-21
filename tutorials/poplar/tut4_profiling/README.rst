@@ -11,8 +11,8 @@ The PopVision Graph Analyser provides much more detailed information, as such th
 First exploring the three different profiling methods, next exploring general PopVision Graph Analyser functionality,
 and finally exploring each tab of information in the PopVision Graph Analyser.
 
-Profiling is documented in the `PopVision User Guide
-<https://docs.graphcore.ai/projects/graphcore-popvision-user-guide/>`_.
+Profiling is documented in the `PopVision Graph Analyser User Guide
+<https://docs.graphcore.ai/projects/graph-analyser-userguide/en/latest/index.html>`_.
 This tutorial shows how to profile Poplar programs, but these techniques are applicable
 to the PyTorch and TensorFlow frameworks.
 
@@ -172,13 +172,13 @@ You may want to modify the source files to extend this example information.
 Using PopVision Graph Analyser - loading and viewing a report
 ..............................................................
 
-Download and install the PopVision Graph Analyser from the Downloads Portal:
-`<https://downloads.graphcore.ai/>`_. You can download and install the PopVision Graph Analyser on your local machine
+Download and install the PopVision Graph Analyser from the `Downloads Portal
+<https://downloads.graphcore.ai/>`_. You can download and install the PopVision Graph Analyser on your local machine
 and use it to access files on remote machines, so you do not need to download and install the PopVision Graph Analyser
 on your remote machines.
 
-It is also useful to watch the Getting Started with PopVision video
-`<https://www.graphcore.ai/resources/how-to-videos>`_
+It is also useful to watch the `Getting Started with PopVision video
+<https://www.graphcore.ai/resources/how-to-videos>`_
 both before the tutorial as a preview, and after to give you further things to try.
 
 * Load the profile in the PopVision Graph Analyser.
@@ -206,8 +206,8 @@ both before the tutorial as a preview, and after to give you further things to t
   Hovering over most things gives a tool tip or a link to the documentation.
   This documentation is contained both in the the application itself
   (``Help -> Documentation`` or the documentation icon, bottom left) and
-  in the `PopVision User Guide.
-  <https://docs.graphcore.ai/projects/graphcore-popvision-user-guide/>`_
+  in the `PopVision Graph Analyser User Guide
+  <https://docs.graphcore.ai/projects/graph-analyser-userguide/en/latest/index.html>`_.
 
 * The whole report can be reloaded via the reload icon (bottom left);
   closing the report and re-opening it (close icon, bottom left);
@@ -219,8 +219,9 @@ Using PopVision Graph Analyser - General Functionality
 ------------------------------------------------------
 
 This section of the tutorial is an introduction to the basic functionality -
-the PopVision User Guide gives full detailed instructions:
-`<https://docs.graphcore.ai/projects/graphcore-popvision-user-guide>`_
+the `PopVision Graph Analyser User Guide
+<https://docs.graphcore.ai/projects/graph-analyser-userguide/en/latest/index.html>`_
+gives full detailed instructions.
 
 Capturing IPU Reports - setting ``POPLAR_ENGINE_OPTIONS``
 ..........................................................
@@ -252,7 +253,7 @@ those files in the folder that correspond to the functionality turned on for tha
 So it won't delete files that aren't written in that run.
 
 This is fully detailed in the `Capturing IPU Reports
-<https://docs.graphcore.ai/projects/graphcore-popvision-user-guide/en/latest/graph/graph.html#capturing-ipu-reports>`_
+<https://docs.graphcore.ai/projects/graph-analyser-userguide/en/latest/graph-analyser.html#capturing-ipu-reports>`_
 section of the PopVision Graph Analyser documentation.
 
 
@@ -282,7 +283,7 @@ Memory and Liveness tabs to start with. The Liveness tab for example should look
 We will use this extra report in the next couple of sections as well.
 
 If you face any difficulties, a full walkthrough of opening reports is given in the `Opening Reports
-<https://docs.graphcore.ai/projects/graphcore-popvision-user-guide/en/latest/graph/graph.html#opening-reports>`_
+<https://docs.graphcore.ai/projects/graph-analyser-userguide/en/latest/graph-analyser.html#opening-reports>`_
 section of the PopVision Graph Analyser documentation.
 
 
@@ -374,7 +375,7 @@ Open one of your reports from above, and click on the ``Memory`` tab icon on the
 * Vary the tensors and the mapping - you can see the effects in the Memory tab of the tool.
 
 Full details of the Memory Report are given in the `Memory Report
-<https://docs.graphcore.ai/projects/graphcore-popvision-user-guide/en/latest/graph/graph.html#memory-report>`_
+<https://docs.graphcore.ai/projects/graph-analyser-userguide/en/latest/graph-analyser.html#viewing-a-memory-report-image24>`_
 section of the PopVision Graph Analyser documentation.
 
 Program Tree
@@ -395,7 +396,7 @@ Open one of your reports from above, and click on the Program Tree tab icon on t
   observe the different info given for each type.
 
 More details on the Program Tree are given in the `Program Tree
-<https://docs.graphcore.ai/projects/graphcore-popvision-user-guide/en/latest/graph/graph.html#program-tree>`_
+<https://docs.graphcore.ai/projects/graph-analyser-userguide/en/latest/graph-analyser.html#viewing-a-program-tree-image27>`_
 section of the PopVision Graph Analyser documentation.
 
 Operations
@@ -429,8 +430,8 @@ Open one of your reports from above, and click on the Operations tab icon on the
   - ``Debug`` - debug information from the selected operation.
 
 More details on Operations and full descriptions of the functionality of each each bottom panel tab
-are given in the `Operations
-<https://docs.graphcore.ai/projects/graphcore-popvision-user-guide/en/latest/graph/graph.html#operations>`_
+are given in the `Operations Summary
+<https://docs.graphcore.ai/projects/graph-analyser-userguide/en/latest/graph-analyser.html#viewing-an-operations-summary-image28>`_
 section of the PopVision Graph Analyser documentation.
 
 Liveness Report
@@ -457,7 +458,7 @@ Open one of your reports from above, and click on the ``Liveness`` tab icon on t
   * Note the program steps matching up with the Program Tree.
 
 More details on the Liveness Report are given in the `Liveness Report
-<https://docs.graphcore.ai/projects/graphcore-popvision-user-guide/en/latest/graph/graph.html#liveness-report>`_
+<https://docs.graphcore.ai/projects/graph-analyser-userguide/en/latest/graph-analyser.html#viewing-a-liveness-report-image25>`_
 section of the PopVision Graph Analyser documentation.
 
 Execution Trace
@@ -481,8 +482,8 @@ Open one of your reports from above, and click on the ``Execution Trace`` tab ic
 
 * Note that all the measurements are in clock cycles not time.
 
-More details on the Liveness Report are given in the `Execution Trace
-<https://docs.graphcore.ai/projects/graphcore-popvision-user-guide/en/latest/graph/graph.html#execution-trace>`_
+More details on the Execution Trace are given in the `Execution Trace
+<https://docs.graphcore.ai/projects/graph-analyser-userguide/en/latest/graph-analyser.html#viewing-an-execution-trace-image30>`_
 section of the PopVision Graph Analyser documentation.
 
 Follow-ups
