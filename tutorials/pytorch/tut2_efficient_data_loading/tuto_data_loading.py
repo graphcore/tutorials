@@ -1,17 +1,15 @@
 # Copyright (c) 2021 Graphcore Ltd. All rights reserved.
 
-import popart
 import argparse
-import torch.nn as nn
-import torch.nn.functional as F
-import torch
-import poptorch
-import torchvision
 import time
 
+import poptorch
+import torch
+import torch.nn as nn
 
-bs = 16
+
 device_iterations = 50
+batch_size = 16
 num_workers = 32
 
 
@@ -42,17 +40,21 @@ class ClassificationModel(nn.Module):
 def print_parameters(args):
     if args.synthetic_data:
         print("SYNTHETIC DATA. The IPU Throughput will not include the cost of IO")
-    print(f"mini-batch size: {bs}\n",
+
+    print(f"mini-batch size: {batch_size}\n",
           f"replication factor: {args.replicas}\n",
           f"device-iterations: {device_iterations}\n",
           f"workers: {num_workers}\n",
-          f"--> Global batch size: {args.replicas*bs}")
+          f"--> Global batch size: {args.replicas*batch_size}")
+
 
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--synthetic-data', dest='synthetic_data', action='store_true', help='Use IPU-generated synthetic data')
-    parser.add_argument('--replicas', type=int, default=1, help='IPU replication factor')
+    parser.add_argument('--synthetic-data', dest='synthetic_data',
+                        action='store_true', help='Use IPU-generated synthetic data')
+    parser.add_argument('--replicas', type=int, default=1,
+                        help='IPU replication factor')
     args = parser.parse_args()
     replicas = args.replicas
 
@@ -66,20 +68,25 @@ if __name__ == '__main__':
     model.train()  # Switch the model to training mode
     # Models are initialised in training mode by default, so the line above will
     # have no effect. Its purpose is to show how the mode can be set explicitly.
+
     print_parameters(args)
+
     # Setup a Poptorch training model
-    training_model = poptorch.trainingModel(model, opts, poptorch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9))
+    training_model = poptorch.trainingModel(
+        model,
+        opts,
+        poptorch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9))
 
     # Create a dataset from random data
     features = torch.randn([10000, 1, 128, 128])
-    labels = torch.empty([10000], dtype = torch.long).random_(10)
+    labels = torch.empty([10000], dtype=torch.long).random_(10)
     dataset = torch.utils.data.TensorDataset(features, labels)
     print("Dataset size: ", len(dataset))
 
     # Poptorch Dataloader
     training_data = poptorch.DataLoader(opts,
                                         dataset=dataset,
-                                        batch_size=bs,
+                                        batch_size=batch_size,
                                         shuffle=True,
                                         drop_last=True,
                                         num_workers=num_workers,
@@ -97,14 +104,17 @@ if __name__ == '__main__':
     t1 = time.time()
     total_time = t1-t0
     print("Total execution Time:", total_time, "s")
-    print("DataLoader throughput:", (steps*device_iterations*bs*replicas)/total_time, "items/s")
+    print("DataLoader throughput:",
+          (steps*device_iterations*batch_size*replicas)/total_time, "items/s")
 
     # IPU evaluation:
     # Warmup
     print("Compiling + Warmup ...")
     training_model.compile(data, labels)
 
-    print("Evaluating: ", steps, "steps of ", device_iterations*bs*replicas, " items")
+    print("Evaluating: ", steps, "steps of ",
+          device_iterations*batch_size*replicas, " items")
+
     if args.synthetic_data:
         # With synthetic data enabled, no data is copied from the host to the IPU, so we don't use
         # the dataloader, to prevent influencing the execution time and therefore the IPU throughput calculation
@@ -119,4 +129,5 @@ if __name__ == '__main__':
         t1 = time.time()
     total_time = t1-t0
     print("Total execution Time:", total_time, "s")
-    print("IPU throughput:", (steps*device_iterations*bs*replicas)/total_time, "items/s")
+    print("IPU throughput:",
+          (steps*device_iterations*batch_size*replicas)/total_time, "items/s")

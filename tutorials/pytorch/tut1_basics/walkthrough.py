@@ -12,7 +12,16 @@ a PopTorch model so that it can be run on a Graphcore IPU.
 Requirements:
 - A Poplar SDK environment enabled
    (see the [Getting Started](https://docs.graphcore.ai/en/latest/getting-started.html) guide for your IPU system)
-- Python packages installed with `pip install -r requirements.txt`
+- Python packages installed with `python -m pip install -r requirements.txt`
+
+To run the Jupyter notebook version of this tutorial:
+1. Enable a Poplar SDK environment and install required packages with `python -m pip install -r requirements.txt`
+2. In the same environment, install the Jupyter notebook server: `python -m pip install notebook`
+3. Launch a Jupyter Server on a specific port: `jupyter-notebook --no-browser --port <port number>`
+4. Connect via SSH to your remote machine, forwarding your chosen port:
+`ssh -NL <port number>:localhost:<port number> <your username>@<remote machine>`
+
+For more details about this process, or if you need troubleshooting, see our [guide on using IPUs from Jupyter notebooks](../../standard_tools/using_jupyter/README.md).
 """
 """
 ## What is PopTorch?

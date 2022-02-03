@@ -65,7 +65,7 @@ model = tf.keras.Sequential([expand_dims, conv, conv, flatten, final_dense])
 batches_per_epoch = len(x_train) // BATCHSIZE
 ```
 
-We make two small IPU-specific adjustments here. Since the features are originally of type `uint8`, which is not supported on the IPU (see the relevant part of the [documentation](https://docs.graphcore.ai/projects/tensorflow1-user-guide/en/latest/device_selection.html#supported-types), we cast them to `float32`. Also, we use `drop_remainder=True` when batching the data. This is because the dimensions of the tensors in a computational graph which is run on the IPU must be fixed.
+We make two small IPU-specific adjustments here. Since the features are originally of type `uint8`, which is not supported on the IPU (see the relevant part of the [documentation](https://docs.graphcore.ai/projects/tensorflow1-user-guide/en/latest/tensorflow/device_selection.html#supported-types), we cast them to `float32`. Also, we use `drop_remainder=True` when batching the data. This is because the dimensions of the tensors in a computational graph which is run on the IPU must be fixed.
 
 ## IPU Configuration
 
@@ -86,7 +86,7 @@ ipu_configuration.configure_ipu_system()
 
 This will create one TensorFlow virtual device which we can refer to later as `/device:IPU:0`. This virtual device will be able to use 1 IPU. We can create multiple TensorFlow virtual devices, each with multiple IPUs, by passing a Python list of sizes to `auto_select_ipus`. However, working effectively with multiple IPUs is a subject that requires separate treatment and will be covered in a further tutorial.
 
-For many small applications, this is enough to get a model up and running, but there are still plenty of useful options. For example, we can target a specific IPU or multi-IPU device by setting `select_ipus` on our IPUConfig object instead of `auto_select_ipus`. The full list of options is documented in the relevant part of the [API reference](https://docs.graphcore.ai/projects/tensorflow1-user-guide/en/latest/api.html#tensorflow.python.ipu.config.IPUConfig).
+For many small applications, this is enough to get a model up and running, but there are still plenty of useful options. For example, we can target a specific IPU or multi-IPU device by setting `select_ipus` on our IPUConfig object instead of `auto_select_ipus`. The full list of options is documented in the relevant part of the [API reference](https://docs.graphcore.ai/projects/tensorflow1-user-guide/en/latest/tensorflow/api.html#tensorflow.python.ipu.config.IPUConfig).
 
 ## Preparing the model for the IPU
 

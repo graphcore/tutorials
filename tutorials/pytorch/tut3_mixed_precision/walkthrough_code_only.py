@@ -32,6 +32,7 @@ class CustomModel(nn.Module):
             return x, self.loss(x, labels)
         return x
 
+
 # Cast the model parameters to FP16
 model_half = True
 
@@ -147,6 +148,7 @@ print(f"""Eval accuracy on IPU: {100 *
 class Model(torch.nn.Module):
     def forward(self, x, y):
         return x + y
+
 
 native_model = Model()
 native_model.eval()  # Switch the model to inference mode

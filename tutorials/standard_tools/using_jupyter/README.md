@@ -1,0 +1,131 @@
+# Using IPUs from Jupyter Notebooks
+
+## Preparing your environment
+
+Many of our tutorials are provided as Jupyter notebooks. In order to run them, you will need to execute the `jupyter-notebook` command on a machine with access to Graphcore IPUs and the Poplar SDK installed. To set up your environment you need:
+- A Poplar SDK enabled (see the [Getting Started](https://docs.graphcore.ai/en/latest/getting-started.html) guide for your IPU system).
+- The TensorFlow 1, TensorFlow 2, or PyTorch wheel installed (see the Setting up PyTorch/TensorFlow for the IPU sections of the [Software Installation](https://docs.graphcore.ai/projects/ipu-pod-getting-started/en/latest/installation.html#) guide), we recommend using a virtual environment.
+
+To check that the Poplar SDK and the Graphcore python wheel you want to use have been correctly setup you can run the command:
+- PyTorch installation: `python3 -c "import poptorch; print(poptorch.__version__)"`
+- TensorFlow 1 or 2 installation: `python3 -c "from tensorflow.python import ipu; import tensorflow as tf; print('TensorFlow version: ', tf.__version__)"`
+
+You should not encounter an error.
+
+## Starting Jupyter with IPU support
+
+After enabling the SDK and installing the desired wheel, you need to install
+Jupyter Notebook and the IPython kernel:
+
+```bash
+python -m pip install jupyter ipykernel
+```
+
+Navigate in your command line to the directory you want to open in Jupyter,
+this will be the top most directory that you can access from your Jupyter
+server. To avoid needing to restart a notebook for every tutorial you do you may
+want to only navigate to the folder containing tutorials targeting a specific
+framework, for Pytorch:
+
+`cd tutorials/pytorch`
+
+Then, start a Jupyter Server in "no browser" mode:
+
+```bash
+jupyter-notebook --no-browser --port 8075
+[I 11:57:42.444 NotebookApp] Jupyter Notebook 6.4.4 is running at:
+[I 11:57:42.444 NotebookApp] http://localhost:8075/?token=cb37a6b1ffb29dc99dea3d8e4153cef232b9f067ecd50f64
+[I 11:57:42.444 NotebookApp]  or http://127.0.0.1:8075/?token=cb37a6b1ffb29dc99dea3d8e4153cef232b9f067ecd50f64
+[I 11:57:42.444 NotebookApp] Use Control-C to stop this server and shut down all kernels (twice to skip confirmation).
+[C 11:57:42.447 NotebookApp]
+
+    To access the notebook, copy and paste one of these URLs:
+        http://localhost:8075/?token=cb37a6b1ffb29dc99dea3d8e4153cef232b9f067ecd50f64
+     or http://127.0.0.1:8075/?token=cb37a6b1ffb29dc99dea3d8e4153cef232b9f067ecd50f64
+```
+
+The URLs that appear are going to be used to connect to this server later.
+
+At this point the server is running and will block your terminal. You will need
+to keep it running while you want your sessions to remain active. For more
+information on how to manage long running tasks on linux, check out this
+[guide](https://www.howtogeek.com/440848/how-to-run-and-control-background-processes-on-linux/)
+on how to run and control background processes on Linux.
+
+In order to connect to the Jupyter Server we will need to connect via SSH with
+port forwarding to your IPU system.
+
+To do this you must add the `-NL 8075:localhost:8075` argument to the
+usual SSH command you use to connect to the IPU system:
+`ssh -NL 8075:localhost:8075 <Your_IPU_system>`.
+
+The simplest way to connect to the server to paste either URL obtained from the
+`jupyter-notebook` command above into your browser. Once that is done, you will
+see the following:
+
+![Jupyter Server](screenshots/jupyter_server.png)
+
+Here you will see the `.ipynb` file you want to open, among other files.
+Clicking on it should open a page similar to the one below, except with the
+tutorial you chose:
+
+![Open Notebook](screenshots/open_notebook.png)
+
+## Troubleshooting
+
+### Installing additional python packages from a notebook
+
+You can use the [pip cell magic](https://ipython.readthedocs.io/en/stable/interactive/magics.html#magic-pip) to install python packages from requirements files by adding a cell to a notebook with:
+
+`%pip install -r path/to/requirements.txt`
+
+### Encountering ImportErrors
+
+If you encounter an import error, similar to the one below, when importing
+one of the python packages provided by the Poplar SDK:
+
+```python
+[1] from tensorflow.python import ipu
+
+---------------------------------------------------------------------------
+ImportError                               Traceback (most recent call last)
+/localdata/alexandrep/sdk-envs/poplar_sdk-ubuntu_18_04-2.2.2+711-26aba6cf16/2.2.2+711_tf2/lib/python3.6/site-packages/tensorflow/python/pywrap_tensorflow.py in <module>
+     63   try:
+---> 64     from tensorflow.python._pywrap_tensorflow_internal import *
+     65   # This try catch logic is because there is no bazel equivalent for py_extension.
+
+ImportError: libgcl_ct.so: cannot open shared object file: No such file or directory
+
+During handling of the above exception, another exception occurred:
+...
+```
+
+Make sure that you followed the instructions in the "Preparing your environment"
+section above.
+
+If you have, make sure that Jupyter is using the same environment as the one in
+which you installed the custom wheel files. You can do that by using the syntax
+`python -m jupyter notebook` instead of `jupyter-notebook` when launching the
+notebook server. Full command:
+
+```
+python -m jupyter notebook --no-browser --port 8075
+```
+
+### Can't connect to server
+
+An error similar to the one below can happen when the port has not been
+forwarded through `ssh`:
+
+```bash
+ssh -NL 8075:localhost:8075 <Your_IPU_system>
+```
+
+![Can't connect to server](screenshots/not_found.png)
+
+### Login page
+
+If you are prompted to log in, make sure that you accessed the full URL you got
+after starting the Jupyter Server.
+
+![Login Page](screenshots/login.png)

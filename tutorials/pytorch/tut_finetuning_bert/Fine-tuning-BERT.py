@@ -10,6 +10,14 @@
 #
 # This is an advanced tutorial: if you are new to PopTorch, we have a [PopTorch basics tutorial](https://github.com/graphcore/tutorials/tree/master/tutorials/pytorch/tut1_basics) that you can do first.
 #
+# To run this Jupyter notebook on a remote IPU machine:
+# 1. Enable a Poplar SDK environment (see the [Getting Started](https://docs.graphcore.ai/en/latest/getting-started.html) guide for your IPU system) and install required packages with `python -m pip install -r requirements.txt`
+# 2. In the same environment, install the Jupyter notebook server: `python -m pip install notebook`
+# 3. Launch a Jupyter Server on a specific port: `jupyter-notebook --no-browser --port <port number>`
+# 4. Connect via SSH to your remote machine, forwarding your chosen port:
+# `ssh -NL <port number>:localhost:<port number> <your username>@<remote machine>`
+#
+# For more details about this process, or if you need troubleshooting, see our [guide on using IPUs from Jupyter notebooks](../../standard_tools/using_jupyter/README.md).
 #
 # ## Background
 #
@@ -360,7 +368,7 @@ def ipu_training_options(gradient_accumulation, replication_factor, device_itera
     opts.Training.gradientAccumulation(gradient_accumulation)
 
     # Return all results from IPU to host
-    opts.anchorMode(poptorch.AnchorMode.All)
+    opts.outputMode(poptorch.OutputMode.All)
 
     # Cache compiled executable to disk
     opts.enableExecutableCaching("./exe_cache")
@@ -584,7 +592,7 @@ def ipu_validation_options(replication_factor, device_iterations):
     opts.Training.gradientAccumulation(1)
 
     # Return all results from IPU
-    opts.anchorMode(poptorch.AnchorMode.All)
+    opts.outputMode(poptorch.OutputMode.All)
 
     # Cache compiled executable to disk
     opts.enableExecutableCaching("./exe_cache")

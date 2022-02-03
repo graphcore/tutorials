@@ -1,15 +1,20 @@
 # Copyright (c) 2020 Graphcore Ltd. All rights reserved.
 import inspect
 import os
+import sys
 import pytest
 import subprocess
 import unittest
 import torch
-from mnist_poptorch import accuracy
+from pathlib import Path
+sys.path.append(str(Path(__file__).parent.parent))
+
+from metrics import accuracy
+import tutorials_tests.testing_util as testing_util
 
 
 def run_poptorch_mnist(**kwargs):
-    cwd = os.path.dirname(os.path.abspath(inspect.stack()[0][1]))
+    cwd = Path(__file__).parent.parent
     cmd = ["python3", 'mnist_poptorch.py']
     try:
         out = subprocess.check_output(

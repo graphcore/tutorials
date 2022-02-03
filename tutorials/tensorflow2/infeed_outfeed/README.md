@@ -167,7 +167,7 @@ You may notice that `IPUInfeedQueue` is not explicitly declared like `IPUOutfeed
 
 An `IPUOutfeedQueue` is used to generate and add outfeed enqueue/dequeue operations to the graph. The infeed and outfeed queues together manage the transfer of data between the IPU graph and the host.
 
-`IPUOutfeedQueue` objects have extra options to control how they collect and output the data sent to them. These options are not used in this example. Refer to the [IPUOutfeedQueue](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/api.html#tensorflow.python.ipu.ipu_outfeed_queue.IPUOutfeedQueue) documentation for details. 
+`IPUOutfeedQueue` objects have extra options to control how they collect and output the data sent to them. These options are not used in this example. Refer to the [IPUOutfeedQueue](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/tensorflow/api.html#tensorflow.python.ipu.ipu_outfeed_queue.IPUOutfeedQueue) documentation for details. 
 
 To execute the training loop, you should do so within the scope of an `ipu_strategy.IPUStrategy` using `run` like so:
 
@@ -252,3 +252,11 @@ The execution traces for both [mnist_with_feeds.py](completed_code/mnist_with_fe
 ![Execution trace for program without feeds](execution_trace/without_feeds.png)
 
 Note that each `Engine::run` call for [mnist_with_feeds.py](completed_code/mnist_with_feeds.py) contains multiple steps while each step takes one `Engine::run` call for [mnist_without_feeds.py](completed_code/mnist_without_feeds.py). This verifies that placing the training operations inside a loop, as you did using feeds, allows them to be executed multiple times on the IPU without returning control to the host.
+
+### License
+
+This example is licensed under the Apache License 2.0 - see the LICENSE file in this directory.
+
+Copyright (c) 2021 Graphcore Ltd. All rights reserved.
+
+It contains derived work licensed under the Apache License 2.0. See the headers in the source code for details.

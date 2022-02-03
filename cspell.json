@@ -1,0 +1,30 @@
+{
+    "version": "0.2",
+    "ignorePaths": [],
+    "dictionaryDefinitions": [],
+    "dictionaries": [],
+    "words": [
+        "astype",
+        "Conv",
+        "convnet",
+        "dtype",
+        "hyperparameters",
+        "imshow",
+        "initializable",
+        "optim",
+        "pipelining",
+        "poptorch",
+        "pyplot",
+        "randn",
+        "relu",
+        "sklearn",
+        "Sneaker",
+        "softmax",
+        "tqdm",
+        "traceback",
+        "use_combined_accum",
+        "xticks"
+    ],
+    "ignoreWords": [],
+    "import": []
+}

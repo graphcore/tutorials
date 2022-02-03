@@ -146,15 +146,15 @@ There are currently 4 different anchor modes:
  * `Final`: Returns only the last batch results.
  * `EveryN`: Returns every N batches and requires an additional parameter `anchor_return_period`.
 
-For the output tensor, you can change this option by calling the method `anchorMode()` on the PopTorch options and passing in the relevant `poptorch.AnchorMode` and any additional parameters.
+For the output tensor, you can change this option by calling the method `outputMode()` on the PopTorch options and passing in the relevant `poptorch.OutputMode` and any additional parameters.
 
 Here is how you can set the anchor mode for the output tensor:
 
 ```python
 opts = poptorch.Options()
-opts.anchorMode(poptorch.AnchorMode.Sum)
+opts.outputMode(poptorch.OutputMode.Sum)
 # or
-opts.anchorMode(poptorch.AnchorMode.EveryN, 10)
+opts.outputMode(poptorch.OutputMode.EveryN, 10)
 ```
 
 The training model by default has the mode `Final`, as you usually only need some samples to visualize the model's learning and it is more efficient to only return the last batch.
@@ -164,8 +164,8 @@ For any other tensor, you can change this option by passing in 2 optional variab
 
  ```python
 opts = poptorch.Options()
-opts.anchorTensor('grad_bias', 'Gradient___model.fc2.bias', anchor_mode=poptorch.AnchorMode.Sum)
-opts.anchorTensor('update_weight', 'UpdatedVar___model.fc2.weight', anchor_mode=poptorch.AnchorMode.EveryN, anchor_return_period=10)
+opts.anchorTensor('grad_bias', 'Gradient___model.fc2.bias', anchor_mode=poptorch.OutputMode.Sum)
+opts.anchorTensor('update_weight', 'UpdatedVar___model.fc2.weight', anchor_mode=poptorch.OutputMode.EveryN, anchor_return_period=10)
 ```
 
 Additional documentation can be found in the [PopTorch User Guide](https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/batching.html#poptorch-options-training-anchorreturntype)

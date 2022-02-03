@@ -14,7 +14,7 @@ This can be useful for debugging a model.
 
 Simple examples demonstrating and explaining different ways of using multiple IPUs are provided. [Pipelining](pipelining) and [replication](replication) are generally used to parallelise and speed up training, whereas [sharding](sharding) is generally used to simply fit a model in memory.
 
-- [PopDist training example](popdist): This shows how the PopDist API can be used to enable distributed training.
+- [PopDist training example](popdist): This shows how to make an application ready for distributed training by using the PopDist API, and how to launch it with the PopRun distributed launcher.
 
 ## Custom operators
 

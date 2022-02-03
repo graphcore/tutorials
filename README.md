@@ -29,6 +29,7 @@ The [tutorials/](tutorials) folder contains tutorials to help you get started us
 * [tutorials/tensorflow1](tutorials/tensorflow1) - A set of tutorials to introduce the TensorFlow 1 framework support for the IPU.
 * [tutorials/tensorflow2](tutorials/tensorflow2) - A set of tutorials to introduce the TensorFlow 2 framework support for the IPU.
 * [tutorials/popvision](tutorials/popvision) - A set of tutorials to introduce PopVision, our suite of graphical application analysis tools.
+* [tutorials/standard_tools](tutorials/standard_tools) - Explanations of how to use standard deep learning tools with the Graphcore IPU.
 
 A complete list of available tutorials can be found in the [tutorials/](tutorials) folder.
 

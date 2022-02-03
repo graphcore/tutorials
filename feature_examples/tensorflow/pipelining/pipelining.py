@@ -161,7 +161,7 @@ if __name__ == "__main__":
     # For pipelined models either SNAKE or HOOF IPU selection orders are advised;
     # the latter works best when the first and last stage are on the same IPU.
     # For more information, see the API section of the Targeting the IPU from TensorFlow document:
-    # https://docs.graphcore.ai/projects/tensorflow1-user-guide/en/latest/api.html#tensorflow.python.ipu.utils.SelectionOrder
+    # https://docs.graphcore.ai/projects/tensorflow1-user-guide/en/latest/tensorflow/api.html#tensorflow.python.ipu.config.SelectionOrder
     cfg = ipu.config.IPUConfig()
     cfg.auto_select_ipus = 2
     cfg.selection_order = ipu.config.SelectionOrder.SNAKE

@@ -194,7 +194,7 @@ train_op = optimizer.minimize(loss=loss)
 
 The `GradientAccumulationOptimizerV2` is a wrapper for an optimizer where instead of performing the weight update for every batch, gradients across multiple batches are accumulated. After multiple batches have been processed, their accumulated gradients are used to compute the weight update. The effective batch size is the product of the model batch size and the gradient accumulation count. The `GradientAccumulationOptimizerV2` optimizer can be used to wrap any other TensorFlow optimizer. In this case it is wrapping a `GradientDescentOptimizer`. 
 
-See the TensorFlow 1 API documentation for details: [GradientAccumulationOptimizerV2](<https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/api.html#tensorflow.python.ipu.optimizers.GradientAccumulationOptimizerV2>)
+See the TensorFlow 1 API documentation for details: [GradientAccumulationOptimizerV2](<https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/tensorflow/api.html#tensorflow.python.ipu.optimizers.GradientAccumulationOptimizerV2>)
 
 
 Generate a profile report into directory `./profile_step1_single_ipu` with:
@@ -378,7 +378,7 @@ For convenience, the key parameters are described here inline:
 * `pipeline_schedule`: which scheduling algorithm to use for pipeline lowering. Defaults to `PipelineSchedule.Grouped` (See [the Scheduling section](#scheduling).).
 * `outfeed_loss`: if True, the loss given by the optimizer_function will be enqueued on the outfeed, instead of the outputs from the last computational stage.
 
-See the TensorFlow 1 API documentation for details: [TensorFlow 1 Pipeline Operator](<https://docs.graphcore.ai/projects/tensorflow1-user-guide/en/latest/api.html#tensorflow.python.ipu.pipelining_ops.pipeline>)  
+See the TensorFlow 1 API documentation for details: [TensorFlow 1 Pipeline Operator](<https://docs.graphcore.ai/projects/tensorflow1-user-guide/en/latest/tensorflow/api.html#tensorflow.python.ipu.pipelining_ops.pipeline>)  
 
 
 ### Scheduling
@@ -575,7 +575,7 @@ Use these arguments:
 Notes:  
 
 * The computational stages, which are executed in sequence, define the points at which the model is split across IPUs. All model variables which are used in multiple stages must be passed between IPUs. Consider this detail when deciding where to put the split points for more complex pipelined models.
-* Infeeds and outfeeds are introduced here: [Targeting the IPU from TensorFlow 1](<https://docs.graphcore.ai/projects/tensorflow1-user-guide/en/latest/perf_training.html#training-loops-data-sets-and-feed-queues>)
+* Infeeds and outfeeds are introduced here: [Targeting the IPU from TensorFlow 1](<https://docs.graphcore.ai/projects/tensorflow1-user-guide/en/latest/tensorflow/perf_training.html#training-loops-data-sets-and-feed-queues>)
 * This tutorial demonstrates how an input, `learning_rate`, can be passed into the pipeline and propagated through all layers/stages to where it is needed, in this case, the optimizer. In reality, for this simple application, `learning rate` is effectively static and could be removed and hardcoded.
 
 
@@ -630,7 +630,7 @@ ipu_configuration.selection_order = ipu.utils.SelectionOrder.SNAKE
 
 This configures the logical IPU indexing so that logically adjacent IPUs are physically linked. This makes the exchange of data between these IPUs (pipeline stages) more efficient. The default `selection_order` is AUTO which automatically tries to select the best selection order given the model. You can override it, as we do in this tutorial, if you have a specific requirement and want to be sure it is used.
 
-For details, including other options, see the [TensorFlow 1 User Guide - Selection Order](<https://docs.graphcore.ai/projects/tensorflow1-user-guide/en/latest/api.html#tensorflow.python.ipu.config.SelectionOrder>)
+For details, including other options, see the [TensorFlow 1 User Guide - Selection Order](<https://docs.graphcore.ai/projects/tensorflow1-user-guide/en/latest/tensorflow/api.html#tensorflow.python.ipu.config.SelectionOrder>)
 
 Now, run the modified application with the following shell command:  
 
@@ -959,7 +959,7 @@ Gradients will be accumulated in a buffer when pipelining. The datatype of this 
 
 The default is `None` (use an accumulator buffer of the same `DType` as each variable).  You may want to override this if you are training in float16 and you want to use a float32 accumulator buffer.
 
-See the TensorFlow 1 API documentation for details: [TensorFlow1 Pipelining API](<https://docs.graphcore.ai/projects/tensorflow1-user-guide/en/latest/api.html#tensorflow.python.ipu.pipelining_ops.pipeline>)
+See the TensorFlow 1 API documentation for details: [TensorFlow1 Pipelining API](<https://docs.graphcore.ai/projects/tensorflow1-user-guide/en/latest/tensorflow/api.html#tensorflow.python.ipu.pipelining_ops.pipeline>)
 
 
 Data Parallelism
@@ -1031,7 +1031,7 @@ Run it with `$ python3 answers/ipu_pipeline_estimator.py`
 
 
 See the TensorFlow 1 API documentation for details:  
-[TensorFlow IPUPipelineEstimator API](<https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/api.html#ipupipelineestimator>)  
-[TensorFlow IPUPipelineEstimatorSpec](<https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/api.html#tensorflow.python.ipu.ipu_pipeline_estimator.IPUPipelineEstimatorSpec>)  
-[TensorFlow IPUPipelineEstimator Example](<https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/ipu_pipeline_estimator_example.html>)  
+[TensorFlow IPUPipelineEstimator API](<https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/tensorflow/api.html#ipupipelineestimator>)  
+[TensorFlow IPUPipelineEstimatorSpec](<https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/tensorflow/api.html#tensorflow.python.ipu.ipu_pipeline_estimator.IPUPipelineEstimatorSpec>)  
+[TensorFlow IPUPipelineEstimator Example](<https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/tensorflow/ipu_pipeline_estimator_example.html>)  
 

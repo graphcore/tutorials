@@ -8,12 +8,13 @@
 **/datasets
 **/logs
 **/*ubyte*
+**/exe_cache
 
 *.pyc
 __pycache__
 .cache
+.ipu_cache
 *.csv
-*.json
 *.log
 *.so
 *.lock
@@ -30,9 +31,13 @@ report.txt
 # Remove VIM temp files
 *.swp
 
+# Ignore vscode config
+.vscode/launch.json
+.vscode/settings.json
+
 # C++ examples build into the "build" directory
 **/build/
-.vscode
 
 # Virtual environments
 *virtualenv/
+.venv

@@ -1,14 +1,14 @@
 # Copyright (c) 2020 Graphcore Ltd. All rights reserved.
-import inspect
 import os
 import subprocess
 import sys
 import unittest
 import pytest
+from pathlib import Path
 
 
 def run_mnist():
-    cwd = os.path.dirname(os.path.abspath(inspect.stack()[0][1]))
+    cwd = Path(__file__).parent.parent
     print(cwd)
     cmd = ["python" + str(sys.version_info[0]), 'mnist_tf.py']
     try:

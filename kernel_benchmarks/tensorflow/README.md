@@ -63,3 +63,13 @@ export POPLAR_ENGINE_OPTIONS='{"autoReport.all":"true", "autoReport.directory":"
 After running a benchmark, the resulting report can be opened using the PopVision Graph Analyser. 
 See the PopVision user guide for more information:
 [PopVision User Guide](https://docs.graphcore.ai/projects/graphcore-popvision-user-guide/en/latest/index.html).
+
+### License
+
+The Hamiltonian Monte Carlo benchmark (`hmc.py`) is licensed under the Apache License 2.0 - see the LICENSE file in this directory.
+
+This example contains work derived from the following: [TensorFlow `tfp.mcmc.HamiltonianMonteCarlo` documentation](https://www.tensorflow.org/probability/api_docs/python/tfp/mcmc/HamiltonianMonteCarlo).
+
+All other examples in this directory are licensed under the MIT license - see the LICENSE file at the root of the repository.
+
+Copyright (c) 2021 Graphcore Ltd. All rights reserved.

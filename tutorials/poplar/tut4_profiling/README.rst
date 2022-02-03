@@ -253,7 +253,7 @@ those files in the folder that correspond to the functionality turned on for tha
 So it won't delete files that aren't written in that run.
 
 This is fully detailed in the `Capturing IPU Reports
-<https://docs.graphcore.ai/projects/graph-analyser-userguide/en/latest/graph-analyser.html#capturing-ipu-reports>`_
+<https://docs.graphcore.ai/projects/graph-analyser-userguide/en/latest/user-guide.html#capturing-ipu-reports>`_
 section of the PopVision Graph Analyser documentation.
 
 
@@ -283,7 +283,7 @@ Memory and Liveness tabs to start with. The Liveness tab for example should look
 We will use this extra report in the next couple of sections as well.
 
 If you face any difficulties, a full walkthrough of opening reports is given in the `Opening Reports
-<https://docs.graphcore.ai/projects/graph-analyser-userguide/en/latest/graph-analyser.html#opening-reports>`_
+<https://docs.graphcore.ai/projects/graph-analyser-userguide/en/latest/user-guide.html#opening-reports>`_
 section of the PopVision Graph Analyser documentation.
 
 
@@ -375,7 +375,7 @@ Open one of your reports from above, and click on the ``Memory`` tab icon on the
 * Vary the tensors and the mapping - you can see the effects in the Memory tab of the tool.
 
 Full details of the Memory Report are given in the `Memory Report
-<https://docs.graphcore.ai/projects/graph-analyser-userguide/en/latest/graph-analyser.html#viewing-a-memory-report-image24>`_
+<https://docs.graphcore.ai/projects/graph-analyser-userguide/en/latest/user-guide.html#viewing-a-memory-report-image26>`_
 section of the PopVision Graph Analyser documentation.
 
 Program Tree
@@ -396,7 +396,7 @@ Open one of your reports from above, and click on the Program Tree tab icon on t
   observe the different info given for each type.
 
 More details on the Program Tree are given in the `Program Tree
-<https://docs.graphcore.ai/projects/graph-analyser-userguide/en/latest/graph-analyser.html#viewing-a-program-tree-image27>`_
+<https://docs.graphcore.ai/projects/graph-analyser-userguide/en/latest/user-guide.html#viewing-a-program-tree-image29>`_
 section of the PopVision Graph Analyser documentation.
 
 Operations
@@ -431,7 +431,7 @@ Open one of your reports from above, and click on the Operations tab icon on the
 
 More details on Operations and full descriptions of the functionality of each each bottom panel tab
 are given in the `Operations Summary
-<https://docs.graphcore.ai/projects/graph-analyser-userguide/en/latest/graph-analyser.html#viewing-an-operations-summary-image28>`_
+<https://docs.graphcore.ai/projects/graph-analyser-userguide/en/latest/user-guide.html#viewing-an-operations-summary30>`_
 section of the PopVision Graph Analyser documentation.
 
 Liveness Report
@@ -458,7 +458,7 @@ Open one of your reports from above, and click on the ``Liveness`` tab icon on t
   * Note the program steps matching up with the Program Tree.
 
 More details on the Liveness Report are given in the `Liveness Report
-<https://docs.graphcore.ai/projects/graph-analyser-userguide/en/latest/graph-analyser.html#viewing-a-liveness-report-image25>`_
+<https://docs.graphcore.ai/projects/graph-analyser-userguide/en/latest/user-guide.html#viewing-a-liveness-report-image27>`_
 section of the PopVision Graph Analyser documentation.
 
 Execution Trace
@@ -483,7 +483,7 @@ Open one of your reports from above, and click on the ``Execution Trace`` tab ic
 * Note that all the measurements are in clock cycles not time.
 
 More details on the Execution Trace are given in the `Execution Trace
-<https://docs.graphcore.ai/projects/graph-analyser-userguide/en/latest/graph-analyser.html#viewing-an-execution-trace-image30>`_
+<https://docs.graphcore.ai/projects/graph-analyser-userguide/en/latest/user-guide.html#viewing-an-execution-trace-image32>`_
 section of the PopVision Graph Analyser documentation.
 
 Follow-ups

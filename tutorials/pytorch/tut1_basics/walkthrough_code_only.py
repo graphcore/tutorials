@@ -57,6 +57,7 @@ class ClassificationModel(nn.Module):
             return x, self.loss(x, labels)
         return x
 
+
 model = ClassificationModel()
 model.train()
 
