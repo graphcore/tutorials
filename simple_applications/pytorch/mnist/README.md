@@ -343,5 +343,5 @@ Finally the accuracy on the test set is:
 print("Accuracy on test set: {:0.2f}%".format(sum_acc / len(test_data)))
 ```
 
-    Accuracy on test set: 98.76%
+    Accuracy on test set: 98.57%
 

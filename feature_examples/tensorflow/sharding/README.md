@@ -1,13 +1,11 @@
-# Graphcore
----
-## Sharding examples
+# Sharding example
 
-### File structure
+## File structure
 
 * `simple_sharding.py` Minimal example of IPU sharding
 * `README.md` This file.
 
-### How to use this demo
+## How to use this example
 
 1) Prepare the TensorFlow environment.
 

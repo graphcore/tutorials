@@ -1,14 +1,11 @@
-# Graphcore
-
----
-## Creating a simple TensorFlow Custom Operator
+# Creating a simple TensorFlow Custom Operator
 
 Creates a simple custom operator that adds two vectors of arbitrary size. The operator
 is created in Poplar using a custom vertex. This simple example does not show
 how to create the corresponding gradient operator: to see how to create a custom gradient operator,
 see the [TensorFlow Custom Gradient example](tutorials/feature_examples/tensorflow/custom_gradient).
 
-### File structure
+## File structure
 
 * `custom_codelet.cpp` Custom codelet used in the custom operator.
 * `Makefile` Simple Makefile that builds the Poplar code and codelet (gp file).
@@ -18,7 +15,7 @@ see the [TensorFlow Custom Gradient example](tutorials/feature_examples/tensorfl
 * `test_custom_op.py` Script for testing this example.
 * `README.md` This file.
 
-### How to use this demo
+## How to use this example
 
 1) Prepare the environment.
 

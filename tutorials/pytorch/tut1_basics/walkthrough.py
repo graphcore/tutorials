@@ -13,7 +13,11 @@ Requirements:
 - A Poplar SDK environment enabled
    (see the [Getting Started](https://docs.graphcore.ai/en/latest/getting-started.html) guide for your IPU system)
 - Python packages installed with `python -m pip install -r requirements.txt`
-
+"""
+# %pip install -r requirements.txt
+# sst_ignore_md
+# sst_ignore_code_only
+"""
 To run the Jupyter notebook version of this tutorial:
 1. Enable a Poplar SDK environment and install required packages with `python -m pip install -r requirements.txt`
 2. In the same environment, install the Jupyter notebook server: `python -m pip install notebook`
@@ -311,7 +315,7 @@ Since we have detached our model from its training device, the device is now fre
 and we can use it for the evaluation stage.
 
 The steps taken below to define the model for evaluation essentially allow it to
-run in inference mode. Therefore, you can mfollow the same steps to use the model
+run in inference mode. Therefore, you can follow the same steps to use the model
 to make predictions once it has been deployed.
 """
 model = model.eval()

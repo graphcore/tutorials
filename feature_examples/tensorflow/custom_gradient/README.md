@@ -1,14 +1,11 @@
-# Graphcore
-
----
-## Creating a TensorFlow Custom Operator with Gradient
+# Creating a TensorFlow Custom Operator with Gradient
 
 Creates a custom operator (a batched dot product) defining both the
 forward operator and its gradient in Poplar code. Uses the custom operator
 in a simple logistic regression optimisation program which checks
 the results with the custom operator match those from the built-in operator.
 
-### File structure
+## File structure
 
 * `Makefile` Simple Makefile that builds the Poplar shared object.
 * `product.cpp` Poplar code that describes the forward and grad operators.
@@ -17,7 +14,7 @@ the results with the custom operator match those from the built-in operator.
 * `test_regression.py` Script for testing this example.
 * `README.md` This file.
 
-### How to use this demo
+## How to use this example
 
 1) Prepare the environment.
 

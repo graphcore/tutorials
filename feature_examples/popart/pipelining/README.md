@@ -1,6 +1,4 @@
-# PopART Pipelining demo
-
-> Copyright 2020 Graphcore Ltd.
+# PopART Pipelining example
 
 This demo shows how to use pipelining in PopART on a very simple model
 consisting of two dense layers. Run one pipeline length and compute loss.
@@ -11,7 +9,7 @@ consisting of two dense layers. Run one pipeline length and compute loss.
 * `test_pipelining.py` Test script.
 * `README.md` This file.
 
-## How to use this demo
+## How to use this example
 
 1) Prepare the environment.
 
@@ -20,7 +18,7 @@ consisting of two dense layers. Run one pipeline length and compute loss.
 2) Install the required packages.
 
 ```cmd
-pip install -r requirements.txt
+python3 -m pip install -r requirements.txt
 ```
 
 3) Run the program. Note that the PopART Python API only supports Python 3.
@@ -50,11 +48,11 @@ After running an application, the resulting report files can be opened using the
 See the PopVision user guide for more information:
 [PopVision User Guide](https://docs.graphcore.ai/projects/graphcore-popvision-user-guide/en/latest/index.html).
 
-### Running the tests
+## Running the tests
 
 Install the required packages and use pytest.
 
 ```cmd
-pip install -r requirements.txt
-python -m pytest
+python3 -m pip install -r requirements.txt
+python3 -m pytest
 ```

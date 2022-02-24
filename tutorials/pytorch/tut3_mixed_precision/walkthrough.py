@@ -12,8 +12,11 @@ Requirements:
 - A Poplar SDK environment enabled
    (see the [Getting Started](https://docs.graphcore.ai/en/latest/getting-started.html) guide for your IPU system)
 - Other Python modules: `python -m pip install -r requirements.txt`
-
-
+"""
+# %pip install -r requirements.txt
+# sst_ignore_md
+# sst_ignore_code_only
+"""
 To run the Jupyter notebook version of this tutorial:
 1. Enable a Poplar SDK environment and install required packages with `python -m pip install -r requirements.txt`
 2. In the same environment, install the Jupyter notebook server: `python -m pip install notebook`
@@ -172,7 +175,8 @@ partials_half = False
 """
 This cell exists to provide compatibility with unit tests for this tutorial.
 It will be automatically removed in the Jupyter and Markdown export formats.
-# sst_ignore_jupyter_md
+# sst_ignore_jupyter
+# sst_ignore_md
 """
 import argparse
 
@@ -196,7 +200,8 @@ optimizer_half = args.optimizer_half
 stochastic_rounding = args.stochastic_rounding
 partials_half = args.partials_half
 
-# sst_ignore_jupyter_md
+# sst_ignore_jupyter
+# sst_ignore_md
 """
 ### Casting a model's parameters
 

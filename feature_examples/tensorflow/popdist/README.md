@@ -1,6 +1,4 @@
-# Graphcore
----
-## PopDist example
+# PopDist example
 
 PopDist (Poplar Distributed Configuration) provides a set of APIs which can be used to
 write a distributed application. The application can then be launched on multiple instances
@@ -13,13 +11,13 @@ You can learn more about PopDist and PopRun in the
 [PopDist and PopRun User Guide](https://docs.graphcore.ai/projects/poprun-user-guide/en/latest/index.html).
 
 
-### File structure
+## File structure
 
 * `popdist_training.py` Example training script with PopDist support.
 * `test` Integration tests for this example.
 * `README.md` This file.
 
-### How to use this demo
+## How to use this example
 
 1) Prepare the TensorFlow environment.
 

@@ -1,19 +1,16 @@
-# Graphcore
-
----
-## TensorFlow Pipelining example
+# TensorFlow Pipelining example
 
 This example shows how to use pipelining in TensorFlow to train a very simple model
 consisting of just dense layers.
 
-### File structure
+## File structure
 
 * `pipelining.py` The main TensorFlow file showcasing pipelining.
 * `README.md` This file.
 * `requirements.txt` Required modules for testing.
 * `test_pipelining.py` Script for testing this example.
 
-### How to use this demo
+## How to use this example
 
 1) Prepare the TensorFlow environment.
 
@@ -39,8 +36,8 @@ Run pipelining.py with the -h option to list all the command line options.
 
 1) Install the requirements.
 
-    `pip install -r requirements.txt`
+    `python3 -m pip install -r requirements.txt`
 
 2) Run the tests.
 
-    `python -m pytest test_pipelining.py`
+    `python3 -m pytest test_pipelining.py`

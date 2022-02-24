@@ -1,7 +1,4 @@
-Graphcore
----
-
-## Inspecting tensors using custom outfeed layers and a custom optimizer
+# Inspecting tensors using custom outfeed layers and a custom optimizer
 
 This example trains a choice of simple fully connected models on the MNIST
 numeral dataset and shows how tensors (containing activations and gradients)
@@ -13,7 +10,7 @@ gradient accumulation count to mitigate this. Consider using a small
 number of steps per epoch. Filters can be used to only return a subset of
 the activations and gradients.
 
-### File structure
+## File structure
 
 * `mnist.py` The main Python script.
 * `outfeed_callback.py` Contains a custom callback that dequeues an outfeed queue
@@ -28,7 +25,7 @@ the activations and gradients.
 * `requirements.txt` Required packages for the tests.
 * `tests` Subdirectory containing test scripts.
 
-#### Class descriptions
+### Class descriptions
 
 This example uses the following classes:
 
@@ -48,7 +45,7 @@ This example uses the following classes:
 
 See the `outfeed_*.py` files for further documentation.
 
-### How to use this example
+## How to use this example
 
 1) Prepare the TensorFlow environment.
 
@@ -87,7 +84,7 @@ Index Name                Mean         Std          Minimum      Maximum      Na
 
 ```
 
-### Extra information
+## Extra information
 
 ### Model
 
@@ -98,12 +95,12 @@ are returned for inspection on the host. This can be changed using options.
 For the single IPU models (Model and Sequential) gradients and activations are
 returned for one layer.
 
-#### Known issue
+### Known issue
 
 At the moment, the `outfeed_layers.MaybeOutfeed` layer cannot be used in non-pipelined
 Sequential models.
 
-#### Options
+### Options
 
 The following command line options are available. See the code for other ways of
 changing the behaviour of the example.
@@ -124,18 +121,18 @@ changing the behaviour of the example.
    from the second PipelineStage should be added to the dict that is returned via an outfeed queue. Set to none (default) to get the activations from
    both layers. Only applicable when using pipelined models.
 
-### Tests
+## Tests
 
 Some integration tests are included in the `tests` subdirectory.
 
 Install the required packages:
 
 ```
-    pip3 install -r requirements.txt
+    python3 -m pip install -r requirements.txt
 ```
 
 Run the tests:
 
 ```
-    python -m pytest tests
+    python3 -m pytest tests
 ```

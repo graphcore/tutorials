@@ -7,7 +7,7 @@ Python 3 virtual environment with a TensorFlow wheel appropriate for your system
 installed. You can then use `pip3` to install the required packages:
 
 ```
-pip3 install -r requirements.txt
+python3 -m pip install -r requirements.txt
 ```
 
 Use this command to run the tests:

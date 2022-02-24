@@ -1,6 +1,4 @@
-Graphcore
----
-## IMDB Sentiment Classification
+# IMDB Sentiment Classification
 
 These examples train an IPU model with an embedding layer and an
 LSTM to predict the sentiment of an IMDB review.
@@ -12,7 +10,7 @@ use pipelining with either a `keras.Model` or a `keras.Sequential` model on the 
 These examples were derived from this Keras example:
 https://github.com/keras-team/keras/blob/1a3ee8441933fc007be6b2beb47af67998d50737/examples/imdb_lstm.py
 
-### File structure
+## File structure
 
 * `imdb.py` Python script to train the 2-IPU pipelined model.
 * `imdb_sequential.py` Python script to train the 2-IPU pipelined sequential model.
@@ -22,11 +20,11 @@ https://github.com/keras-team/keras/blob/1a3ee8441933fc007be6b2beb47af67998d5073
 * `requirements.txt` Required packages for the tests
 * `test_imdb.py` Integration tests
 
-### How to use this demo
+## How to use this example
 
 1) Prepare the TensorFlow environment.
 
-   Install the Poplar SDK. Make sure to run the enable.sh script for Poplar and activate a Python 3 virtualenv with the tensorflow-2 wheel from the Poplar SDK installed.
+   Install the Poplar SDK (see the [Getting Started](https://docs.graphcore.ai/en/latest/getting-started.html) guide for your IPU system). Make sure to run the enable.sh script for Poplar and activate a Python 3 virtualenv with the tensorflow-2 and ipu_addons_tensorflow2 wheels from the Poplar SDK installed.
 
 2) Train the graph.
 
@@ -34,7 +32,7 @@ https://github.com/keras-team/keras/blob/1a3ee8441933fc007be6b2beb47af67998d5073
 
    Or a variant as above.
 
-### Extra information
+## Extra information
 
 ### Model
 
@@ -45,15 +43,15 @@ a projection down to a binary sentiment.
 
 There are no options for these scripts.
 
-### Tests
+## Tests
 
 To run the tests:
 
-`pip3 install -r requirements.txt`
+`python3 -m pip install -r requirements.txt`
 
 `python3 -m pytest`
 
-#### License
+### License
 This example is licensed under the MIT license - see the LICENSE file at the top level of this repository.
 
 It includes derived work from:

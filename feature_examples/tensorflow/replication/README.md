@@ -1,7 +1,4 @@
-# Graphcore
-
----
-## TensorFlow Replication example
+# TensorFlow Replication example
 
 This example shows how to use replication in TensorFlow to train a very simple
 CIFAR-10 Conv model.
@@ -22,13 +19,13 @@ Note: Care should be used when finding the optimal number of replicas and size
 of the max cross replica sum buffer - please see the code for a more detailed
 explanation of how these parameters affect model memory and performance.
 
-### File structure
+## File structure
 
 * `replication.py` The main TensorFlow file showcasing replication.
 * `README.md` This file.
 * `test_replication.py` Script for testing this example.
 
-### How to use this demo
+## How to use this example
 
 1) Prepare the TensorFlow environment.
 
@@ -40,6 +37,6 @@ explanation of how these parameters affect model memory and performance.
 
    `python replication.py`
 
-#### Options
+### Options
 
 Run replication.py with the -h option to list all available command line options

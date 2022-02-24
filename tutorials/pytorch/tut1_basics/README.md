@@ -140,7 +140,7 @@ plt.savefig("sample_images.png")
 
 
     
-![png](static/output_13_0.png)
+![png](static/output_14_0.png)
     
 
 
@@ -339,7 +339,7 @@ Since we have detached our model from its training device, the device is now fre
 and we can use it for the evaluation stage.
 
 The steps taken below to define the model for evaluation essentially allow it to
-run in inference mode. Therefore, you can mfollow the same steps to use the model
+run in inference mode. Therefore, you can follow the same steps to use the model
 to make predictions once it has been deployed.
 
 
@@ -410,12 +410,12 @@ cm_plot = ConfusionMatrixDisplay(cm, display_labels=classes)\
     .plot(xticks_rotation='vertical')
 ```
 
-    Eval accuracy: 87.83%
+    Eval accuracy: 89.35%
 
 
 
     
-![png](static/output_47_1.png)
+![png](static/output_48_1.png)
     
 
 

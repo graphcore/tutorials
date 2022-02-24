@@ -23,7 +23,7 @@ import tensorflow as tf
 
 from tensorflow.python import ipu
 
-from tensorflow.python.ipu.keras.layers import Embedding, LSTM
+from ipu_tensorflow_addons.keras.layers import Embedding, LSTM
 from tensorflow.keras.layers import Concatenate, Dense, Input
 from tensorflow.keras.datasets import imdb
 from tensorflow.keras.preprocessing import sequence

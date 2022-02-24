@@ -1,12 +1,9 @@
-# Graphcore
-
----
-## PopART Phased Execution demo
+# PopART Phased Execution example
 
 This example runs a network in inference mode over two IPUs by splitting it in several execution phases, using PopART.
 This feature allows to keep the weights in Streaming Memory, loading them in In-Processor Memory only when needed. When one IPU is computing a part of the model the other IPU in parallel can communicate with the host (sending/receiving to/from Streaming Memory), then in the following phase they can switch roles, where the IPU that before was computing now communicates with the host, and vice versa; as in the previous phase, the compute and communication can overlap. This feature also allow two IPUs to perform computation at the same time, in a data-parallel fashion.
 
-### File structure
+## File structure
 
 * `phased_execution.py` The main PopART program.
 * `README.md` This file.
@@ -14,7 +11,7 @@ This feature allows to keep the weights in Streaming Memory, loading them in In-
 * `test_phased_execution.py` Test script.
 * `conftest.py` Pytest conftest file holds test fixtures.
 
-### How to use this demo
+## How to use this example
 
 1) Prepare the environment.
 
@@ -31,7 +28,7 @@ This feature allows to keep the weights in Streaming Memory, loading them in In-
 
        python3 -m pytest
 
-#### Options
+### Options
 The program has a few command line options.
 
 `-h`                  Show usage information.
@@ -55,7 +52,7 @@ The program has a few command line options.
 `--sharded-execution` Run the model by just sharding it over the two devices, without making use of the phased execution.
 
 
-### Note on efficiency
+## Note on efficiency
 
 With this mode of execution, when compute and I/O are overlapped, the time needed to complete each phase corresponds to the longest between the I/O time and the compute time.
 Therefore it is desirable that for each phase these two parts take a similar time to complete. Heuristically, this means that each phase needs to account from 3750 to 7500 FLOPs of compute per byte loaded from Streaming Memory.

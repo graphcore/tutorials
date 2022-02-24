@@ -1,13 +1,11 @@
-# Graphcore
-
-## Building custom operators using PopART
+# Building custom operators using PopART
 
 This directory contains two example implementations of custom operators for PopART.
 
 Both examples create an operation definition with forward and backward parts, although only 
 inference is demonstrated in the executables for simplicity.
 
-### File structure
+## File structure
 
 * `cube_op_example/cube_fn_custom_op.cpp` The C++ implementation of the cube operation  
 * `cube_op_example/Makefile` A pre-configured Makefile to build the cube operator example

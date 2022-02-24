@@ -1,13 +1,11 @@
-# Graphcore
-
-## CIFAR-10 Estimators
+# CIFAR-10 Estimators
 
 This example shows how to use IPU-specific Estimators as an alternative to the
 IPU-specific Keras Model classes (see tutorials/tensorflow2/keras).
 
 The starting point of this code example is the [Keras CIFAR-10 example](https://github.com/keras-team/keras/blob/1a3ee8441933fc007be6b2beb47af67998d50737/examples/cifar10_cnn.py).
 
-### File structure
+## File structure
 
 * `cifar10_ipu_estimator.py` The main Python script to run IPUEstimator.
 * `cifar10_ipu_estimator_replica.py` The main Python script to run IPUEstimator with multiple replicas.
@@ -16,7 +14,7 @@ The starting point of this code example is the [Keras CIFAR-10 example](https://
 * `requirements.txt` Required packages for the tests
 * `test_cifar10.py` Integration tests
 
-### How to use this demo
+## How to use this example
 
 1) Prepare the TensorFlow environment.
 
@@ -24,7 +22,7 @@ Install the Poplar SDK. Make sure to run the enable.sh script for Poplar and act
 
 2) Train and test the model: start the selected file as described below.
 
-#### Using IPUEstimator
+### Using IPUEstimator
 
 Using IPUEstimator provides IPUInfeedQueue and IPUOutfeedQueue and has the interface of TensorFlow's `tf.Estimator`.
 
@@ -38,7 +36,7 @@ Run with the following command:
 python3 cifar10_ipu_estimator.py
 ```
 
-#### Data-parallel training using replicas
+### Data-parallel training using replicas
 
 Using multiple IPUs can increase further the throughput. In this modification, multiple IPUs are used in data-parallel way.
 
@@ -52,7 +50,7 @@ Run with the following command:
 python3 cifar10_ipu_estimator_replica.py
 ```
 
-#### Using IPUPipelineEstimator
+### Using IPUPipelineEstimator
 
 Another way of improving throughput is Pipelining.
 
@@ -67,12 +65,12 @@ Run with the following command:
 python3 cifar10_ipu_pipeline_estimator.py
 ```
 
-### Tests
+## Tests
 
 Install the required packages:
 
 ```bash
-pip3 install -r requirements.txt
+python3 -m pip install -r requirements.txt
 ```
 
 Run the tests:
@@ -81,7 +79,7 @@ Run the tests:
 python3 -m pytest
 ```
 
-#### License
+### License
 This example is licensed under the MIT license - see the LICENSE file at the top level of this repository.
 
 It includes derived work from:

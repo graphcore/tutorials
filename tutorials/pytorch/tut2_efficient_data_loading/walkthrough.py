@@ -64,7 +64,8 @@ Interpreters (e.g. Jupyter notebooks) which support multiprocessing in a
 different way. Additionally the dataset must be serializable by pickle.
 """
 
-# sst_ignore_jupyter_md
+# sst_ignore_jupyter
+# sst_ignore_md
 # The following code is only necessary to prevent errors when running the source
 # file as a script.
 

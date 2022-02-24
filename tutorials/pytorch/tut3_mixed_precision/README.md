@@ -8,7 +8,6 @@ Requirements:
    (see the [Getting Started](https://docs.graphcore.ai/en/latest/getting-started.html) guide for your IPU system)
 - Other Python modules: `python -m pip install -r requirements.txt`
 
-
 To run the Jupyter notebook version of this tutorial:
 1. Enable a Poplar SDK environment and install required packages with `python -m pip install -r requirements.txt`
 2. In the same environment, install the Jupyter notebook server: `python -m pip install notebook`

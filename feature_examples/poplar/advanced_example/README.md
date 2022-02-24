@@ -1,7 +1,4 @@
-# Graphcore
-
----
-## Advanced Poplar Example
+# Advanced Poplar Example
 
 This example performs a simple computation but uses more advanced
 features of Poplar than the tutorials. This includes:
@@ -15,7 +12,7 @@ features of Poplar than the tutorials. This includes:
 * Choosing the number of IPUs
 * Choosing between IPU HW and IPU Model for execution
 
-### File structure
+## File structure
 
 * `main.cpp` The main Poplar code example.
 * `Makefile` A simple Makefile for building the example.
@@ -23,7 +20,7 @@ features of Poplar than the tutorials. This includes:
 * `codelets.cpp` A custom vertex used in the example.
 * `README.md` This file.
 
-### How to use this demo
+## How to use this example
 
 1) Prepare the environment.
 

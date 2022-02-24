@@ -13,7 +13,7 @@ Octave Convolutions as described in the paper:
    `enable.sh` scripts for Poplar and PopART and activate a Python virtualenv with PopTorch installed.
 2. Install additional Python packages specified in requirements.txt
 ```:bash
-pip3 install -r requirements
+python3 -m pip install -r requirements
 ```
 This will install an [octconv implementation](https://github.com/braincreators/octconv) for PyTorch from GitHub.
 

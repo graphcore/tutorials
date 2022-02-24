@@ -1,11 +1,8 @@
-# Graphcore
-
----
-## PopART MNIST Training Demo
+# PopART MNIST Training Demo
 
 This example trains a network on the MNIST dataset using PopART.
 
-### File structure
+## File structure
 
 * `popart_mnist.py` The main PopART program that uses a linear network.
 * `popart_mnist_conv.py` The main PopART program that uses a convolutional network.
@@ -15,7 +12,7 @@ This example trains a network on the MNIST dataset using PopART.
 * `test_popart_mnist.py` Tests for `popart_mnist.py`.
 * `test_popart_mnist_conv.py` Tests for `popart_mnist_conv.py`.
 
-### How to use this demo
+## How to use this application
 
 1) Prepare the environment.
 
@@ -26,7 +23,7 @@ This example trains a network on the MNIST dataset using PopART.
 
    Install the required modules:
 
-       pip3 install -r requirements.txt
+       python3 -m pip install -r requirements.txt
 
 2) Download the data.
 

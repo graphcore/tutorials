@@ -3,9 +3,7 @@
 This repository contains tutorials, feature examples and simple applications to help you learn how to use
 Graphcore IPUs.
 
-If you are interested in finding out more about Graphcore, including
-getting preview access to IPUs to run these examples, please register
-your interest [here](https://www.graphcore.ai/product_info).
+If you are interested in trying IPUs in the cloud, you can [register](https://spell.ml/graphcore) for a self-guided, free trial with Spell. Developers can run a selection of tutorials and application examples within Spell's intuitive Jupyter notebook environment.
 
 Please note we are not currently accepting pull requests or issues on this
 repository. If you are actively using this repository and want to report any issues, please raise a ticket through the Graphcore support portal: https://www.graphcore.ai/support.
@@ -14,7 +12,7 @@ The latest version of the documentation for the Poplar software stack, and other
 
 >  The code presented here requires using Poplar SDK 2.4. Please check other branches of this repository for code compatible with previous releases.
 
-Please install and enable the Poplar SDK following the instructions in the Getting Started guide for your IPU system.
+Please install and enable the Poplar SDK following the instructions in the [Getting Started guide for your IPU system](https://docs.graphcore.ai/en/latest/getting-started.html).
 
 Unless otherwise specified by a LICENSE file in a subdirectory, the LICENSE referenced at the top level applies to the files in this repository.
 

@@ -10,16 +10,10 @@ Two text files are used to provide inputs to the network:
 - `--context-file`, by default `context.txt` contains the context sequence
 - `--questions-file`, by default `questions.txt`, contains the sequences of "questions" that are used as inputs by the model and then completed as "answers" as outputs to the model.
 
-## Installation
+## Requirements
 
-Install the Python dependencies by running:
-```:python
-python3 -m pip install -r requirements
-```
-
-## Configuration
-
-Ensure the Poplar SDK 1.2.x is installed and configured to run in the current environment.
+- A Poplar SDK environment enabled, with PopTorch installed (see the [Getting Started](https://docs.graphcore.ai/en/latest/getting-started.html) guide for your IPU system)
+- Python packages installed with `python -m pip install -r requirements.txt`
 
 ## Execution
 

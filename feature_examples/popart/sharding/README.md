@@ -1,17 +1,15 @@
-# PopART Sharding demo
+# PopART Sharding example
 
-> Copyright 2020 Graphcore Ltd.
-
-This demo shows how to shard a model on multiple IPUs using PopART.
+This example shows how to shard a model on multiple IPUs using PopART.
 
 
-### File structure
+## File structure
 
 * `multi_ipu.py` The main PopART file showcasing sharding.
 * `test_multi_ipu_popart.py` Test script.
 * `README.md` This file.
 
-### How to use this demo
+## How to use this example
 
 1) Prepare the environment.
 
@@ -23,5 +21,5 @@ This demo shows how to shard a model on multiple IPUs using PopART.
     python3 multi_ipu.py
 
 
-#### Options
-Run multi_ipu.py with -h option to list all the command line options.
+### Options
+Run multi_ipu.py with `-h` option to list all the command line options.

@@ -1,6 +1,4 @@
-# Graphcore
-
-## Device Connection Type example
+# Device Connection Type example
 
 This code example demonstrates how to control if and when an IPU device is acquired using the `device_connection.type` configuration option.
 
@@ -20,14 +18,14 @@ These options can be used to change relative ordering of compilation versus IPU 
 * If `NEVER` is selected then the IPU device is never acquired.
 
 
-### File structure
+## File structure
 
 * `connection_type.py` Minimal example.
 * `README.md` This file.
 * `requirements.txt` Required packages for the tests.
 * `test_connection_type.py` pytest tests
 
-### How to use this demo
+## How to use this example
 
 1) Prepare the TensorFlow environment.
 
@@ -50,7 +48,7 @@ These options can be used to change relative ordering of compilation versus IPU 
 3) Run the tests.
 
    ```
-   pip3 install -r requirements.txt
+   python3 -m pip install -r requirements.txt
    python3 -m pytest
    ```
 

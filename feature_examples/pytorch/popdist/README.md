@@ -1,6 +1,4 @@
-# Graphcore
----
-## PopDist example
+# PopDist example
 
 PopDist (Poplar Distributed Configuration) provides a set of APIs which can be used to write a distributed application. The application can then be launched on multiple instances using PopRun.
 
@@ -8,19 +6,19 @@ This example contains a PopTorch CNN with PopDist support, which can be launched
 
 You can learn more about PopDist and PopRun in the [PopDist and PopRun User Guide](https://docs.graphcore.ai/projects/poprun-user-guide/en/latest/index.html).
 
-### File structure
+## File structure
 
 * `popdist_training.py` Example training script with PopDist support.
 * `test` Integration tests for this example.
 * `README.md` This file.
 
-### How to use this demo
+## How to use this example
 
 1. Prepare the PopTorch environment. Install the Poplar SDK following the [Getting Started guide for your IPU system](https://docs.graphcore.ai/en/latest/getting-started.html). Make sure to source the `enable.sh` scripts for Poplar and PopART and activate a Python virtualenv with PopTorch installed.
 2. Install additional Python packages specified in requirements.txt
 ```:bash
-pip3 install -U pip
-pip3 install -r requirements
+python -m pip install -U pip
+python3 -m pip install -r requirements
 ```
 3. Launch the script using PopRun. The number of instances and replicas are provided as command-line arguments
 Example:

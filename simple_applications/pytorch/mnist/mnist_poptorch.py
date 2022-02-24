@@ -12,7 +12,11 @@ To learn more about PopTorch, see our [PyTorch for the IPU: User Guide](https://
 Requirements:
 - A Poplar SDK environment enabled, with PopTorch installed (see the [Getting Started](https://docs.graphcore.ai/en/latest/getting-started.html) guide for your IPU system)
 - Python packages installed with `python -m pip install -r requirements.txt`
-
+"""
+# %pip install -r requirements.txt
+# sst_ignore_md
+# sst_ignore_code_only
+"""
 To run the Jupyter notebook version of this tutorial:
 1. Enable a Poplar SDK environment and install required packages with `python -m pip install -r requirements.txt`
 2. In the same environment, install the Jupyter notebook server: `python -m pip install notebook`
@@ -47,7 +51,8 @@ batch_size = 8
 test_batch_size = 80
 """
 """
-# sst_ignore_jupyter_md
+# sst_ignore_jupyter
+# sst_ignore_md
 import argparse
 parser = argparse.ArgumentParser(description='MNIST training in PopTorch')
 parser.add_argument('--batch-size', type=int, default=8, help='batch size for training (default: 8)')

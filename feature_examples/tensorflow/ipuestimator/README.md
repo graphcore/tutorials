@@ -1,8 +1,7 @@
-Graphcore: IPUEstimator CNN example
-===
+# IPUEstimator CNN example
+
+
 This README describes how to run the IPUEstimator to train and evaluate a simple CNN.
-
-
 ## Overview
 
 TensorFlow Estimators use a high-level TensorFlow API, which automatically handles most of the implementation details when training/evaluating a model. They are designed to be "hardware agnostic"; you do not have to change your model when running on CPUs, GPUs, TPUs or over single devices versus distributed devices. For more information about Estimators, please see https://www.tensorflow.org/guide/estimator.

@@ -1,20 +1,17 @@
-# Graphcore
-
----
-## Basic Model Demo for MNIST dataset
+# Basic Model Demo for MNIST dataset
 
 This demo shows how to use one IPU for a simple Poplar model with MNIST dataset.
 It contains a complete training program that performs a logistic
 regression on the MNIST data set, using gradient descent.
 
-### File structure
+## File structure
 
 * `regression_demo.cpp` The main script containing the model.
 * `mnist.h` and `mnist.cpp` Helper files to iterate over the MNIST dataset.
 * `get_data.sh` A script to download the MNIST dataset.
 * `README.rst` This file.
 
-### How to use this demo
+## How to use this application
 1) Prepare the Poplar environment.
 
    Install the Poplar SDK following the Getting Started guide for your IPU system.

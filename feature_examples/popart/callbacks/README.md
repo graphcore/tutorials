@@ -1,19 +1,16 @@
-# Graphcore
-
----
-## PopART 
+# PopART callbacks example
 
 This example creates a simple computation graph and uses callbacks to feed data and
 retrieve the results. Time between host-device transfer and receipt of the
 result on the host is computed and displayed for a range of different data sizes.
 
-### File structure
+## File structure
 
 * `callbacks.py` The PopART example code.
 * `test_callbacks.py` Test file.
 * `README.md` This file.
 
-### How to use this demo
+## How to use this example
 
 1) Prepare the environment.
 

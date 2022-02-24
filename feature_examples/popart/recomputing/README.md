@@ -1,6 +1,4 @@
-# PopART Recomputing demo
-
-> Copyright 2019 Graphcore Ltd.
+# PopART Recomputing example
 
 This example runs generated data through a seven layer DNN.
 It shows how to use manual and automatic recomputation in popART.
@@ -11,7 +9,7 @@ Automatic recomputing uses an heuristic technique.
 See https://arxiv.org/abs/1604.06174
 
 
-## Usage
+## How to run the example
 
 1) Prepare the environment.
 
@@ -20,7 +18,7 @@ See https://arxiv.org/abs/1604.06174
 2) Install the required packages.
 
 ```cmd
-pip install -r requirements.txt
+python3 -m pip install -r requirements.txt
 ```
 
 3) Run the program. Note that the PopART Python API only supports Python 3.
@@ -29,7 +27,7 @@ pip install -r requirements.txt
 python3 recomputing.py
 ```
 
-## Options
+### Options
 
 The program has a few command-line options:
 
@@ -45,7 +43,7 @@ The program has a few command-line options:
 
 `--show-logs` show execution logs
 
-## Profiling
+### Profiling
 
 The Poplar SDK can generate report files during the compilation and execution of applications.
 The following enables report generation, and specifies a directory to generate reports in.
@@ -63,6 +61,6 @@ See the PopVision user guide for more information:
 Install the required packages, then use pytest to run the example in all three recomputation modes.
 
 ```cmd
-pip install -r requirements.txt
-python -m pytest
+python3 -m pip install -r requirements.txt
+python3 -m pytest
 ```

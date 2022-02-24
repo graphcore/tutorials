@@ -1,7 +1,4 @@
-Graphcore
----
-
-## Inspecting tensors using outfeed queues and a custom optimizer
+# Inspecting tensors using outfeed queues and a custom optimizer
 
 In this example we train simple pipelined and non-pipelined models on the MNIST numeral dataset
 and show how outfeed queues can be used to return activation and gradient
@@ -15,7 +12,7 @@ Filters can be used to only return a subset of the activations and gradients.
 
 This example will run in TensorFlow 1 or TensorFlow 2.
 
-### File structure
+## File structure
 
 This example consists of four source files:
 
@@ -40,7 +37,7 @@ The directory also includes:
 * `tests` Subdirectory containing test scripts.
 
 
-### How to use this example
+## How to use this example
 
 1) Prepare the TensorFlow environment
 
