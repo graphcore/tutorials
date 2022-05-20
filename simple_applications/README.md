@@ -11,7 +11,7 @@ This directory contains a number of basic applications written in different fram
 
 - [Classifying hand-written digits](tensorflow/mnist) from the MNIST dataset is a well-known example of a basic machine learning task. An example of its implementation on IPUs can be found in `mnist`. This example also shows how to use `ipu.dataset_benchmark` to determine the maximum achievable throughput for a given dataset.
 
-- [Classifying images with the ResNet18 model](tensorflow/cnns/inference): this example shows how to perform classification by using a pretrained ResNet18 model on the IPU.
+- [Classifying images with the ResNet18 model](tensorflow/resnet18_inference): this example shows how to perform classification by using a pretrained ResNet18 model on the IPU.
 
 ## TensorFlow 2
 

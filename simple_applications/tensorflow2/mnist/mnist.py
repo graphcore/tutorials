@@ -24,7 +24,7 @@ In order to run this tutorial on the IPU you will need:
 """
 To run the Jupyter notebook version of this tutorial:
 1. Enable a Poplar SDK environment
-2. In the same environment, install the Jupyter notebook server: `python -m pip install notebook`
+2. In the same environment, install the Jupyter notebook server: `python -m pip install jupyter`
 3. Launch a Jupyter Server on a specific port: `jupyter-notebook --no-browser --port <port number>`
 4. Connect via SSH to your remote machine, forwarding your chosen port: `ssh -NL <port number>:localhost:<port number> <your username>@<remote machine>`
 
@@ -116,7 +116,7 @@ If you're interested in learning how to optimally use models that require
 multiple IPUs (for example due to their size), see the section on pipelining
 from our documentation on [model parallelism](https://docs.graphcore.ai/projects/tf-model-parallelism/en/latest/model.html).
 
-> To see how this process can be implemented, head over to the pipelining section of our [TensorFlow 2 Keras tutorial](../../tutorials/tensorflow2/keras).
+> To see how this process can be implemented, head over to the pipelining section of our [TensorFlow 2 Keras tutorial](../../../tutorials/tensorflow2/keras).
 
 ## 6. Specify IPU strategy
 
@@ -127,13 +127,13 @@ Next, add the following code after the configuration:
 strategy = ipu.ipu_strategy.IPUStrategy()
 
 """
-The `tf.distribute.Strategy` is an API to distribute training across multiple
-devices. `IPUStrategy` is a subclass which targets a system with one or more
-IPUs attached. For a multi-system configuration, the
+The `tf.distribute.Strategy` is an API to distribute training and inference
+across multiple devices. `IPUStrategy` is a subclass which targets a system
+with one or more IPUs attached. For a multi-system configuration, the
 [PopDistStrategy](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/tensorflow/api.html#tensorflow.python.ipu.horovod.popdist_strategy.PopDistStrategy)
 should be used, in conjunction with our PopDist library.
 
-> To see an example of how to distribute training over multiple instances with PopDist, head over to our [TensorFlow 2 PopDist example](../../feature_examples/tensorflow2/popdist).
+> To see an example of how to distribute training and inference over multiple instances with PopDist, head over to our [TensorFlow 2 PopDist example](../../../feature_examples/tensorflow2/popdist).
 
 ## 7. Wrap the model within the IPU strategy scope
 
@@ -169,7 +169,7 @@ parameters of the model on all IPUs after each forward and backward pass. To
 learn more about this process, head over to our documentation on
 [graph replication](https://docs.graphcore.ai/projects/memory-performance-optimisation/en/latest/main.html?highlight=replication#graph-replication).
 
-> To see how this process can be implemented, take a look at the Replication section of our [TensorFlow 2 Keras tutorial](../../tutorials/tensorflow2/keras).
+> To see how this process can be implemented, take a look at the Replication section of our [TensorFlow 2 Keras tutorial](../../../tutorials/tensorflow2/keras).
 
 ## Other useful resources
 

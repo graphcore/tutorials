@@ -2,35 +2,37 @@
 
 from pathlib import Path
 import pytest
-from subprocess import CalledProcessError
-from tutorials_tests.testing_util import SubProcessChecker, run_python_script_helper
+from tutorials_tests.testing_util import (
+    run_command,
+    run_python_script_helper,
+    CalledProcessError,
+)
 
 
 working_path = Path(__file__).parent.parent.parent
 
 
-class TestComplete(SubProcessChecker):
-
+class TestComplete:
     @pytest.mark.category1
     @pytest.mark.ipus(1)
     def test_run_demo_fits(self):
-        self.run_command("python pytorch_demo.py --available-memory-proportion 0.35",
-                         working_path,
-                         ["bs:", ",amp:", ",mean_throughput:"])
+        run_command(
+            "python pytorch_demo.py --available-memory-proportion 0.35",
+            working_path,
+            ["bs:", ",amp:", ",mean_throughput:"],
+        )
 
     @pytest.mark.category1
     @pytest.mark.ipus(1)
     def test_run_demo_oom_string(self):
-        try:
-            output = run_python_script_helper(working_path, "pytorch_demo.py",
-                                              want_std_err=True)
-        except CalledProcessError as e:
-            assert("popart::Session::prepareDevice: Poplar compilation" in e.stdout)
+        with pytest.raises(CalledProcessError, match="Out of memory on tile"):
+            run_python_script_helper(working_path, "pytorch_demo.py", want_std_err=True)
 
     @pytest.mark.category2
     @pytest.mark.ipus(1)
     def test_run_demo_sweep(self):
-        self.run_command("python sweep.py --batch-size-min 22 --available-memory-min 0.9",
-                         working_path,
-                         ["bs=22,amp=0.9,is_oom=",
-                          "bs=24,amp=0.9,is_oom="])
+        run_command(
+            "python sweep.py --batch-size-min 22 --available-memory-min 0.9",
+            working_path,
+            ["bs=22,amp=0.9,is_oom=", "bs=24,amp=0.9,is_oom="],
+        )

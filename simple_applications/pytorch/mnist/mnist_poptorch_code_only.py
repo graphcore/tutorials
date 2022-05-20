@@ -170,3 +170,5 @@ with tqdm(test_data, total=nr_steps, leave=False) as bar:
         sum_acc += accuracy(output, labels)
 
 print("Accuracy on test set: {:0.2f}%".format(sum_acc / len(test_data)))
+
+# Generated:2022-03-23T09:51 Source:mnist_poptorch.py SST:0.0.5

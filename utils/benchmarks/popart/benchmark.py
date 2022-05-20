@@ -56,6 +56,7 @@ def run(benchmark, opts):
 
     # Select a device
     deviceManager = popart.DeviceManager()
+    deviceManager.setOnDemandAttachTimeout(10000)
     if opts.simulation:
         deviceOptions = {"compileIPUCode": True,
                          'numIPUs': opts.shards, "tilesPerIPU": 1216}

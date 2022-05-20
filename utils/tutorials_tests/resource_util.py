@@ -6,6 +6,8 @@ import six
 import sys
 from contextlib import contextmanager
 
+from tutorials_tests import testing_util
+
 
 def fetch_resources(script_name, test_file, cwd):
     if not os.path.isfile(test_file):
@@ -14,7 +16,7 @@ def fetch_resources(script_name, test_file, cwd):
             raise Exception('Unable to find ' + script_name)
         # The script may contain relative paths, therefore we
         # must set use the cwd passed in
-        subprocess.check_call([os.path.join(cwd, script_name)], cwd=cwd)
+        testing_util.run_command([os.path.join(cwd, script_name)], cwd=cwd)
 
 
 @contextmanager

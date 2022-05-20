@@ -80,3 +80,5 @@ with tf.Session() as sess:
         print("Time:", time.time() - epoch_start_time)
 
 print("Program ran successfully")
+
+# Generated:2022-03-23T10:17 Source:mnist.py SST:0.0.5

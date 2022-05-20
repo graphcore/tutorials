@@ -1,10 +1,10 @@
 # Copyright (c) 2020 Graphcore Ltd. All rights reserved.
 import os
-import subprocess
 import sys
 import unittest
 
 import pytest
+import tutorials_tests.testing_util as testing_util
 
 
 def run_multi_ipu(shards, batch_size, batches_per_step):
@@ -13,15 +13,9 @@ def run_multi_ipu(shards, batch_size, batches_per_step):
            "--shards", str(shards),
            "--batch-size", str(batch_size),
            "--batches-per-step", str(batches_per_step)]
-    cwd = os.path.dirname(__file__)
-    try:
-        out = subprocess.check_output(
-            cmd, cwd=cwd, stderr=subprocess.PIPE).decode("utf-8")
-    except subprocess.CalledProcessError as e:
-        print(f"TEST FAILED")
-        print(f"stdout={e.stdout.decode('utf-8',errors='ignore')}")
-        print(f"stderr={e.stderr.decode('utf-8',errors='ignore')}")
-        raise
+
+    out = testing_util.run_command_fail_explicitly(cmd, os.path.dirname(__file__))
+
     return out
 
 

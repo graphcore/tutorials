@@ -1,26 +1,29 @@
 *.tar.gz
 
-**/weights
-**/images
-
 **/model
 **/data
 **/datasets
 **/logs
 **/*ubyte*
 **/exe_cache
+**/tf_report_*
 
 *.pyc
 __pycache__
 .cache
 .ipu_cache
+**/.ipynb_checkpoints/
 *.csv
 *.log
 *.so
 *.lock
+archive.a
+debug.cbor
+profile.pop*
 report.txt
 
 *.onnx
+*.pvti
 
 .DS_Store
 
@@ -29,7 +32,8 @@ report.txt
 .pydevproject
 
 # Remove VIM temp files
-*.swp
+**/.swp
+**/.*.sw[a-p]
 
 # Ignore vscode config
 .vscode/launch.json

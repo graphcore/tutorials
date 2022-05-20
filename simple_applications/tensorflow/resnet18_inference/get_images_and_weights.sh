@@ -3,7 +3,7 @@
 RESOURCES_DIR='../../../utils/resources/'
 GET_FILE='get.py'
 IMAGES='images224.tar.gz'
-WEIGHTS='ResNet18.tar.gz'
+WEIGHTS='ResNet18TrainingExampleCkpt.tar.gz'
 
 
 python "${RESOURCES_DIR}${GET_FILE}" ${IMAGES}

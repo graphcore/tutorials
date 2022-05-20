@@ -1,3 +1,3 @@
-test/CppExample
-test/tut4_ipu_hardware
-test/tut4_ipu_model
+tests/cpp_example
+tests/tut4_ipu_hardware
+tests/tut4_ipu_model

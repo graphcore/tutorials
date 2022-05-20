@@ -27,7 +27,7 @@ int main() {
 
   if (it == devices.end()) {
     std::cerr << "Error attaching to device\n";
-    return -1;
+    return 1; //EXIT_FAILURE
   }
 
   auto device = std::move(*it);

@@ -15,32 +15,51 @@ Each of the tutorials contains its own README file with full instructions.
 
 ## TensorFlow 1
 
+Getting started with the IPU:
 - [Starter tutorial: MNIST training example](../simple_applications/tensorflow/mnist)
 - [Tutorial 1: Porting a simple example](tensorflow1/basics/tut1_porting_a_model)
 - [Tutorial 2: Loops and data pipelines](tensorflow1/basics/tut2_loops_data_pipeline)
 - [Training a model using half- and mixed-precision](tensorflow1/half_precision_training)
+
+Using multiple IPUs and handling large models:
 - [Converting a model to run on multiple IPUs with pipelining](tensorflow1/pipelining)
 
 ## TensorFlow 2
 
+Getting started with the IPU:
 - [Starter tutorial: MNIST training example](../simple_applications/tensorflow2/mnist)
 - [TensorFlow 2 Keras: How to run on the IPU](tensorflow2/keras)
-- [Tensorflow 2: How to use infeed/outfeed queues](tensorflow2/infeed_outfeed)
+
+Exchanging data between the host and the IPU:
+- [TensorFlow 2: How to use infeed/outfeed queues](tensorflow2/infeed_outfeed)
+
+Debugging and analysis:
+- [TensorFlow 2: How to use TensorBoard](tensorflow2/tensorboard)
 
 ## PyTorch
 
+Getting started with the IPU:
 - [Starter tutorial: MNIST training example](../simple_applications/pytorch/mnist)
-- [Tutorial 1: From 0 to 1: Introduction to PopTorch](pytorch/tut1_basics)
-- [Tutorial 2: Efficient data loading with PopTorch](pytorch/tut2_efficient_data_loading)
-- [Tutorial 3: Half and mixed precision in PopTorch](pytorch/tut3_mixed_precision)
-- [Tutorial 4: Observing tensors in PopTorch](pytorch/tut4_observing_tensors)
-- [Tutorial 5: Fine-tuning BERT with HuggingFace and PopTorch](pytorch/tut_finetuning_bert)
+- [From 0 to 1: Introduction to PopTorch](pytorch/tut1_basics)
+
+Exchanging data between the host and the IPU:
+- [Efficient data loading with PopTorch](pytorch/tut2_efficient_data_loading)
+
+Maximising compute on the IPU:
+- [Half and mixed precision in PopTorch](pytorch/tut3_mixed_precision)
+
+Using multiple IPUs and handling large models:
+- [Parallel execution using pipelining](pytorch/tut5_pipelining)
+- [Fine-tuning BERT with HuggingFace and PopTorch](pytorch/tut_finetuning_bert)
+
+Debugging and analysis:
+- [Observing tensors in PopTorch](pytorch/tut4_observing_tensors)
 
 ## PopVision
 
 PopVision is Graphcore's suite of graphical application analysis tools.
 
-- [Tutorial 1: Instrumenting applications and using the PopVision System Analyser](popvision/tut1_instrumentation)
+- [Tutorial 1: Instrumenting applications and using the PopVision System Analyser](popvision/tut1_system_analyser_instrumentation)
 - [Tutorial 2: Accessing profiling information with libpva](popvision/tut2_libpva)
 - Profiling output with the PopVision Graph Analyser is currently included in [Poplar Tutorial 4: profiling output](poplar/tut4_profiling)
 
@@ -49,4 +68,4 @@ PopVision is Graphcore's suite of graphical application analysis tools.
 In this folder you will find explanations of how to use standard deep learning tools
 with the Graphcore IPU. Guides included are:
 
-- [Using IPUs from Jupyter Notebooks](standard_tools/using_jupyter).
+- [Using IPUs from Jupyter Notebooks](standard_tools/using_jupyter)

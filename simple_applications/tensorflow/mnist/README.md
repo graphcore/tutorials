@@ -21,7 +21,7 @@ In order to run this tutorial on the IPU you will need to have:
 To run the Jupyter notebook version of this tutorial:
 1. Enable a Poplar SDK environment
 2. In the same environment, install the Jupyter notebook server:
-`python -m pip install notebook`
+`python -m pip install jupyter`
 3. Launch a Jupyter Server on a specific port:
 `jupyter-notebook --no-browser --port <port number>`
 4. Connect via SSH to your remote machine, forwarding your chosen port:
@@ -207,3 +207,5 @@ examples of different use cases of TensorFlow 1 on the IPU.
 
 - [Graphcore tutorials](https://github.com/graphcore/tutorials/tree/master/tutorials):
 a list of existing tutorials for using the IPU.
+
+Generated:2022-03-23T10:16 Source:mnist.py SDK:2.5.0+942 SST:0.0.5

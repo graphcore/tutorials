@@ -1,7 +1,7 @@
 # CIFAR-10 Estimators
 
 This example shows how to use IPU-specific Estimators as an alternative to the
-IPU-specific Keras Model classes (see tutorials/tensorflow2/keras).
+IPU-specific Keras Model classes (see our [Keras tutorial](../../../tutorials/tensorflow2/keras)).
 
 The starting point of this code example is the [Keras CIFAR-10 example](https://github.com/keras-team/keras/blob/1a3ee8441933fc007be6b2beb47af67998d50737/examples/cifar10_cnn.py).
 

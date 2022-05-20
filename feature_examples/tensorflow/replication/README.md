@@ -10,6 +10,7 @@ calculated gradients. Periodically, the replicas synchronise and combine their
 individual gradients in what's called an "all-reduce".
 
 When using replication, ensure that:
+
 1. The data pipeline has enough bandwidth to push the required volume of data;
 2. Adjustments are made to the learning rate, as replication increases the
    effective batch size;
@@ -18,6 +19,10 @@ When using replication, ensure that:
 Note: Care should be used when finding the optimal number of replicas and size
 of the max cross replica sum buffer - please see the code for a more detailed
 explanation of how these parameters affect model memory and performance.
+
+Further information on Graph Replication can be found in our [memory and
+performance optimisation
+guide](https://docs.graphcore.ai/projects/memory-performance-optimisation/en/latest/main.html#graph-replication).
 
 ## File structure
 

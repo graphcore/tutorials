@@ -79,20 +79,18 @@ def make_divisible(number, divisor):
 # Prepare the dataset
 (x_train, y_train), (x_test, y_test) = load_data()
 
-total_gradient_accumulation_steps = gradient_accumulation_steps_per_replica * num_replicas
-
 # Adjust dataset lengths to be divisible by the batch size
 train_data_len = x_train.shape[0]
 train_steps_per_execution = train_data_len // (batch_size * num_replicas)
-# `steps_per_execution` needs to be divisible by `total_gradient_accumulation_steps`
-train_steps_per_execution = make_divisible(train_steps_per_execution, total_gradient_accumulation_steps)
+# `steps_per_execution` needs to be divisible by `gradient_accumulation_steps_per_replica`
+train_steps_per_execution = make_divisible(train_steps_per_execution, gradient_accumulation_steps_per_replica)
 train_data_len = make_divisible(train_data_len, train_steps_per_execution * batch_size)
 x_train, y_train = x_train[:train_data_len], y_train[:train_data_len]
 
 test_data_len = x_test.shape[0]
 test_steps_per_execution = test_data_len // (batch_size * num_replicas)
-# `steps_per_execution` needs to be divisible by `total_gradient_accumulation_steps`
-test_steps_per_execution = make_divisible(test_steps_per_execution, total_gradient_accumulation_steps)
+# `steps_per_execution` needs to be divisible by `gradient_accumulation_steps_per_replica`
+test_steps_per_execution = make_divisible(test_steps_per_execution, gradient_accumulation_steps_per_replica)
 test_data_len = make_divisible(test_data_len, test_steps_per_execution * batch_size)
 x_test, y_test = x_test[:test_data_len], y_test[:test_data_len]
 

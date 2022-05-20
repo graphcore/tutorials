@@ -14,7 +14,7 @@ Refer to the [Getting Started guide for your IPU System](https://docs.graphcore.
 * `completed_code`: Completed versions of the scripts described in this tutorial
 * `execution_trace`: Execution traces of the scripts described in this tutorial
 * `README.md`: This file
-* `test`: A directory that contains test scripts
+* `tests`: A directory that contains test scripts
 
 #### Table of Contents
 
@@ -198,7 +198,7 @@ with strategy.scope():
     print('Time taken using infeed/outfeed queues:', time.time() - start_time, "seconds")
 ```
 
-`steps_per_execution` refers to the total number of batches of data processed by all replicas (if replication is enabled) each time an engine is executed. Usually, it is passed as an argument when compiling a model in TF2.4 (see [TensorFlow Core v2.4.0 API documentation](https://www.tensorflow.org/versions/r2.4/api_docs/python/tf/keras/Model#compile)). In this example, `steps_per_execution` is used here to simulate the same behaviour with a custom training loop -- it essentially plays the same role as the known `steps_per_execution` parameter that is passed to `model.compile`. 
+`steps_per_execution` refers to the total number of batches of data processed by each replica (if replication is enabled) each time an engine is executed. Usually, it is passed as an argument when compiling a model in TF2 (see [Keras with IPUs documentation](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/tensorflow/keras_tf2.html#using-steps-per-execution)). In this example, `steps_per_execution` is used here to simulate the same behaviour with a custom training loop -- it essentially plays the same role as the known `steps_per_execution` parameter that is passed to `model.compile`. 
 
 
 ## Additional notes
@@ -243,7 +243,7 @@ POPLAR_ENGINE_OPTIONS='{"autoReport.all":"true", "autoReport.directory":"with_fe
 
 The engine option `autoReport.directory` specifies where you would like to save the profile. You can download the PopVision Graph Analyser from the Graphcore [Downloads portal](https://downloads.graphcore.ai/) and view the profile you have saved with it. Similarly, you can save the profile of [mnist_without_feeds.py](completed_code/mnist_without_feeds.py) in a different folder for comparison.
 
-The engine option `autoReport.executionProfileProgramRunCount` specifies how many runs of the Poplar program you would like to capture. If you increase the number of runs to be captured, the execution report gets larger and so takes longer to generate. For the purpose of illustration, this option is set to 10 in this case. The default value is 2. For more information on the available options, please visit [PopVision User Guide](https://docs.graphcore.ai/projects/graphcore-popvision-user-guide/en/latest/index.html). 
+The engine option `autoReport.executionProfileProgramRunCount` specifies how many runs of the Poplar program you would like to capture. If you increase the number of runs to be captured, the execution report gets larger and so takes longer to generate. For the purpose of illustration, this option is set to 10 in this case. The default value is 2. For more information on the available options, please visit [PopVision Graph Analyser User Guide](https://docs.graphcore.ai/projects/graph-analyser-userguide/en/latest/user-guide.html#capturing-ipu-reports). 
 
 The execution traces for both [mnist_with_feeds.py](completed_code/mnist_with_feeds.py) and [mnist_without_feeds.py](completed_code/mnist_without_feeds.py) are shown below and can be found in the `execution_trace` folder as well. PopVision Graph Analyser 2.4.2 is used here to generate the images.
 

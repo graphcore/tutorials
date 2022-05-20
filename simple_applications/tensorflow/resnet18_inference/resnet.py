@@ -17,6 +17,11 @@ import numpy as np
 
 import utils
 from tensorflow.python.ipu import ipu_compiler
+from tensorflow.python.ipu import image_ops
+
+# values taken from https://github.com/pytorch/examples/blob/master/imagenet/main.py#L198
+NORMALIZED_MEAN = [0.485, 0.456, 0.406]
+NORMALIZED_STD = [0.229, 0.224, 0.225]
 
 
 class ResNet(object):
@@ -30,7 +35,17 @@ class ResNet(object):
     def build_tower(self, image):
         filters = [64, 64, 128, 256, 512]
         kernels = [7, 3, 3, 3, 3]
-        strides = [2, 0, 2, 2, 2]
+        strides = [2, 1, 2, 2, 2]
+
+        # This is an optimisation used in the CNNs training example. It performs
+        # data normalisation and casting on the IPU and also pads the image to
+        # add a 4th channel. For more information, see:
+        # https://docs.graphcore.ai/projects/tensorflow1-user-guide/en/latest/tensorflow/api.html#tensorflow.python.ipu.image_ops.normalise_image
+        with tf.variable_scope('normalise_image'):
+            scale = 1.0/255.0
+            mean = NORMALIZED_MEAN
+            std = NORMALIZED_STD
+            image = image_ops.normalise_image(image, mean, std, scale)
 
         # conv1
         with tf.variable_scope('conv1'):
@@ -40,7 +55,7 @@ class ResNet(object):
             x = tf.nn.max_pool(x, [1, 3, 3, 1], [1, 2, 2, 1], 'SAME')
 
         # conv2_x
-        x = self._residual_block(x, name='conv2_1')
+        x = self._residual_block_first(x, filters[1], strides[1], name='conv2_1')
         x = self._residual_block(x, name='conv2_2')
 
         # conv3_x
@@ -73,13 +88,8 @@ class ResNet(object):
         with tf.variable_scope(name) as scope:
 
             # Shortcut connection
-            if in_channel == out_channel:
-                if strides == 1:
-                    shortcut = tf.identity(x)
-                else:
-                    shortcut = tf.nn.max_pool(x, [1, strides, strides, 1], [1, strides, strides, 1], 'VALID')
-            else:
-                shortcut = self._conv(x, 1, out_channel, strides, name='shortcut')
+            shortcut = self._conv(x, 1, out_channel, strides, name='shortcut_conv')
+            shortcut = self._bn(shortcut, name='shortcut_norm')
             # Residual
             x = self._conv(x, 3, out_channel, strides, name='conv_1')
             x = self._bn(x, name='bn_1')

@@ -9,6 +9,7 @@ inference is demonstrated in the executables for simplicity.
 
 * `cube_op_example/cube_fn_custom_op.cpp` The C++ implementation of the cube operation  
 * `cube_op_example/Makefile` A pre-configured Makefile to build the cube operator example
+* `cube_op_example/tests/test_cube_op.py` A pytest script to test the operator
 * `leaky_relu_example/leaky_relu_custom_op.cpp` The C++ implementation of the leaky relu operation
 * `leaky_relu_example/Makefile` A pre-configured Makefile to build the leaky relu operator example
 * `leaky_relu_example/run_leaky_relu.py` A script to run a simple model that uses the leaky relu op

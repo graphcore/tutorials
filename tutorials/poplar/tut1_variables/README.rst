@@ -16,7 +16,7 @@ In this tutorial you will:
 
 A brief `summary`_ and a list of additional resources are included at the end this tutorial.
 Graphcore also provides tutorials using Python deep learning frameworks `PyTorch <../../pytorch/>`_,
-`TensorFlow 1 <../../tensorflow/>`_, and `TensorFlow 2 <../../tensorflow2/>`_.
+`TensorFlow 1 <../../tensorflow1/>`_, and `TensorFlow 2 <../../tensorflow2/>`_.
 
 Setup
 ......
@@ -466,7 +466,7 @@ open it in an editor.
 
     if (it == devices.end()) {
       std::cerr << "Error attaching to device\n";
-      return -1;
+      return 1; //EXIT_FAILURE
     }
 
     auto device = std::move(*it);
@@ -521,7 +521,7 @@ the `Poplar and PopLibs User Guide <https://docs.graphcore.ai/projects/poplar-us
 en/latest/poplar_programs.html>`_. For a detailed reference, consult the `API documentation
 <https://docs.graphcore.ai/projects/poplar-api/en/latest/>`_.
 Graphcore also provides tutorials targeted at new users of the IPU using common Python
-deep learning frameworks `PyTorch <../../pytorch/>`_, `TensorFlow 1 <../../tensorflow/>`_,
+deep learning frameworks `PyTorch <../../pytorch/>`_, `TensorFlow 1 <../../tensorflow1/>`_,
 and `TensorFlow 2 <../../tensorflow2/>`_.
 
 Copyright (c) 2018 Graphcore Ltd. All rights reserved.

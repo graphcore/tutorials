@@ -171,7 +171,7 @@ The IPU has native support for stochastic rounding, a technique which makes some
 
 This means that on average, the values of the parameters of a network will be close to the values they would have had if a higher-precision format had been used. The added bonus of using stochastic rounding is that the parameters can be stored in FP16, which means the parameters can be stored using half as much memory. This can be especially helpful when training with small batch sizes, where the memory used to store the parameters is proportionally greater than the memory used to store parameters when training with large batch sizes.
 
-To use stochastic rounding, you must enable it when you configure your IPU or IPUs. For Poplar SDK releases before 2.1, it was necessary to also explicitly enable or disable floating-point exceptions and NaN-on-overflow mode. With the new configuration API, this is no longer necessary.
+To use stochastic rounding, you must enable it when you configure your IPU or IPUs. There are three modes of operation defined by the [StoachsticRoundingBehaviour enum](https://docs.graphcore.ai/projects/tensorflow1-user-guide/en/latest/tensorflow/api.html?highlight=StochasticRoundingBehaviour#tensorflow.python.ipu.config.StochasticRoundingBehaviour): `OFF`, `ON` or `REPLICA_IDENTICAL_ONLY`. We will use the `ON` option here.
 
 While using stochastic rounding can help with the convergence of neural networks trained entirely in FP16, it may still be necessary to do some computations in FP32 for stability.
 
@@ -186,7 +186,7 @@ ipu_configuration = ipu.config.IPUConfig()
 ipu_configuration.auto_select_ipus = 1
 
 # Enable stochastic rounding
-ipu_configuration.floating_point_behaviour.esr = True
+ipu_configuration.floating_point_behaviour.esr = ipu.config.StochasticRoundingBehaviour.ON
 
 ipu_configuration.configure_ipu_system()
 
@@ -241,10 +241,10 @@ One way to implement this method with a model defined in pure TensorFlow is to c
 def method_2_dense(inputs_float16, units_out):
 
     units_in = inputs_float16.get_shape().as_list()[0]
-    
+
     # tf.matmul requires both arguments to be 2D tensors
     inputs_float16 = tf.reshape(inputs_float16, [units_in, 1])
-    
+
     # Create weights in FP32
     weights = tf.get_variable(
         name="weights",
@@ -252,8 +252,8 @@ def method_2_dense(inputs_float16, units_out):
         dtype=tf.float32,
         trainable=True
     )
-    
-    # Cast to FP16 before doing the compute    
+
+    # Cast to FP16 before doing the compute
     weights_float16 = tf.cast(weights, tf.float16)
 
     # Do the same for the biases
@@ -263,16 +263,16 @@ def method_2_dense(inputs_float16, units_out):
         dtype=tf.float32,
         trainable=True
     )
-    
+
     biases_float16 = tf.cast(biases, tf.float16)
 
     # Do compute in FP16
     output = tf.matmul(weights_float16, inputs_float16) + biases_float16
-    
+
     # Return output to 1D
     output = tf.reshape(output, [units_out])
-    
-    return output    
+
+    return output
 ```
 
 When implemented as above, the forward pass for this layer is performed in FP16. The backward pass is done in the same format as the forward pass, so the backward pass is also performed in FP16. As part of the backward pass, the casting of the parameters from the forward pass is reversed, so the parameter update step is performed in FP32.
@@ -281,7 +281,7 @@ The problem with this is that this function is *only* an implementation of this 
 
 This can be achieved using a "custom getter" as long as the parameters in a layer are created using `tf.get_variable`. This is because it is possible to customise how the `tf.get_variable` function works within the context of a particular `tf.variable_scope`. Whenever `tf.get_variable` is called within a variable scope with a custom getter, the custom getter is called instead, with `tf.get_variable` as the first argument and the arguments given to `tf.get_variable` as the subsequent arguments. This allows for a great deal of control over how the parameters in a model are created and used.
 
-Using a custom getter will not work with models defined using Keras because Keras does not use `tf.get_variable` internally. 
+Using a custom getter will not work with models defined using Keras because Keras does not use `tf.get_variable` internally.
 
 To use this method, we first define a custom getter. As stated above, this will take the function `tf.get_variable` as its first argument, and the inputs to `tf.get_variable` as its subsequent arguments. We can provide `tf.get_variable` as an argument and call it within our custom getter because functions are first-class objects in Python. Here is an example taken from `float32_parameter_updates.py`:
 
@@ -307,20 +307,20 @@ We then define the layers of our model using `tf.get_variable` to create the var
 ```python
 # Define a convolution that uses tf.get_variable to create the kernel
 def conv(feature_map, kernel_size, stride, filters_out, padding='SAME', op_name):
-    
+
     # We use NHWC format
     filters_in = feature_map.get_shape().as_list()[-1]
-    
+
     # Resource variables must be used on the IPU
     with tf.variable_scope(op_name, use_resource=True):
-        
+
         kernel = tf.get_variable(
             name="conv2d/kernel",
             shape=[kernel_size, kernel_size, filters_in, filters_out],
             dtype=feature_map.dtype,
             trainable=True
         )
-        
+
         return tf.nn.conv2d(
             x,
             filters=kernel,
@@ -342,12 +342,12 @@ def training_loop_body(loss_running_total, x, y):
 
     # Apply the model function to the inputs
     # Using the chosen variable getter as our custom getter
-    with tf.variable_scope('all_vars', use_resource=True, 
+    with tf.variable_scope('all_vars', use_resource=True,
                            custom_getter=fp32_parameter_getter):
         logits = model_function(x)
-        
+
     loss = loss_function(logits, labels)
-    
+
     # (Rest of training loop excluded for brevity)
 ```
 
@@ -390,23 +390,23 @@ def training_loop_body(loss_running_total, x, y):
     #     the default value of epsilon and ensure
     #     that it does not underflow
     optimizer = tf.train.AdamOptimizer(0.01, epsilon=1e-4)
-    
+
     # Scale loss
     loss *= LOSS_SCALING_FACTOR
-    
+
     # Calculate gradients with scaled loss
     grads_and_vars = optimizer.compute_gradients(loss=loss)
-    
+
     # Rescale gradients to correct values
     grads_and_vars = [(gradient/LOSS_SCALING_FACTOR, variable)
                       for gradient, variable in grads_and_vars]
-    
+
     # Apply gradients
     train_op = optimizer.apply_gradients(grads_and_vars=grads_and_vars)
 
     # Return loss to original value before reporting it
     loss /= LOSS_SCALING_FACTOR
-    
+
     return([loss_running_total + loss, train_op])
 ```
 
@@ -445,11 +445,18 @@ This saves some compute, but can lead to some problems, such as causing the lear
 
 In some optimisers, such as RMSProp and Adam, a rolling average of the square of the gradients is taken, and the gradients are scaled down by the square root of this average. If we ignore the small value added to the denominator to avoid division by 0 (usually called "epsilon"), this means that scaling the gradients has no effect on the weight update step. As long as you either scale the value of epsilon accordingly or you are happy to ignore its effects, you can use these optimisers without scaling the gradients back down after loss scaling.
 
-
 ## Diagnosing numerical issues
 
-If your model is not performing as you would expect, you may find it useful to inspect the outputs of some of the intermediate calculations. This can be done either by using `ipu.internal_ops.print_tensor` to print the value of a tensor or by using an outfeed queue. A [code example](../../feature_examples/tensorflow/inspecting_tensors) is available which demonstrates how to use outfeed queues to inspect tensors. You may also wish to refer to the API reference for details on how to [print tensors](https://docs.graphcore.ai/projects/tensorflow1-user-guide/en/latest/tensorflow/api.html#tensorflow.python.ipu.internal_ops.print_tensor) and how to use an [outfeed queue](https://docs.graphcore.ai/projects/tensorflow1-user-guide/en/latest/tensorflow/api.html#tensorflow.python.ipu.ipu_outfeed_queue.IPUOutfeedQueue).
-
+If your model is not performing as you would expect, you may find it useful to
+inspect the outputs of some of the intermediate calculations. This can be done
+either by using `ipu.internal_ops.print_tensor` to print the value of a tensor
+or by using an outfeed queue. A [code
+example](../../../feature_examples/tensorflow/inspecting_tensors) is available
+which demonstrates how to use outfeed queues to inspect tensors. You may also
+wish to refer to the API reference for details on how to [print
+tensors](https://docs.graphcore.ai/projects/tensorflow1-user-guide/en/latest/tensorflow/api.html#tensorflow.python.ipu.internal_ops.print_tensor)
+and how to use an [outfeed
+queue](https://docs.graphcore.ai/projects/tensorflow1-user-guide/en/latest/tensorflow/api.html#tensorflow.python.ipu.ipu_outfeed_queue.IPUOutfeedQueue).
 
 You can also configure how the floating-point unit should respond to floating-point exceptions. This can be done by setting the attributes in the `floating_point_behaviour` namespace of your `IPUConfig` object. Setting the `nanoo` attribute to `True` will enable "NaN on overflow" mode, in which case operations that overflow return `NaN`. If you set the `nanoo` attribute to `False`, overflowing operations will "saturate", which means that they will return the highest representable number in FP16, which may give unusual results. Setting the `oflo`, `div0`, and `inv` attributes to `True` will cause the floating-point unit to raise exceptions and stop execution on overflows, divisions by 0, and invalid operations, respectively. For example:
 
@@ -486,7 +493,7 @@ For Poplar SDK releases before 2.1, it was necessary to also explicitly enable o
 
 ### Avoiding underflow
 
-The smallest positive number representable in half-precision is approximately `6.0e-08`, which means that any number smaller than half this number (approximately `3.0e-08`) will underflow. It is worth confirming that, for example, the learning rate and any optimiser parameters do not underflow. For example, the default value of `epsilon` in some implementations of the Adam optimiser is `1e-8`, which will underflow in half-precision and potentially cause numerical issues. 
+The smallest positive number representable in half-precision is approximately `6.0e-08`, which means that any number smaller than half this number (approximately `3.0e-08`) will underflow. It is worth confirming that, for example, the learning rate and any optimiser parameters do not underflow. For example, the default value of `epsilon` in some implementations of the Adam optimiser is `1e-8`, which will underflow in half-precision and potentially cause numerical issues.
 
 ### Avoiding overflow
 
@@ -550,7 +557,7 @@ To run the code examples, you will need access to IPU hardware and the latest Po
 
 In `stochastic_rounding.py`, we train a ResNet model of a given depth on the CIFAR-10 image classification dataset using stochastic rounding. The program can be run at the command line with the command
 ```
-python stochastic_rounding.py precision depth 
+python stochastic_rounding.py precision depth
 ```
 where:
 

@@ -6,6 +6,7 @@ import pytest
 import poptorch
 from torch.utils.data import dataset
 from octconv_example import ClassificationModel, OctConvBlock
+import tutorials_tests.testing_util as testing_util
 
 
 def setup_function(*args, **kwargs):
@@ -26,14 +27,8 @@ def run_script(script_name, parameters):
     cmd = ["python3", script_name] + param_list
     cmd_str = " ".join(cmd)
     print(f"\nRunning:\n{cmd_str}\n")
-    try:
-        out = subprocess.check_output(
-            cmd, cwd=cwd, stderr=subprocess.PIPE).decode("utf-8")
-    except subprocess.CalledProcessError as e:
-        print(f"TEST FAILED")
-        print(f"stdout={e.stdout.decode('utf-8',errors='ignore')}")
-        print(f"stderr={e.stderr.decode('utf-8',errors='ignore')}")
-        raise
+    out = testing_util.run_command_fail_explicitly(cmd, cwd)
+
     return out
 
 

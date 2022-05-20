@@ -341,7 +341,7 @@ auto main(int argc, char **argv) -> int {
   auto dataFlow =
       popart::DataFlow(1, // this is the number of batches per step. It does not
                           // have an equivalent in other standard frameworks
-                          // like Tensorflow. It is the number of batches to
+                          // like TensorFlow. It is the number of batches to
                           // process when session->run(.) is called. (see below)
                        {{outputs[0], popart::AnchorReturnType("ALL")},
                         {popart::reservedGradientPrefix() + input,

@@ -1,7 +1,8 @@
 // Copyright (c) 2018 Graphcore Ltd. All rights reserved.
 
-#include <poplar/DeviceManager.hpp>
 #include <poplar/Engine.hpp>
+#include <poplar/DeviceManager.hpp>
+#include <poputil/TileMapping.hpp>
 
 #include <algorithm>
 #include <iostream>
@@ -57,7 +58,7 @@ Program buildMultiplyProgram(Graph &graph, Tensor matrix, Tensor in,
                                                  // of the vertex to a single
                                                  // element of the output
                                                  // vector.
-  graph.setTileMapping(v, i);
+    graph.setTileMapping(v, i);
   }
   // The returned program just executes the 'mulCS' compute set i.e. executes
   // every vertex calculation in parallel.
@@ -65,6 +66,16 @@ Program buildMultiplyProgram(Graph &graph, Tensor matrix, Tensor in,
 }
 
 int main(int argc, char **argv) {
+  if (argc != 3) {
+    std::cerr << "usage: " << argv[0] << " numRows numCols\n";
+    return 1;
+  }
+
+  unsigned numRows = std::atoi(argv[1]);
+  unsigned numCols = std::atoi(argv[2]);
+  std::cout << "Multiplying matrix of size " << numRows << "x" << numCols
+            << " by vector of size " << numCols << "\n";
+
   // Create the DeviceManager which is used to discover devices
   auto manager = DeviceManager::createDeviceManager();
 
@@ -77,7 +88,7 @@ int main(int argc, char **argv) {
 
   if (it == devices.end()) {
     std::cerr << "Error attaching to device\n";
-    return -1;
+    return 1; //EXIT_FAILURE
   }
 
   auto device = std::move(*it);
@@ -85,29 +96,20 @@ int main(int argc, char **argv) {
 
   auto target = device.getTarget();
 
-  if (argc != 3) {
-    std::cerr << "usage: " << argv[0] << " numRows numCols\n";
-    return 1;
-  }
-
-  unsigned numRows = std::atoi(argv[1]);
-  unsigned numCols = std::atoi(argv[2]);
-  std::cout << "Multiplying matrix of size " << numRows << "x" << numCols
-            << " by vector of size " << numCols << "\n";
-
   std::cout << "Creating environment (compiling vertex programs)\n";
 
-  std::cout << "Constructing compute graph and control program\n";
   Graph graph(target);
   graph.addCodelets("matrix-mul-codelets.cpp");
+
+  std::cout << "Constructing compute graph and control program\n";
 
   // Create tensors in the graph to hold the input/output data.
   Tensor matrix = graph.addVariable(FLOAT, {numRows, numCols}, "matrix");
   Tensor inputVector = graph.addVariable(FLOAT, {numCols}, "inputVector");
   Tensor outputVector = graph.addVariable(FLOAT, {numRows}, "outputVector");
-  graph.setTileMapping(matrix, 0);
-  graph.setTileMapping(inputVector, 0);
-  graph.setTileMapping(outputVector, 0);
+  poputil::mapTensorLinearly(graph, matrix);
+  poputil::mapTensorLinearly(graph, inputVector);
+  poputil::mapTensorLinearly(graph, outputVector);
 
   // Create host buffers for the inputs and outputs and fill the inputs
   // with sample data.

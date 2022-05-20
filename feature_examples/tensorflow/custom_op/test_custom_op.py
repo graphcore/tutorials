@@ -1,11 +1,11 @@
 # Copyright (c) 2020 Graphcore Ltd. All rights reserved.
 import os
 import re
-import subprocess
 import unittest
 
 import numpy as np
 import pytest
+from tutorials_tests import testing_util
 # NOTE: The import below is dependent on 'pytest.ini' in the root of
 # the repository
 from tutorials_tests.testing_util import run_python_script_helper, check_data_exists
@@ -43,7 +43,7 @@ class TestTensorflowCustomOp(unittest.TestCase):
             "equal expected value {}".format(ipu_arr, target_arr)
         )
         # Clean up
-        subprocess.run(["make", "clean"], cwd=self.path)
+        testing_util.run_command(["make", "clean"], cwd=self.path)
 
 
 def compile_custom_op(path):
@@ -52,10 +52,10 @@ def compile_custom_op(path):
 
     if check_data_exists(path, files_to_generate):
         print("Objects already present, cleaning...")
-        subprocess.run(["make", "clean"], cwd=path)
+        testing_util.run_command(["make", "clean"], cwd=path)
 
-    completed = subprocess.run("make", cwd=path)
-    if completed.returncode != 0 or not check_data_exists(path, files_to_generate):
+    testing_util.run_command("make", cwd=path)
+    if not check_data_exists(path, files_to_generate):
         raise Exception("Custom op compilation failed")
 
     print("Successfully compiled custom op")

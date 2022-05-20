@@ -13,7 +13,8 @@ You can learn more about PopDist and PopRun in the
 ## File structure
 
 * `popdist_training.py` Example training script with PopDist support.
-* `test` Integration tests for this example.
+* `popdist_inference.py` Example inference script with PopDist support.
+* `tests` Integration tests for this example.
 * `README.md` This file.
 
 ## How to use this example
@@ -31,4 +32,13 @@ You can learn more about PopDist and PopRun in the
 
    ```
    poprun --num-instances=2 --num-replicas=4 python3 popdist_training.py
+   ```
+
+3) After training, run the inference script using PopRun. For inference, it is
+   recommended that you do not use multiple replicas per instance. This is
+   because you will likely become CPU bound by the data preparation done on the
+   host (as each instance will only use a single CPU core). Example:
+
+   ```
+   poprun --num-instances=4 --num-replicas=4 python3 popdist_inference.py
    ```

@@ -53,8 +53,8 @@ export POPLAR_ENGINE_OPTIONS='{"autoReport.all":"true", "autoReport.directory":"
 ```
 
 After running an application, the resulting report files can be opened using the PopVision Graph Analyser.
-See the PopVision user guide for more information:
-[PopVision User Guide](https://docs.graphcore.ai/projects/graphcore-popvision-user-guide/en/latest/index.html).
+See the Graph Analyser user guide for more information:
+[PopVision Graph Analyser User Guide](https://docs.graphcore.ai/projects/graph-analyser-userguide/en/latest/).
 
 ## Run the tests
 

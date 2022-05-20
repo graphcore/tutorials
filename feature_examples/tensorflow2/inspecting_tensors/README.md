@@ -95,11 +95,6 @@ are returned for inspection on the host. This can be changed using options.
 For the single IPU models (Model and Sequential) gradients and activations are
 returned for one layer.
 
-### Known issue
-
-At the moment, the `outfeed_layers.MaybeOutfeed` layer cannot be used in non-pipelined
-Sequential models.
-
 ### Options
 
 The following command line options are available. See the code for other ways of

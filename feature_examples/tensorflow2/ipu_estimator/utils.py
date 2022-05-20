@@ -5,7 +5,7 @@ from tensorflow.python import ipu
 
 
 def parse_params(enable_multi_ipu=False, enable_pipelining=False):
-    parser = argparse.ArgumentParser(description='CIFAR-10 training in Tensorflow 2', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(description='CIFAR-10 training in TensorFlow 2', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--batch-size', type=int, default=16, help='batch size for training')
     parser.add_argument('--epochs', type=int, default=150, help='number of epochs to train')
     if enable_multi_ipu:

@@ -1,0 +1,4 @@
+numpy==1.18.5
+pytest~=6.2
+pytest-pythonpath==0.7.3
+psutil==5.8.0

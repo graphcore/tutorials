@@ -61,12 +61,11 @@ class TestTensorFlowConnectionType(unittest.TestCase):
         assert_result_equals_tensor_value(
             result['result'], np.array([3.0, 8.0], dtype=np.float32)
         )
-        # Assert single occurences of attach and compile
-        # with attach occuring first.
+        # Assert single occurrences of attach and compile
+        # with attach occurring first.
         assert(len(result['attach']) == 1), "Missing attach"
         assert(len(result['compile']) == 1), "Missing compile"
         assert(result['attach'][0] < result['compile'][0]), "Compile before attach"
-
 
     @pytest.mark.category1
     @pytest.mark.ipus(1)
@@ -77,8 +76,8 @@ class TestTensorFlowConnectionType(unittest.TestCase):
         assert_result_equals_tensor_value(
             result['result'], np.array([3.0, 8.0], dtype=np.float32)
         )
-        # Assert single occurences of attach and compile
-        # with compilation occuring first.
+        # Assert single occurrences of attach and compile
+        # with compilation occurring first.
         assert(len(result['attach']) == 1), "Missing attach"
         assert(len(result['compile']) == 1), "Missing compile"
         assert(result['attach'][0] > result['compile'][0]), "Compile after attach"
@@ -90,7 +89,7 @@ class TestTensorFlowConnectionType(unittest.TestCase):
         result = run_connection_type("NEVER")
         # Assert correct result.
         assert_result_equals_string(result['result'], "Compiled")
-        # Assert single occurence of compile without attach.
+        # Assert single occurrence of compile without attach.
         assert(len(result['attach']) == 0), "Unexpected attach"
         assert(len(result['compile']) == 1), "Missing compile"
 
@@ -105,7 +104,7 @@ class TestTensorFlowConnectionType(unittest.TestCase):
             assert_result_equals_tensor_value(
                 result['result'], np.array([0.0, 0.0], dtype=np.float32)
             )
-            # Assert single occurence of compile without attach.
+            # Assert single occurrence of compile without attach.
             assert(len(result['attach']) == 0), "Unexpected attach"
             assert(len(result['pre_compile']) == 1), "Missing pre-compile"
 

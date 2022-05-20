@@ -21,5 +21,8 @@ public:
 
   // The compute method performs the dot product between inputs 'a' and
   // 'b' and stores the result in 'out'.
-  bool compute() { return true; }
+  bool compute() {
+    /* #### TO DO (1) #### */
+    return true;
+  }
 };

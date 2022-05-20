@@ -175,8 +175,8 @@ for transferring data to and from the host by all tiles. If you subtract this fr
 
 You can get far more detailed insights into the behaviour of the program by using the
 PopVision Graph Analyser tool. The program writes out the ``profile.pop`` file that
-can be read by the graph analyser. For more information about PopVision, see `PopVision
-User Guide <https://docs.graphcore.ai/projects/graphcore-popvision-user-guide/>_`.
+can be read by the graph analyser. For more information about the Graph Analyser, see `PopVision
+Graph Analyser User Guide <https://docs.graphcore.ai/projects/graph-analyser-userguide/en/latest/>_`.
 
 Note:
 
@@ -209,7 +209,7 @@ The execution profile will look like:
       Tile average host exchange cycles:                    2,641,488.4 (10.4% of total)
       Tile average sync cycles:                             135,849.6 (0.5% of total)
 
-Note that the total cycles per tile using IPU hardware is signifcantly larger
+Note that the total cycles per tile using IPU hardware is significantly larger
 than when using the IPU Model. The main overhead comes from the `StreamCopyBegin`
 program. The `StreamCopyBegin` is measuring cycles spent during which the host
 is preparing I/O. To reduce latencies in exchange fabric, the configuration of exchange

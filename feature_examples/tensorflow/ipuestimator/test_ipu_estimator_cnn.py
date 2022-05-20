@@ -17,7 +17,7 @@ def run_ipu_estimator_cnn(**kwargs):
 
 
 class TestIPUEstimatorCNN():
-    """High-level integration tests for ipu_estimator_cnn Tensorflow
+    """High-level integration tests for ipu_estimator_cnn TensorFlow
        example"""
 
     @classmethod

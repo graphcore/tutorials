@@ -2,10 +2,8 @@
 
 /* This file contains the completed version of Poplar tutorial 4,
   which uses the IPU Model.
-  See the Poplar user guide for details.
 */
 
-#include <iostream>
 #include <poplar/Engine.hpp>
 #include <poplar/Graph.hpp>
 #include <poplar/IPUModel.hpp>
@@ -13,6 +11,8 @@
 #include <poplin/codelets.hpp>
 #include <popops/codelets.hpp>
 #include <poputil/TileMapping.hpp>
+
+#include <iostream>
 
 using namespace poplar;
 using namespace poplar::program;

@@ -43,7 +43,7 @@ transform = torchvision.transforms.Compose([
     torchvision.transforms.ToTensor(),
     torchvision.transforms.Normalize((0.5,), (0.5,))])
 train_data = torchvision.datasets.MNIST("~/.torch/datasets", transform=transform, download=True, train=True)
-train_loader = poptorch.DataLoader(opts, train_data, batch_size=batch_size_train, shuffle=True, num_workers=1)
+train_loader = poptorch.DataLoader(opts, train_data, batch_size=batch_size_train, shuffle=True)
 
 # Intialize the PopTorch training model
 model = BasicLinearModel()

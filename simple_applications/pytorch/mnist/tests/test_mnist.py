@@ -16,14 +16,8 @@ import tutorials_tests.testing_util as testing_util
 def run_poptorch_mnist(**kwargs):
     cwd = Path(__file__).parent.parent
     cmd = ["python3", 'mnist_poptorch.py']
-    try:
-        out = subprocess.check_output(
-            cmd, cwd=cwd, stderr=subprocess.PIPE).decode("utf-8")
-    except subprocess.CalledProcessError as e:
-        print(f"TEST FAILED")
-        print(f"stdout={e.stdout.decode('utf-8',errors='ignore')}")
-        print(f"stderr={e.stderr.decode('utf-8',errors='ignore')}")
-        raise
+    out = testing_util.run_command_fail_explicitly(cmd, cwd)
+
     return out
 
 

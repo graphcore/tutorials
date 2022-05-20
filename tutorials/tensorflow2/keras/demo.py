@@ -46,7 +46,7 @@ Requirements:
 
 To run the Jupyter notebook version of this tutorial:
 1. Enable a Poplar SDK environment
-2. In the same environment, install the Jupyter notebook server: `python -m pip install notebook`
+2. In the same environment, install the Jupyter notebook server: `python -m pip install jupyter`
 3. Launch a Jupyter Server on a specific port: `jupyter-notebook --no-browser --port <port number>`
 4. Connect via SSH to your remote machine, forwarding your chosen port:
 `ssh -NL <port number>:localhost:<port number> <your username>@<remote machine>`
@@ -221,15 +221,15 @@ Next, add the following code:
 strategy = ipu.ipu_strategy.IPUStrategy()
 
 """
-The `tf.distribute.Strategy` is an API to distribute training across multiple
-devices. `IPUStrategy` is a subclass which targets a system with one or more
-IPUs attached. For a multi-system configuration, the
+The `tf.distribute.Strategy` is an API to distribute training and inference
+across multiple devices. `IPUStrategy` is a subclass which targets a system
+with one or more IPUs attached. For a multi-system configuration, the
 [PopDistStrategy](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/tensorflow/api.html#tensorflow.python.ipu.horovod.popdist_strategy.PopDistStrategy)
 should be used, in conjunction with our PopDist library.
 
-> To see an example of how to distribute training over multiple instances with
-> PopDist, head over to our [TensorFlow 2 PopDist
-> example](../../feature_examples/tensorflow2/popdist).
+> To see an example of how to distribute training and inference over multiple
+> instances with PopDist, head over to our [TensorFlow 2 PopDist
+> example](../../../feature_examples/tensorflow2/popdist).
 """
 """
 ##### 5. Wrap the model within the IPU strategy scope
@@ -299,25 +299,22 @@ To change this, we must set the `steps_per_execution` argument in
 `model.compile()`. This sets the number of batches processed in each execution
 of the underlying IPU program.
 
-Now not only must the data divide equally into all batches, but also the number
-of batches must divide into the number of steps. So the number of examples in
-the dataset must be divisible by the number of examples processed per execution
-(that is, `steps_per_execution * batch_size`). Here, we set
-`steps_per_execution` to be `(length of dataset) // batch_size` for maximum
-throughput and so that we do not lose any more data than we have to, though this
-code should work just as well with a different, smaller value.
+The number of batches in the dataset must be divisible by the
+`steps_per_execution`. Here, we calculate the number of steps per execution to
+be `(length of dataset) // batch_size` (i.e. the number of whole batches in the
+dataset) for maximum throughput.
 """
 
 (x_train, y_train), (x_test, y_test) = load_data()
 
 train_data_len = x_train.shape[0]
 train_steps_per_execution = train_data_len // batch_size
-train_data_len = make_divisible(train_data_len, train_steps_per_execution * batch_size)
+train_data_len = make_divisible(train_data_len, batch_size)
 x_train, y_train = x_train[:train_data_len], y_train[:train_data_len]
 
 test_data_len = x_test.shape[0]
 test_steps_per_execution = test_data_len // batch_size
-test_data_len = make_divisible(test_data_len, test_steps_per_execution * batch_size)
+test_data_len = make_divisible(test_data_len, batch_size)
 x_test, y_test = x_test[:test_data_len], y_test[:test_data_len]
 
 """
@@ -325,8 +322,12 @@ Next we update the code from `with strategy.scope():` onwards by passing
 `steps_per_execution` as an argument to `model.compile()`, and providing our
 `batch_size` value to `model.fit()` and `model.evaluate()`. We can re-compile
 the model with a different value of `steps_per_execution` between running
-`model.fit()` and `model.evaluate()`, so we do so here, although it isn't
-compulsory.
+`model.fit()` and `model.evaluate()`. If `steps_per_execution` is larger than
+the number of batches in the test dataset then a warning will be logged, but
+the program will still run successfully because Keras will truncate
+`steps_per_execution` to the length of the test dataset. If
+`steps_per_execution` is incompatible with the number of batches in the test
+dataset you must update its value, as we do here.
 """
 
 print('Keras MNIST example, running on IPU with steps_per_execution')
@@ -372,12 +373,10 @@ num_ipus = num_replicas = 2
 Because our model is written for one IPU, the number of replicas will be equal
 to the number of IPUs.
 
-We will need to adjust for the fact that with replication, a batch is processed
-on each replica for each step, so `steps_per_execution` needs to be divisible
-by the number of replicas. Also, the maximum value of `steps_per_execution` is
-now `train_data_len // (batch_size * num_replicas)`, since the number of
-examples processed in each step is now `(batch_size * num_replicas)`.
-We therefore add two lines to the dataset-adjustment code:
+Since `steps_per_execution` refers to the execution of an IPU program its value
+is per replica. This is because each replica has its own IPU program.
+Therefore, the maximum, and optimal, value of `steps_per_execution` is now
+`train_data_len // (batch_size * num_replicas)`:
 """
 
 (x_train, y_train), (x_test, y_test) = load_data()
@@ -385,16 +384,12 @@ We therefore add two lines to the dataset-adjustment code:
 # Adjust dataset lengths to be divisible by the batch size
 train_data_len = x_train.shape[0]
 train_steps_per_execution = train_data_len // (batch_size * num_replicas)
-# `steps_per_execution` needs to be divisible by the number of replicas
-train_steps_per_execution = make_divisible(train_steps_per_execution, num_replicas)
-train_data_len = make_divisible(train_data_len, train_steps_per_execution * batch_size)
+train_data_len = make_divisible(train_data_len, batch_size * num_replicas)
 x_train, y_train = x_train[:train_data_len], y_train[:train_data_len]
 
 test_data_len = x_test.shape[0]
 test_steps_per_execution = test_data_len // (batch_size * num_replicas)
-# `steps_per_execution` needs to be divisible by the number of replicas
-test_steps_per_execution = make_divisible(test_steps_per_execution, num_replicas)
-test_data_len = make_divisible(test_data_len, test_steps_per_execution * batch_size)
+test_data_len = make_divisible(test_data_len, batch_size * num_replicas)
 x_test, y_test = x_test[:test_data_len], y_test[:test_data_len]
 
 """
@@ -517,27 +512,25 @@ If we use more than two IPUs, the model will be automatically replicated to fill
 up the requested number of IPUs. For example, if we select 8 IPUs for our 2-IPU
 model, four replicas of the model will be produced.
 
-We also need to adjust `steps_per_execution` to be divisible by the total number
-of gradient accumulation steps across all replicas, so we make a slight change
-to the dataset-adjusting code:
+We also need to adjust `steps_per_execution` to be divisible by the number of
+gradient accumulation steps per replica, so we add some lines to the
+dataset-adjusting code:
 """
 
 (x_train, y_train), (x_test, y_test) = load_data()
 
-total_gradient_accumulation_steps = gradient_accumulation_steps_per_replica * num_replicas
-
 # Adjust dataset lengths to be divisible by the batch size
 train_data_len = x_train.shape[0]
 train_steps_per_execution = train_data_len // (batch_size * num_replicas)
-# `steps_per_execution` needs to be divisible by `total_gradient_accumulation_steps`
-train_steps_per_execution = make_divisible(train_steps_per_execution, total_gradient_accumulation_steps)
+# `steps_per_execution` needs to be divisible by `gradient_accumulation_steps_per_replica`
+train_steps_per_execution = make_divisible(train_steps_per_execution, gradient_accumulation_steps_per_replica)
 train_data_len = make_divisible(train_data_len, train_steps_per_execution * batch_size)
 x_train, y_train = x_train[:train_data_len], y_train[:train_data_len]
 
 test_data_len = x_test.shape[0]
 test_steps_per_execution = test_data_len // (batch_size * num_replicas)
-# `steps_per_execution` needs to be divisible by `total_gradient_accumulation_steps`
-test_steps_per_execution = make_divisible(test_steps_per_execution, total_gradient_accumulation_steps)
+# `steps_per_execution` needs to be divisible by `gradient_accumulation_steps_per_replica`
+test_steps_per_execution = make_divisible(test_steps_per_execution, gradient_accumulation_steps_per_replica)
 test_data_len = make_divisible(test_data_len, test_steps_per_execution * batch_size)
 x_test, y_test = x_test[:test_data_len], y_test[:test_data_len]
 

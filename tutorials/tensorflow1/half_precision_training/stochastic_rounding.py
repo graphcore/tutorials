@@ -259,7 +259,10 @@ ipu_configuration = ipu.config.IPUConfig()
 ipu_configuration.auto_select_ipus = 1
 
 # Enable stochastic rounding (unless disabled)
-esr = not args.disable_stochastic_rounding
+if args.disable_stochastic_rounding:
+    esr = ipu.config.StochasticRoundingBehaviour.OFF
+else:
+    esr = ipu.config.StochasticRoundingBehaviour.ON
 
 ipu_configuration.floating_point_behaviour.esr = esr
 

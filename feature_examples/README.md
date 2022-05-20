@@ -45,6 +45,7 @@ library, and how to launch it with the PopRun distributed launcher.
 - [Replication](tensorflow/replication): an example showing how to use replication in TensorFlow to train
 a simple CIFAR-10 convolution model.
 - [Sharding](tensorflow/sharding): a simple model sharded on two IPUs.
+- [Concurrent Pipeline](tensorflow/concurrent_pipeline): a simple model that uses a concurrent pipeline (where single pipeline stages use more than a single IPU to allow tensor parallel (sharded) computations to be defined in that stage).
 
 Use estimators:
 - [IPU Estimator](tensorflow/ipuestimator): an example showing how to use the IPUEstimator to train and evaluate

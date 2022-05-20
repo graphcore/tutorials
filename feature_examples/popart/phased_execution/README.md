@@ -8,8 +8,9 @@ This feature allows to keep the weights in Streaming Memory, loading them in In-
 * `phased_execution.py` The main PopART program.
 * `README.md` This file.
 * `requirements.txt` Requirements needed to run this example.
-* `test_phased_execution.py` Test script.
-* `conftest.py` Pytest conftest file holds test fixtures.
+* `tests/test_phased_execution.py` Test script.
+* `tests/conftest.py` Pytest conftest file contains some local test util functions.
+* `tests/requirements.txt` Requirements needed to run the tests.
 
 ## How to use this example
 
@@ -17,6 +18,7 @@ This feature allows to keep the weights in Streaming Memory, loading them in In-
 
    Install the Poplar SDK following the instructions in the Getting Started guide for your IPU System.
    Make sure to source the `enable.sh` scripts for Poplar and PopART.
+   Install the example requirements: `python3 -m pip install -r requirements.txt`
 
    The PopART Python API only supports Python 3. It is recommended to use a virtualenv.
 
@@ -26,6 +28,8 @@ This feature allows to keep the weights in Streaming Memory, loading them in In-
 
 3) (Optional) To run the tests
 
+       cd tests
+       python3 -m pip install -r requirements.txt
        python3 -m pytest
 
 ### Options

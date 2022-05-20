@@ -9,7 +9,7 @@ You can learn more about PopDist and PopRun in the [PopDist and PopRun User Guid
 ## File structure
 
 * `popdist_training.py` Example training script with PopDist support.
-* `test` Integration tests for this example.
+* `tests` Integration tests for this example.
 * `README.md` This file.
 
 ## How to use this example

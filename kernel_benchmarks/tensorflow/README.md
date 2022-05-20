@@ -28,7 +28,7 @@ The structure of the repo is as follows:
 | `rnn.py`                                        | Benchmark program for 1 RNN layer                                      |
 | `dense.py`                                      | Benchmark program for 1 Dense layer                                    |
 | `README.md`                                     | This file                                                              |
-| `test/`                                         | Test code that can be run via pytest                                   |
+| `tests/`                                         | Test code that can be run via pytest                                   |
 | `requirements.txt`                              | Required packages to install                                           |
 
 ## Quick start guide
@@ -61,8 +61,8 @@ export POPLAR_ENGINE_OPTIONS='{"autoReport.all":"true", "autoReport.directory":"
 ```
 
 After running a benchmark, the resulting report can be opened using the PopVision Graph Analyser. 
-See the PopVision user guide for more information:
-[PopVision User Guide](https://docs.graphcore.ai/projects/graphcore-popvision-user-guide/en/latest/index.html).
+See the Graph Analyser user guide for more information:
+[PopVision Graph Analyser User Guide](https://docs.graphcore.ai/projects/graph-analyser-userguide/en/latest/).
 
 ### License
 

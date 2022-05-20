@@ -51,8 +51,6 @@ else:
 
     num_ipus = 2
 
-    assert args.batch_size % num_ipus == 0, f"The batch size must be a multiple of the number of IPUs ({num_ipus})."
-
     # Standard IPU TensorFlow setup.
     ipu_config = ipu.config.IPUConfig()
     ipu_config.auto_select_ipus = num_ipus
@@ -66,16 +64,24 @@ else:
         if not args.pipelining:
             # Note that the model function from the CPU example can be reused.
             ipu_model = keras.Model(*model_fn(input_shape, num_classes))
-            steps_per_execution = num_ipus*10
-
+            steps_per_execution = train_data_len // args.batch_size // num_ipus
+            steps_per_epoch = train_data_len // args.batch_size
+            evaluation_steps = test_data_len // args.batch_size
         else:
             ipu_model = keras.Model(*pipeline_model_fn(input_shape, num_classes))
             ipu_model.set_pipelining_options(
                 gradient_accumulation_steps_per_replica=args.gradient_accumulation_steps_per_replica
             )
-            steps_per_execution = args.gradient_accumulation_steps_per_replica
+            steps_per_execution = train_data_len // args.batch_size
+            # Make sure an integer number of gradient updates occur during
+            # one execution of the IPU program
+            steps_per_execution -= steps_per_execution % args.gradient_accumulation_steps_per_replica
+            steps_per_epoch = steps_per_execution
+            evaluation_steps = test_data_len // args.batch_size
+            # Make sure that there are no partial executions of the pipeline
+            # (note that num_ipus==pipeline_length)
+            evaluation_steps -= evaluation_steps % num_ipus
 
-        batch_size_per_ipu = args.batch_size // num_ipus
 
         # Compile our model as with the CPU example.
         ipu_model.compile("sgd", "categorical_crossentropy",
@@ -83,22 +89,18 @@ else:
                           steps_per_execution=steps_per_execution)
         ipu_model.summary()
 
-        ideal_steps_per_epoch = train_data_len // args.batch_size
-        steps_per_epoch = ideal_steps_per_epoch - ideal_steps_per_epoch % steps_per_execution
-        train_dataset = train_dataset.batch(batch_size_per_ipu, drop_remainder=True)
+        train_dataset = train_dataset.batch(args.batch_size, drop_remainder=True)
 
         print("Training")
         ipu_model.fit(train_dataset,
                       epochs=3,
-                      batch_size=batch_size_per_ipu,
+                      batch_size=args.batch_size,
                       steps_per_epoch=steps_per_epoch)
 
         print("Evaluation")
-        ideal_evaluation_steps = test_data_len // args.batch_size
-        evaluation_steps = ideal_evaluation_steps - ideal_evaluation_steps % steps_per_execution
-        test_dataset = test_dataset.batch(batch_size_per_ipu, drop_remainder=True)
+        test_dataset = test_dataset.batch(args.batch_size, drop_remainder=True)
 
-        result = ipu_model.evaluate(test_dataset, batch_size=batch_size_per_ipu, steps=evaluation_steps)
+        result = ipu_model.evaluate(test_dataset, batch_size=args.batch_size, steps=evaluation_steps)
         print(f"loss: {result[0]:.4f} - accuracy: {result[1]:.4f}")
 
 print("Program ran successfully")

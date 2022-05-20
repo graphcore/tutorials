@@ -10,8 +10,10 @@ a PopTorch model so that it can be run on a Graphcore IPU.
 """
 """
 Requirements:
-- A Poplar SDK environment enabled
-   (see the [Getting Started](https://docs.graphcore.ai/en/latest/getting-started.html) guide for your IPU system)
+
+- A Poplar SDK environment enabled (see the [Getting
+  Started](https://docs.graphcore.ai/en/latest/getting-started.html) guide for
+  your IPU system)
 - Python packages installed with `python -m pip install -r requirements.txt`
 """
 # %pip install -r requirements.txt
@@ -19,16 +21,24 @@ Requirements:
 # sst_ignore_code_only
 """
 To run the Jupyter notebook version of this tutorial:
-1. Enable a Poplar SDK environment and install required packages with `python -m pip install -r requirements.txt`
-2. In the same environment, install the Jupyter notebook server: `python -m pip install notebook`
-3. Launch a Jupyter Server on a specific port: `jupyter-notebook --no-browser --port <port number>`
-4. Connect via SSH to your remote machine, forwarding your chosen port:
-`ssh -NL <port number>:localhost:<port number> <your username>@<remote machine>`
 
-For more details about this process, or if you need troubleshooting, see our [guide on using IPUs from Jupyter notebooks](../../standard_tools/using_jupyter/README.md).
+1. Enable a Poplar SDK environment and install required packages with
+   `python -m pip install -r requirements.txt`
+2. In the same environment, install the Jupyter notebook server:
+   `python -m pip install jupyter`
+3. Launch a Jupyter Server on a specific port:
+   `jupyter-notebook --no-browser --port <port number>`
+4. Connect via SSH to your remote machine, forwarding your chosen port:
+   `ssh -NL <port number>:localhost:<port number>
+   <your username>@<remote machine>`
+
+For more details about this process, or if you need troubleshooting, see our
+[guide on using IPUs from Jupyter
+notebooks](../../standard_tools/using_jupyter/README.md).
 """
 """
 ## What is PopTorch?
+
 PopTorch is a set of extensions for PyTorch to enable PyTorch models to run
 on Graphcore's IPU hardware.
 
@@ -38,43 +48,50 @@ a PopTorch training wrapper. You can provide further annotations to partition
 the model across multiple IPUs.
 
 You can wrap individual layers in an IPU helper to designate which IPU they
-should go on. Using your annotations, PopTorch will use [PopART](https://docs.graphcore.ai/projects/popart-user-guide)
-to parallelise the model over the given number of IPUs. Additional parallelism
+should go on. Using your annotations, PopTorch will use
+[PopART](https://docs.graphcore.ai/projects/popart-user-guide) to parallelise
+the model over the given number of IPUs. Additional parallelism
 can be expressed via a replication factor which enables you to
 data-parallelise the model over more IPUs.
 
-Under the hood PopTorch uses [TorchScript](https://pytorch.org/docs/stable/jit.html),
-an intermediate representation (IR) of a PyTorch model, using the
-`torch.jit.trace` API. That means it inherits the constraints of that API.
-These include:
-- Inputs must be Torch tensors or tuples/lists containing Torch tensors
-- None can be used as a default value for a parameter but cannot be
-explicitly passed as an input value
-- Hooks and `.grad` cannot be used to inspect weights and gradients
-- `torch.jit.trace` cannot handle control flow or shape variations within
-the model. That is, the inputs passed at run-time cannot vary the control
-flow of the model or the shapes/sizes of results.
+Under the hood PopTorch uses
+[TorchScript](https://pytorch.org/docs/stable/jit.html), an intermediate
+representation (IR) of a PyTorch model, using the `torch.jit.trace` API. That
+means it inherits the constraints of that API. These include:
 
-To learn more about TorchScript and JIT, you can go through the [Introduction to TorchScript tutorial](https://pytorch.org/tutorials/beginner/Intro_to_TorchScript_tutorial.html).
+- Inputs must be Torch tensors or tuples/lists containing Torch tensors
+- `None` can be used as a default value for a parameter but cannot be explicitly
+  passed as an input value
+- Hooks and `.grad` cannot be used to inspect weights and gradients
+- `torch.jit.trace` cannot handle control flow or shape variations within the
+  model. That is, the inputs passed at run-time cannot vary the control flow of
+  the model or the shapes/sizes of results.
+
+To learn more about TorchScript and JIT, you can go through the [Introduction
+to TorchScript tutorial](https://pytorch.org/tutorials/beginner/Intro_to_TorchScript_tutorial.html).
 
 PopTorch has been designed to require few manual alterations to your models
 in order to run them on IPU. However, it does have some differences from
 native PyTorch execution. Also, not all PyTorch operations have been
-implemented by the backend yet. You can find the list of supported operations [here](https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/supported_ops.html).
+implemented by the backend yet. You can find the list of supported operations
+[here](https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/supported_ops.html).
 
 ![Software stack](static/stack.jpg)
 """
 """
-# Getting started: training a model on the IPU
+## Getting started: training a model on the IPU
+
 We will do the following steps in order:
+
 1. Load the Fashion-MNIST dataset using `torchvision.datasets` and
-`poptorch.DataLoader`.
+   `poptorch.DataLoader`.
 2. Define a deep CNN  and a loss function using the `torch` API.
 3. Train the model on an IPU using `poptorch.trainingModel`.
 4. Evaluate the model on the IPU.
 """
 """
 ### Import the packages
+
 PopTorch is a separate package from PyTorch, and available
 in Graphcore's Poplar SDK. Both must thus be imported:
 """
@@ -90,20 +107,25 @@ machine learning framework PopART. It is therefore necessary
 to enable PopART and Poplar in your environment.
 """
 """
->**NOTE**:
->If you forget to enable PopART, you will encounter the error when importing `poptorch`:
->`ImportError: libpopart.so: cannot open shared object file: No such file or directory`
->If the error message says something like:
->`libpopart_compiler.so: undefined symbol: _ZN6popart7Session3runERNS_7IStepIOE`,
->it most likely means the versions of PopART and PopTorch do not match,
->for example by enabling PopART with a previous SDK release's `enable.sh`
->script. Make sure to not mix SDK artifacts.
+> **NOTE**:
+>
+> If you forget to enable PopART, you will encounter the error when importing
+> `poptorch`: `ImportError: libpopart.so: cannot open shared object file: No
+> such file or directory`
+>
+> If the error message says something like: `libpopart_compiler.so: undefined
+> symbol: _ZN6popart7Session3runERNS_7IStepIOE`, it most likely means the
+> versions of PopART and PopTorch do not match, for example by enabling PopART
+> with a previous SDK release's `enable.sh` script. Make sure to not mix SDK
+> artifacts.
 """
 """
 ### Load the data
+
 We will use the Fashion-MNIST dataset made available by the package
-`torchvision`. This dataset, from [Zalando](https://github.com/zalandoresearch/fashion-mnist),
-can be used as a more challenging replacement to the well-known MNIST dataset.
+`torchvision`. This dataset, from
+[Zalando](https://github.com/zalandoresearch/fashion-mnist), can be used as a
+more challenging replacement to the well-known MNIST dataset.
 """
 """
 The dataset consists of 28x28 grayscale images and labels of range `[0, 9]`
@@ -132,8 +154,8 @@ classes = ("T-shirt", "Trouser", "Pullover", "Dress", "Coat", "Sandal",
            "Shirt", "Sneaker", "Bag", "Ankle boot")
 # sst_hide_output
 """
-With the following method, we can visualise and save a sample of these images and their
-associated labels:
+With the following method, we can visualise and save a sample of these images
+and their associated labels:
 """
 plt.figure(figsize=(30, 15))
 for i, (image, label) in enumerate(train_dataset):
@@ -148,11 +170,13 @@ plt.savefig("sample_images.png")
 
 """
 #### PopTorch DataLoader
+
 We can feed batches of data into a PyTorch model by simply passing the input
 tensors. However, this is unlikely to be the most efficient way and can
 result in data loading being a bottleneck to the model, slowing down the
 training process. In order to make data loading easier and more efficient,
-there's the [`torch.utils.data.DataLoader`](https://pytorch.org/docs/stable/data.html)
+there's the
+[`torch.utils.data.DataLoader`](https://pytorch.org/docs/stable/data.html)
 class, which is an `iterable` over a dataset and which can handle parallel data
 loading, a sampling strategy, shuffling, etc.
 """
@@ -165,6 +189,7 @@ have a model ready for training.
 """
 """
 ### Build the model
+
 We will build a simple CNN model for a classification task. To do so, we can
 simply use PyTorch's API, including `torch.nn.Module`. The difference from
 what we're used to with pure PyTorch is the _loss computation_, which has to
@@ -202,12 +227,13 @@ class ClassificationModel(nn.Module):
 model = ClassificationModel()
 model.train()
 """
->**NOTE**: `self.training` is inherited from `torch.nn.Module` which
->initialises its value to `True`. Use `model.eval()` to set it to `False` and
->`model.train()` to switch it back to `True`.
+> **NOTE**: `self.training` is inherited from `torch.nn.Module` which
+> initialises its value to `True`. Use `model.eval()` to set it to `False` and
+> `model.train()` to switch it back to `True`.
 """
 """
 ### Prepare training for IPUs
+
 The compilation and execution on the IPU can be controlled using
 `poptorch.Options`. These options are used by PopTorch's wrappers such as
 `poptorch.DataLoader` and `poptorch.trainingModel`.
@@ -221,6 +247,7 @@ train_dataloader = poptorch.DataLoader(opts,
                                        num_workers=20)
 """
 ### Train the model
+
 We will need another component in order to train our model: an optimiser.
 Its role is to apply the computed gradients to the model's weights to optimize
 (usually, minimize) the loss function using a specific algorithm. PopTorch
@@ -231,7 +258,8 @@ attributes to save performance and memory, and allow you to specify additional
 parameters such as loss/velocity scaling.
 """
 """
-We will use [SGD](https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/reference.html#poptorch.optim.SGD)
+We will use
+[SGD](https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/reference.html#poptorch.optim.SGD)
 as it's a very popular algorithm and is appropriate for this classification
 task.
 """
@@ -250,6 +278,7 @@ poptorch_model = poptorch.trainingModel(model,
                                         optimizer=optimizer)
 """
 #### Training loop
+
 Looping through the training data, running the forward and backward passes,
 and updating the weights constitute the process we refer to as the "training
 loop". Graphcore's Poplar system uses several optimisations to accelerate the
@@ -289,6 +318,7 @@ managed that step for us. We can now save and evaluate the model.
 """
 """
 #### Use the same IPU for training and inference
+
 After the model has been attached to the IPU and compiled after the first call
 to the PopTorch model, it can be detached from the device. This allows PopTorch
 to use a single device for training and inference (described below), rather
@@ -299,24 +329,30 @@ be necessary when using a non-reconfigurable partition.
 poptorch_model.detachFromDevice()
 """
 #### Save the trained model
+
 We can simply use PyTorch's API to save a model in a file, with the original
 instance of `ClassificationModel` and not the wrapped model.
 
-Do not hesitate to experiment with different models: the model provided in this tutorial is saved in the `static` folder if you need it.
+Do not hesitate to experiment with different models: the model provided in this
+tutorial is saved in the `static` folder if you need it.
 """
 torch.save(model.state_dict(), "classifier.pth")
 """
 ### Evaluate the model
-The model can be evaluated on a CPU but it is a good idea to use the IPU - since
-[IPUs are blazing fast](https://www.graphcore.ai/posts/new-graphcore-ipu-benchmarks).
-Evaluating your model on a CPU is slow if the test dataset is large and/or the model is complex.
 
-Since we have detached our model from its training device, the device is now free again
-and we can use it for the evaluation stage.
+The model can be evaluated on a CPU but it is a good idea to use the IPU -
+since [IPUs are blazing
+fast](https://www.graphcore.ai/posts/new-graphcore-ipu-benchmarks).
 
-The steps taken below to define the model for evaluation essentially allow it to
-run in inference mode. Therefore, you can follow the same steps to use the model
-to make predictions once it has been deployed.
+Evaluating your model on a CPU is slow if the test dataset is large and/or the
+model is complex.
+
+Since we have detached our model from its training device, the device is now
+free again and we can use it for the evaluation stage.
+
+The steps taken below to define the model for evaluation essentially allow it
+to run in inference mode. Therefore, you can follow the same steps to use the
+model to make predictions once it has been deployed.
 """
 model = model.eval()
 """
@@ -378,11 +414,14 @@ with T-shirts, pullovers and coats. So, some work is still required here to
 improve your model for all the classes!
 """
 """
-We can save this visualisation of the confusion matrix. Don't hesitate to experiment: you can then compare your confusion matrix with the [visualisation provided in the `static` folder](static/confusion_matrix.png).
+We can save this visualisation of the confusion matrix. Don't hesitate to
+experiment: you can then compare your confusion matrix with the
+[visualisation provided in the `static` folder](static/confusion_matrix.png).
 """
 cm_plot.figure_.savefig("confusion_matrix.png")
 """
-# Doing more with `poptorch.Options`
+## Doing more with `poptorch.Options`
+
 This class encapsulates the options that PopTorch and PopART will use
 alongside our model. Some concepts, such as "batch per iteration" are
 specific to the functioning of the IPU, and within this class some
@@ -390,11 +429,13 @@ calculations are made to reduce risks of errors and make it easier for
 PyTorch users to use IPUs.
 """
 """
-The list of these options is available in the [documentation](https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/overview.html#options).
+The list of these options is available in the
+[documentation](https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/overview.html#options).
 Let's introduce here 4 of these options to get an idea of what they cover.
 """
 """
 ### `deviceIterations`
+
 Remember the training loop we have discussed previously. A device iteration
 is one cycle of that loop, which runs entirely on the IPU (the device), and
 which starts with a new batch of data. This option specifies the number of
@@ -407,6 +448,7 @@ the default value is 1.
 """
 """
 ### `replicationFactor`
+
 This is the number of replicas of a model. A replica is a copy of a same
 model on multiple devices. We use replicas as an implementation of data
 parallelism, where a same model is served with several batches of data at the
@@ -418,12 +460,14 @@ required.
 """
 """
 ### `randomSeed`
+
 An advantage of the IPU architecture is an on-device pseudo-random number
 generator (PRNG). This option sets both the seed for the PRNG on the IPU
 and PyTorch's seed, which is usually set using `torch.manual_seed`.
 """
 """
 ### `useIpuModel`
+
 An IPU Model is a simulation, running on a CPU, of an actual IPU. This can be
 helpful if you're working in an environment where no IPUs are available but
 still need to make progress on your code. However, the IPU Model doesn't
@@ -434,6 +478,7 @@ about the IPU Model and its limitations with our
 """
 """
 ## How to set the options
+
 These options are callable, and chainable as they return the instance. One
 can therefore do as follows:
 """
@@ -443,7 +488,8 @@ opts = poptorch.Options()\
     .randomSeed(123)\
     .useIpuModel(True)
 """
-# Going further
+## Going further
+
 """
 """
 Other tutorials will be made available in the future to explore more advanced

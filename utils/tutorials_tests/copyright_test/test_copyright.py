@@ -1,16 +1,16 @@
 # Copyright (c) 2019 Graphcore Ltd. All rights reserved.
-
 import argparse
+import configparser
 import datetime
 import fileinput
-import inspect
-import os
+from pathlib import Path
 import re
 import sys
-import configparser
 
-C_FILE_EXTS = ['c', 'cpp', 'C', 'cxx', 'c++', 'h', 'hpp']
+from tutorials_tests.testing_util import get_file_list
 
+PYTHON_FILE_EXTS = [".py"]
+C_FILE_EXTS = [".c", ".cpp", ".C", ".cxx", ".c++", ".h", ".hpp"]
 
 EXCLUDED = []
 
@@ -20,27 +20,30 @@ def check_file(path, language, amend):
     found_copyright = False
     first_line_index = 0
     empty_file = False
-    with open(path, "r") as f:
-        first_line = f.readline()
+    with open(path, "r", encoding="utf-8") as file:
+        first_line = file.readline()
         # if the first line is encoding, then read the second line
-        if first_line.startswith("{} coding=utf-8".format(comment)):
-            first_line = f.readline()
+        if first_line.startswith(f"{comment} coding=utf-8"):
+            first_line = file.readline()
 
-        if first_line == '':
+        if first_line == "":
             empty_file = True
 
         if language == "python" and first_line.startswith("#!"):
             first_line_index += 1
-            first_line = f.readline()
+            first_line = file.readline()
         # if the file is for jupyter notebook conversions
         if language == "python" and first_line.startswith('"""'):
             first_line_index += 1
-            first_line = f.readline()
+            first_line = file.readline()
             regexp = r"Copyright \(c\) \d+ Graphcore Ltd. All (r|R)ights (r|R)eserved."
             if re.match(regexp, first_line):
                 found_copyright = True
 
-        regexp = r"{} Copyright \(c\) \d+ Graphcore Ltd. All (r|R)ights (r|R)eserved.".format(comment)
+        regexp = (
+            rf"{comment} Copyright \(c\) \d+ Graphcore Ltd. All (r|R)ights"
+            r" (r|R)eserved."
+        )
 
         if re.match(regexp, first_line):
             found_copyright = True
@@ -49,9 +52,11 @@ def check_file(path, language, amend):
         if amend:
             now = datetime.datetime.now()
             year = now.year
-            copyright_msg = '{} Copyright (c) {} Graphcore Ltd. All rights reserved.'.format(comment, year)
+            copyright_msg = (
+                f"{comment} Copyright (c) {year} Graphcore Ltd. All rights reserved."
+            )
             index = 0
-            for line in fileinput.FileInput(path, inplace=1):
+            for line in fileinput.FileInput(str(path), inplace=True):
                 if index == first_line_index:
                     line = copyright_msg + line
                 print(line[:-1])
@@ -65,61 +70,57 @@ def check_file(path, language, amend):
 def read_git_submodule_paths():
     try:
         config = configparser.ConfigParser()
-        config.read('.gitmodules')
-        module_paths = [config[k]['path'] for k in config.sections()]
+        config.read(".gitmodules")
+        module_paths = [config[k]["path"] for k in config.sections()]
         print(f"Git submodule paths: {module_paths}")
         return module_paths
     except:
-        print(f"No Git submodules found.")
+        print("No Git submodules found.")
         return []
 
 
 def test_copyrights(amend=False):
     """A test to ensure that every source file has the correct Copyright"""
-    cwd = os.path.dirname(os.path.abspath(inspect.stack()[0][1]))
-    root_path = os.path.abspath(os.path.join(cwd, "..", "..", ".."))
 
+    root_path = Path(__file__).resolve().parents[3]
+    file_list = get_file_list(root_path, PYTHON_FILE_EXTS + C_FILE_EXTS)
+
+    excluded = [root_path / p for p in EXCLUDED]
     git_module_paths = read_git_submodule_paths()
 
+    filtered_file_list = [
+        file_path
+        for file_path in file_list
+        if file_path not in excluded
+        and file_path not in git_module_paths
+        and "/CMakeFiles/" not in str(file_path)
+    ]
+
     bad_files = []
-    excluded = [os.path.join(root_path, p) for p in EXCLUDED]
-    for path, _, files in os.walk(root_path):
-        for file_name in files:
-            file_path = os.path.join(path, file_name)
+    for file_path in filtered_file_list:
 
-            if file_path in excluded:
-                continue
+        if file_path.suffix in PYTHON_FILE_EXTS:
+            if not check_file(file_path, "python", amend):
+                bad_files.append(file_path)
 
-            # CMake builds generate .c and .cpp files
-            # so we need to exclude all those:
-            if '/CMakeFiles/' in file_path:
-                continue
+        elif file_path.suffix in C_FILE_EXTS:
+            if not check_file(file_path, "c", amend):
+                bad_files.append(file_path)
 
-            # Also exclude git submodules from copyright checks:
-            if any(path in file_path for path in git_module_paths):
-                continue
+        else:
+            # If we get here then the test script is broken
+            raise NotImplementedError(f"Unexpected file type: {file_path}")
 
-            if file_name.endswith('.py'):
-                if not check_file(file_path, "python", amend):
-                    bad_files.append(file_path)
-
-            if file_name.split('.')[-1] in C_FILE_EXTS:
-                if not check_file(file_path, "c", amend):
-                    bad_files.append(file_path)
-
-    if len(bad_files) != 0:
-        sys.stderr.write("ERROR: The following files do not have "
-                         "copyright notices:\n\n")
-        for f in bad_files:
-            sys.stderr.write("    {}\n".format(f))
-        raise RuntimeError(f"{len(bad_files)} files do not have copyright notices: {bad_files}")
+    assert (
+        not bad_files
+    ), f"{len(bad_files)} files do not have copyright notices: {bad_files}"
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Copyright header test")
-    parser.add_argument("--amend",
-                        action="store_true",
-                        help="Amend copyright headers in files.")
+    parser.add_argument(
+        "--amend", action="store_true", help="Amend copyright headers in files."
+    )
 
     opts = parser.parse_args()
     try:

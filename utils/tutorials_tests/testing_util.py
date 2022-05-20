@@ -1,16 +1,28 @@
 # Copyright (c) 2019 Graphcore Ltd. All rights reserved.
 
+from typing import Container, List, Dict, Union
+from pathlib import Path
 from statistics import mean
 import os
 import re
 import subprocess
 import sys
 import time
+import warnings
 import unittest
-from typing import List
 
 
 """Library of utility functions common between frameworks"""
+
+
+class CalledProcessError(subprocess.CalledProcessError):
+    """An error for subprocesses which captures stdout and stderr in the error message."""
+    def __str__(self) -> str:
+        return "{original_message}\n{stdout}\n{stderr}".format(
+            original_message=super().__str__(),
+            stdout=self.stdout,
+            stderr=self.stderr
+        )
 
 
 def parse_results_for_speed(output, iter_tolerance, speed_tolerance):
@@ -294,13 +306,15 @@ def assert_final_accuracy(output, minimum, maximum):
     assert accuracy <= maximum
 
 
-def run_python_script_helper(cwd, script, want_std_err=False, env=None, **kwargs):
+def run_python_script_helper(cwd: str, script: Union[str, List[str]], want_std_err: bool=False, env=None, **kwargs):
     """A function that given a path and python script name, runs the script
       with kwargs as the command line arguments
 
     Args:
         cwd: string representing the directory of the python script
         script: string representing the full name of the python script
+                can be a list of strings, which will be passed to the python
+                commandline. e.g. ['-c', 'print("Hello")']
         want_std_err: optional - set True to include stderr trace in the output
         env : Optionally pass in the Environment variables to use
         kwargs: dictionary of string key and values that form the command
@@ -309,15 +323,22 @@ def run_python_script_helper(cwd, script, want_std_err=False, env=None, **kwargs
     Returns:
         A string representing the raw output of the python script run
     """
-    py_version = "python{}".format(sys.version_info[0])
-    cmd = [py_version, script]
+    versioned_python = f"python{sys.version_info[0]}"
+
+    # Make script param a list if it isn't already, so we can concatenate with
+    # versioned_python
+    if isinstance(script, str):
+        script = [script]
+
+    cmd = [versioned_python] + script
+
     err = subprocess.STDOUT if want_std_err else subprocess.PIPE
     if kwargs:
         args = [
             str(item) for sublist in kwargs.items() for item in sublist if item != ""
         ]
         cmd.extend(args)
-    out = subprocess.check_output(cmd, stderr=err, cwd=cwd, env=env, universal_newlines=True)
+    out = run_command_fail_explicitly(cmd, stderr=err, cwd=cwd, env=env)
     print(out)
     return out
 
@@ -446,41 +467,39 @@ class SubProcessChecker(unittest.TestCase):
     output.
 
     How to use:
-    1. Make a test case in the normal way but inherit from
-    testing_util.SubProcessChecker instead of unitteset.TestCase.
-    2. Define a test method in your derived class in the normal way.
-    3. Have the test method call self.run_command(...) and the output
-    will be checked automatically.
-    """
+    Don't, use the :func:`run_command` function (check docstring of the function
+    for the other possible behaviours supported by this class). If you still
+    want to use unittest (you shouldn't) inherit explicitly from
+    ``unittest.TestCase``.
 
+    Warns:
+        DeprecationWarning: Upon instantiation.
+    """
+    def __init__(self, *args, **kwargs) -> None:
+        warnings.warn(
+            f"{type(self).__name__} is deprecated "
+            "use the `run_command` function instead", DeprecationWarning)
+        super().__init__(*args, **kwargs)
 
     def _check_output(self, cmd, output: str, must_contain: List[str]):
         """
         Internal utility used by run_command(...) to check output
         (Should not need to call this directly from test cases).
         """
-        if not must_contain:
-            return
-        # If a string is passed in convert it to a list
-        if isinstance(must_contain, str):
-            must_contain = [must_contain]
-        # Build a list of regexes then apply them all.
-        # Each must have at least one result:
-        regexes = [re.compile(s) for s in must_contain]
-        for i, r in enumerate(regexes):
-            match = r.search(output)
-            if not match:
-                self.fail(f"Output of command: '{cmd}' contained no match for: '{must_contain[i]}'\nOutput was:\n{output}")
+        missing_matches = find_missing_patterns(output, must_contain)
+        assert not missing_matches, (
+            f"Not all strings were found in the output of command {cmd}, the"
+            f" following expected strings were missing: {missing_matches}"
+        )
 
 
     def run_command(self, cmd, working_path, expected_strings, env=None, timeout=None):
         """
-        Run a command using subprocess, check it ran successfully, and
-        check its output.
+        Please use :func:`run_command` instead.
 
         Args:
             cmd:
-                Command string. It will be split into args internallly.
+                Command string. It will be split into args internally.
             working_path:
                 The working directory in which to run the command.
             expected_strings:
@@ -489,9 +508,13 @@ class SubProcessChecker(unittest.TestCase):
                 Optionally pass in the Environment variables to use
             timeout:
                 Optionally pass in the timeout for running the command
-            Returns:
-                Output of the command (combined stderr and stdout).
+
+        Returns:
+            Output of the command (combined stderr and stdout).
         """
+        warnings.warn(
+            f"The object method `run_command` is deprecated "
+            "use the `run_command` module function instead", DeprecationWarning)
         if env is None:
             completed = subprocess.run(args=cmd.split(),
                                        cwd=working_path,
@@ -517,3 +540,146 @@ class SubProcessChecker(unittest.TestCase):
 
         self._check_output(cmd, combined_output, expected_strings)
         return combined_output
+
+
+def run_command(
+    cmd: Union[str, List[str]],
+    cwd: str,
+    expected_strings: List[str] = [],
+    **kwargs,
+):
+    """ Run a command using subprocess, check it ran successfully, and
+    check its output for specific strings or regexps.
+
+    Consider using :func:`run_command_fail_explicitly`
+
+    Note:
+        Function which mimics the interface of `SubProcessChecker.run_command`
+        without being a class.
+
+    """
+    output = run_command_fail_explicitly(cmd, cwd, **kwargs)
+    missing_matches = find_missing_patterns(output, expected_strings)
+    assert not missing_matches, (
+        f"Not all strings were found in the output of command {cmd}, the"
+        f" following expected strings were missing: {missing_matches}"
+    )
+    return output
+
+
+def run_command_fail_explicitly(
+    command: Union[str, List[str]], cwd: str, **kwargs
+) -> str:
+    """ Runs a command returning the output or failing with useful information
+
+    Args:
+        command: The command to execute, can also be a space separated string.
+        cwd: The directory in which the command should be
+            launched. If called by a pytest test function or method, this
+            probably should be a `tmp_path` fixture.
+        **kwargs: Additional keyword arguments are passed to
+            `subprocess.check_output`.
+
+    Returns:
+        The standard output and error of the command if successfully executed.
+
+    Raises:
+        RuntimeError: If the subprocess command executes with a non-zero output.
+    """
+    DEFAULT_KWARGS = {
+        "shell": isinstance(command, str) and " " in command,
+        "stderr": subprocess.PIPE,
+        "universal_newlines": True,
+    }
+
+    try:
+        merged_kwargs = {**DEFAULT_KWARGS, **kwargs}
+        out = subprocess.check_output(
+            command,
+            cwd=cwd,
+            **merged_kwargs,
+        )
+    except subprocess.CalledProcessError as e:
+        stdout = e.stdout
+        stderr = e.stderr
+        # type of the stdout stream will depend on the subprocess.
+        # The python docs say decoding is to be handled at
+        # application level.
+        if hasattr(stdout, "decode"):
+            stdout = stdout.decode("utf-8", errors="ignore")
+        if hasattr(stderr, "decode"):
+            stderr = stderr.decode("utf-8", errors="ignore")
+        raise CalledProcessError(1, cmd=command, output=stdout, stderr=stderr) from e
+    return out
+
+
+def find_missing_patterns(string: str, expected_patterns: List[str]) -> List[str]:
+    """ Finds patterns which are not in a string.
+
+    This function is used to search through the output of commands for
+    specific expected patterns.
+
+    Args:
+        string: A string which needs to contain the given patterns.
+        expected_patterns: regular expression patterns that are expected
+            in the string.
+
+    Returns:
+        A list with the expected_patterns which were not matched.
+    """
+    if not expected_patterns:
+        return
+    # If a string is passed as an argument convert it to a list
+    if isinstance(expected_patterns, str):
+        expected_patterns = [expected_patterns]
+    # Build a list of regexes then apply them all.
+    # Each must have at least one result:
+    regexes = [re.compile(s) for s in expected_patterns]
+    missing_matches = []
+    for i, r in enumerate(regexes):
+        match = r.search(string)
+        if not match:
+            missing_matches.append(r)
+    return missing_matches
+
+
+def add_args(cmd: List[str], args: Dict) -> List[str]:
+    """Takes a command formatted for subprocess and adds arguments from a dictionary.
+
+    Args:
+        cmd (List[str]): The command onto which to append arguments.
+        args (Dict): The arguments to append. If the value of a given key is `None`, then the argument shall be treated as a flag.
+
+    Returns:
+        List[str]: The fully constructed command.
+    """
+    for k, v in args.items():
+        if v is None:
+            cmd.append(str(k))
+        else:
+            cmd.extend([str(k), str(v)])
+    return cmd
+
+
+def get_file_list(root_path: Path, required_types: Container[str]) -> List[Path]:
+    """
+    Get list of files, either by reading `diff_file_list.txt` (diff build mode),
+    or by walking all sub-folders of `root_path` (full build mode).
+    """
+    diff_filename = root_path / "diff_file_list.txt"
+    if diff_filename.exists():
+        with open(diff_filename, "r", encoding="utf-8") as diff_file:
+            print("Diff builder mode")
+            file_list = [
+                root_path / file_name
+                for file_name in diff_file.read().splitlines()
+                if Path(file_name).suffix in required_types
+            ]
+
+    else:
+        print("Full build mode")
+        file_list = [
+            path for path in root_path.rglob("*") if path.suffix in required_types
+        ]
+
+    return file_list

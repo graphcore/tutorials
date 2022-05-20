@@ -13,7 +13,7 @@ you are familiar with C++ and command-line compilation tools.
 For most of the tutorials we've included two directories. One, called
 ``start_here``, contains the bare structure of the tutorial as a starting point
 and the other, ``complete``, contains the finished code for reference.
-Each tutorial also has a ``test`` directory, which checks that the code can be
+Each tutorial also has a ``tests`` directory, which checks that the code can be
 compiled and run. See the README file in each test directory for more information.
 
 All the tutorials are in C++. They can run on a simulated IPU, so you should be

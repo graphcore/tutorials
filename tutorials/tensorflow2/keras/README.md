@@ -21,7 +21,7 @@ Requirements:
 
 To run the Jupyter notebook version of this tutorial:
 1. Enable a Poplar SDK environment
-2. In the same environment, install the Jupyter notebook server: `python -m pip install notebook`
+2. In the same environment, install the Jupyter notebook server: `python -m pip install jupyter`
 3. Launch a Jupyter Server on a specific port: `jupyter-notebook --no-browser --port <port number>`
 4. Connect via SSH to your remote machine, forwarding your chosen port:
 `ssh -NL <port number>:localhost:<port number> <your username>@<remote machine>`
@@ -114,45 +114,45 @@ model.evaluate(x_test, y_test, batch_size=batch_size)
     Keras MNIST example, running on CPU
     Model: "model"
     _________________________________________________________________
-    Layer (type)                 Output Shape              Param #   
+    Layer (type)                 Output Shape              Param #
     =================================================================
-    input_1 (InputLayer)         [(None, 28, 28, 1)]       0         
+    input_1 (InputLayer)         [(None, 28, 28, 1)]       0
     _________________________________________________________________
-    conv2d (Conv2D)              (None, 26, 26, 32)        320       
+    conv2d (Conv2D)              (None, 26, 26, 32)        320
     _________________________________________________________________
-    max_pooling2d (MaxPooling2D) (None, 13, 13, 32)        0         
+    max_pooling2d (MaxPooling2D) (None, 13, 13, 32)        0
     _________________________________________________________________
-    conv2d_1 (Conv2D)            (None, 11, 11, 64)        18496     
+    conv2d_1 (Conv2D)            (None, 11, 11, 64)        18496
     _________________________________________________________________
-    max_pooling2d_1 (MaxPooling2 (None, 5, 5, 64)          0         
+    max_pooling2d_1 (MaxPooling2 (None, 5, 5, 64)          0
     _________________________________________________________________
-    flatten (Flatten)            (None, 1600)              0         
+    flatten (Flatten)            (None, 1600)              0
     _________________________________________________________________
-    dropout (Dropout)            (None, 1600)              0         
+    dropout (Dropout)            (None, 1600)              0
     _________________________________________________________________
-    dense (Dense)                (None, 10)                16010     
+    dense (Dense)                (None, 10)                16010
     =================================================================
     Total params: 34,826
     Trainable params: 34,826
     Non-trainable params: 0
     _________________________________________________________________
-    
+
     Training
     Epoch 1/3
-    938/938 [==============================] - 8s 8ms/step - loss: 1.6010 - accuracy: 0.4646
+    938/938 [==============================] - 13s 13ms/step - loss: 1.0271 - accuracy: 0.6687
     Epoch 2/3
-    938/938 [==============================] - 8s 8ms/step - loss: 0.3490 - accuracy: 0.8955
+    938/938 [==============================] - 10s 10ms/step - loss: 0.3299 - accuracy: 0.9009
     Epoch 3/3
-    938/938 [==============================] - 7s 8ms/step - loss: 0.2362 - accuracy: 0.9277
-    
+    938/938 [==============================] - 9s 10ms/step - loss: 0.2397 - accuracy: 0.9295
+
     Evaluation
-    157/157 [==============================] - 1s 3ms/step - loss: 0.1326 - accuracy: 0.9617
+    157/157 [==============================] - 1s 3ms/step - loss: 0.1439 - accuracy: 0.9582
 
 
 
 
 
-    [0.13257965445518494, 0.9617000222206116]
+    [0.14385055005550385, 0.9581999778747559]
 
 
 
@@ -242,15 +242,15 @@ Next, add the following code:
 strategy = ipu.ipu_strategy.IPUStrategy()
 ```
 
-The `tf.distribute.Strategy` is an API to distribute training across multiple
-devices. `IPUStrategy` is a subclass which targets a system with one or more
-IPUs attached. For a multi-system configuration, the
+The `tf.distribute.Strategy` is an API to distribute training and inference
+across multiple devices. `IPUStrategy` is a subclass which targets a system
+with one or more IPUs attached. For a multi-system configuration, the
 [PopDistStrategy](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/tensorflow/api.html#tensorflow.python.ipu.horovod.popdist_strategy.PopDistStrategy)
 should be used, in conjunction with our PopDist library.
 
-> To see an example of how to distribute training over multiple instances with
-> PopDist, head over to our [TensorFlow 2 PopDist
-> example](../../feature_examples/tensorflow2/popdist).
+> To see an example of how to distribute training and inference over multiple
+> instances with PopDist, head over to our [TensorFlow 2 PopDist
+> example](../../../feature_examples/tensorflow2/popdist).
 
 ##### 5. Wrap the model within the IPU strategy scope
 
@@ -280,47 +280,49 @@ with strategy.scope():
     Keras MNIST example, running on IPU
     Model: "model_1"
     _________________________________________________________________
-    Layer (type)                 Output Shape              Param #   
+    Layer (type)                 Output Shape              Param #
     =================================================================
-    input_2 (InputLayer)         [(None, 28, 28, 1)]       0         
+    input_2 (InputLayer)         [(None, 28, 28, 1)]       0
     _________________________________________________________________
-    conv2d_2 (Conv2D)            (None, 26, 26, 32)        320       
+    conv2d_2 (Conv2D)            (None, 26, 26, 32)        320
     _________________________________________________________________
-    max_pooling2d_2 (MaxPooling2 (None, 13, 13, 32)        0         
+    max_pooling2d_2 (MaxPooling2 (None, 13, 13, 32)        0
     _________________________________________________________________
-    conv2d_3 (Conv2D)            (None, 11, 11, 64)        18496     
+    conv2d_3 (Conv2D)            (None, 11, 11, 64)        18496
     _________________________________________________________________
-    max_pooling2d_3 (MaxPooling2 (None, 5, 5, 64)          0         
+    max_pooling2d_3 (MaxPooling2 (None, 5, 5, 64)          0
     _________________________________________________________________
-    flatten_1 (Flatten)          (None, 1600)              0         
+    flatten_1 (Flatten)          (None, 1600)              0
     _________________________________________________________________
-    dropout_1 (Dropout)          (None, 1600)              0         
+    dropout_1 (Dropout)          (None, 1600)              0
     _________________________________________________________________
-    dense_1 (Dense)              (None, 10)                16010     
+    dense_1 (Dense)              (None, 10)                16010
     =================================================================
     Total params: 34,826
     Trainable params: 34,826
     Non-trainable params: 0
     _________________________________________________________________
-    
+
     Training
+    INFO:tensorflow:The provided set of data has an unknown size. This can result in runtime errors if not enough data is provided during execution.
     INFO:tensorflow:The provided set of data has an unknown size. This can result in runtime errors if not enough data is provided during execution.
     INFO:tensorflow:The model `model_1` has been configured with only 1 steps per execution. Consider increasing the value for the `steps_per_execution` argument passed to the `compile()` method to improve performance.
     Epoch 1/3
-    937/937 [==============================] - 43s 2ms/step - loss: 1.5640 - accuracy: 0.4709
+    937/937 [==============================] - 47s 3ms/step - loss: 1.0061 - accuracy: 0.6789
     INFO:tensorflow:The model `model_1` has been configured with only 1 steps per execution. Consider increasing the value for the `steps_per_execution` argument passed to the `compile()` method to improve performance.
     Epoch 2/3
-    937/937 [==============================] - 2s 2ms/step - loss: 0.3542 - accuracy: 0.8926
+    937/937 [==============================] - 3s 3ms/step - loss: 0.3067 - accuracy: 0.9061
     INFO:tensorflow:The model `model_1` has been configured with only 1 steps per execution. Consider increasing the value for the `steps_per_execution` argument passed to the `compile()` method to improve performance.
     Epoch 3/3
-    937/937 [==============================] - 2s 2ms/step - loss: 0.2400 - accuracy: 0.9272
-    
+    937/937 [==============================] - 3s 3ms/step - loss: 0.2186 - accuracy: 0.9347
+
     Evaluation
     WARNING:tensorflow:x is of type `np.ndarray`. This will be cast to `tf.Tensor` during every call to: `fit()`, `predict()` and `evaluate()`. If you plan to call any of these functions multiple times in your program, it is recommended to pre-emptively cast to `tf.Tensor` to avoid the repeated computation.
     WARNING:tensorflow:y is of type `np.ndarray`. This will be cast to `tf.Tensor` during every call to: `fit()` and `evaluate()`. If you plan to call any of these functions multiple times in your program, it is recommended to pre-emptively cast to `tf.Tensor` to avoid the repeated computation.
     INFO:tensorflow:The provided set of data has an unknown size. This can result in runtime errors if not enough data is provided during execution.
+    INFO:tensorflow:The provided set of data has an unknown size. This can result in runtime errors if not enough data is provided during execution.
     INFO:tensorflow:The model `model_1` has been configured with only 1 steps per execution. Consider increasing the value for the `steps_per_execution` argument passed to the `compile()` method to improve performance.
-    156/156 [==============================] - 20s 2ms/step - loss: 0.1353 - accuracy: 0.9626
+    156/156 [==============================] - 21s 3ms/step - loss: 0.1312 - accuracy: 0.9619
 
 
 Note that the function `model_fn()` can be readily reused, and all we really
@@ -365,13 +367,10 @@ To change this, we must set the `steps_per_execution` argument in
 `model.compile()`. This sets the number of batches processed in each execution
 of the underlying IPU program.
 
-Now not only must the data divide equally into all batches, but also the number
-of batches must divide into the number of steps. So the number of examples in
-the dataset must be divisible by the number of examples processed per execution
-(that is, `steps_per_execution * batch_size`). Here, we set
-`steps_per_execution` to be `(length of dataset) // batch_size` for maximum
-throughput and so that we do not lose any more data than we have to, though this
-code should work just as well with a different, smaller value.
+The number of batches in the dataset must be divisible by the
+`steps_per_execution`. Here, we calculate the number of steps per execution to
+be `(length of dataset) // batch_size` (i.e. the number of whole batches in the
+dataset) for maximum throughput.
 
 
 ```python
@@ -379,12 +378,12 @@ code should work just as well with a different, smaller value.
 
 train_data_len = x_train.shape[0]
 train_steps_per_execution = train_data_len // batch_size
-train_data_len = make_divisible(train_data_len, train_steps_per_execution * batch_size)
+train_data_len = make_divisible(train_data_len, batch_size)
 x_train, y_train = x_train[:train_data_len], y_train[:train_data_len]
 
 test_data_len = x_test.shape[0]
 test_steps_per_execution = test_data_len // batch_size
-test_data_len = make_divisible(test_data_len, test_steps_per_execution * batch_size)
+test_data_len = make_divisible(test_data_len, batch_size)
 x_test, y_test = x_test[:test_data_len], y_test[:test_data_len]
 ```
 
@@ -392,8 +391,12 @@ Next we update the code from `with strategy.scope():` onwards by passing
 `steps_per_execution` as an argument to `model.compile()`, and providing our
 `batch_size` value to `model.fit()` and `model.evaluate()`. We can re-compile
 the model with a different value of `steps_per_execution` between running
-`model.fit()` and `model.evaluate()`, so we do so here, although it isn't
-compulsory.
+`model.fit()` and `model.evaluate()`. If `steps_per_execution` is larger than
+the number of batches in the test dataset then a warning will be logged, but
+the program will still run successfully because Keras will truncate
+`steps_per_execution` to the length of the test dataset. If
+`steps_per_execution` is incompatible with the number of batches in the test
+dataset you must update its value, as we do here.
 
 
 ```python
@@ -420,41 +423,43 @@ with strategy.scope():
     Keras MNIST example, running on IPU with steps_per_execution
     Model: "model_2"
     _________________________________________________________________
-    Layer (type)                 Output Shape              Param #   
+    Layer (type)                 Output Shape              Param #
     =================================================================
-    input_3 (InputLayer)         [(None, 28, 28, 1)]       0         
+    input_3 (InputLayer)         [(None, 28, 28, 1)]       0
     _________________________________________________________________
-    conv2d_4 (Conv2D)            (None, 26, 26, 32)        320       
+    conv2d_4 (Conv2D)            (None, 26, 26, 32)        320
     _________________________________________________________________
-    max_pooling2d_4 (MaxPooling2 (None, 13, 13, 32)        0         
+    max_pooling2d_4 (MaxPooling2 (None, 13, 13, 32)        0
     _________________________________________________________________
-    conv2d_5 (Conv2D)            (None, 11, 11, 64)        18496     
+    conv2d_5 (Conv2D)            (None, 11, 11, 64)        18496
     _________________________________________________________________
-    max_pooling2d_5 (MaxPooling2 (None, 5, 5, 64)          0         
+    max_pooling2d_5 (MaxPooling2 (None, 5, 5, 64)          0
     _________________________________________________________________
-    flatten_2 (Flatten)          (None, 1600)              0         
+    flatten_2 (Flatten)          (None, 1600)              0
     _________________________________________________________________
-    dropout_2 (Dropout)          (None, 1600)              0         
+    dropout_2 (Dropout)          (None, 1600)              0
     _________________________________________________________________
-    dense_2 (Dense)              (None, 10)                16010     
+    dense_2 (Dense)              (None, 10)                16010
     =================================================================
     Total params: 34,826
     Trainable params: 34,826
     Non-trainable params: 0
     _________________________________________________________________
-    
+
     Training
     INFO:tensorflow:The provided set of data has an unknown size. This can result in runtime errors if not enough data is provided during execution.
+    INFO:tensorflow:The provided set of data has an unknown size. This can result in runtime errors if not enough data is provided during execution.
     Epoch 1/3
-    937/937 [==============================] - 41s 43ms/step - loss: 0.9651 - accuracy: 0.6939
+    937/937 [==============================] - 44s 47ms/step - loss: 1.0189 - accuracy: 0.6748
     Epoch 2/3
-    937/937 [==============================] - 0s 220us/step - loss: 0.3032 - accuracy: 0.9086
+    937/937 [==============================] - 0s 166us/step - loss: 0.3080 - accuracy: 0.9075
     Epoch 3/3
-    937/937 [==============================] - 0s 214us/step - loss: 0.2188 - accuracy: 0.9342
-    
+    937/937 [==============================] - 0s 160us/step - loss: 0.2256 - accuracy: 0.9321
+
     Evaluation
     INFO:tensorflow:The provided set of data has an unknown size. This can result in runtime errors if not enough data is provided during execution.
-    156/156 [==============================] - 21s 133ms/step - loss: 0.1315 - accuracy: 0.9628
+    INFO:tensorflow:The provided set of data has an unknown size. This can result in runtime errors if not enough data is provided during execution.
+    156/156 [==============================] - 22s 140ms/step - loss: 0.1352 - accuracy: 0.9635
 
 
 Running this code, the model trains much faster.
@@ -479,12 +484,10 @@ num_ipus = num_replicas = 2
 Because our model is written for one IPU, the number of replicas will be equal
 to the number of IPUs.
 
-We will need to adjust for the fact that with replication, a batch is processed
-on each replica for each step, so `steps_per_execution` needs to be divisible
-by the number of replicas. Also, the maximum value of `steps_per_execution` is
-now `train_data_len // (batch_size * num_replicas)`, since the number of
-examples processed in each step is now `(batch_size * num_replicas)`.
-We therefore add two lines to the dataset-adjustment code:
+Since `steps_per_execution` refers to the execution of an IPU program its value
+is per replica. This is because each replica has its own IPU program.
+Therefore, the maximum, and optimal, value of `steps_per_execution` is now
+`train_data_len // (batch_size * num_replicas)`:
 
 
 ```python
@@ -493,16 +496,12 @@ We therefore add two lines to the dataset-adjustment code:
 # Adjust dataset lengths to be divisible by the batch size
 train_data_len = x_train.shape[0]
 train_steps_per_execution = train_data_len // (batch_size * num_replicas)
-# `steps_per_execution` needs to be divisible by the number of replicas
-train_steps_per_execution = make_divisible(train_steps_per_execution, num_replicas)
-train_data_len = make_divisible(train_data_len, train_steps_per_execution * batch_size)
+train_data_len = make_divisible(train_data_len, batch_size * num_replicas)
 x_train, y_train = x_train[:train_data_len], y_train[:train_data_len]
 
 test_data_len = x_test.shape[0]
 test_steps_per_execution = test_data_len // (batch_size * num_replicas)
-# `steps_per_execution` needs to be divisible by the number of replicas
-test_steps_per_execution = make_divisible(test_steps_per_execution, num_replicas)
-test_data_len = make_divisible(test_data_len, test_steps_per_execution * batch_size)
+test_data_len = make_divisible(test_data_len, batch_size * num_replicas)
 x_test, y_test = x_test[:test_data_len], y_test[:test_data_len]
 ```
 
@@ -546,41 +545,43 @@ with strategy.scope():
     Keras MNIST example, running on IPU with replication
     Model: "model_3"
     _________________________________________________________________
-    Layer (type)                 Output Shape              Param #   
+    Layer (type)                 Output Shape              Param #
     =================================================================
-    input_4 (InputLayer)         [(None, 28, 28, 1)]       0         
+    input_4 (InputLayer)         [(None, 28, 28, 1)]       0
     _________________________________________________________________
-    conv2d_6 (Conv2D)            (None, 26, 26, 32)        320       
+    conv2d_6 (Conv2D)            (None, 26, 26, 32)        320
     _________________________________________________________________
-    max_pooling2d_6 (MaxPooling2 (None, 13, 13, 32)        0         
+    max_pooling2d_6 (MaxPooling2 (None, 13, 13, 32)        0
     _________________________________________________________________
-    conv2d_7 (Conv2D)            (None, 11, 11, 64)        18496     
+    conv2d_7 (Conv2D)            (None, 11, 11, 64)        18496
     _________________________________________________________________
-    max_pooling2d_7 (MaxPooling2 (None, 5, 5, 64)          0         
+    max_pooling2d_7 (MaxPooling2 (None, 5, 5, 64)          0
     _________________________________________________________________
-    flatten_3 (Flatten)          (None, 1600)              0         
+    flatten_3 (Flatten)          (None, 1600)              0
     _________________________________________________________________
-    dropout_3 (Dropout)          (None, 1600)              0         
+    dropout_3 (Dropout)          (None, 1600)              0
     _________________________________________________________________
-    dense_3 (Dense)              (None, 10)                16010     
+    dense_3 (Dense)              (None, 10)                16010
     =================================================================
     Total params: 34,826
     Trainable params: 34,826
     Non-trainable params: 0
     _________________________________________________________________
-    
+
     Training
     INFO:tensorflow:The provided set of data has an unknown size. This can result in runtime errors if not enough data is provided during execution.
+    INFO:tensorflow:The provided set of data has an unknown size. This can result in runtime errors if not enough data is provided during execution.
     Epoch 1/3
-    936/936 [==============================] - 42s 45ms/step - loss: 1.1964 - accuracy: 0.6122
+    468/468 [==============================] - 46s 98ms/step - loss: 1.0307 - accuracy: 0.6681
     Epoch 2/3
-    936/936 [==============================] - 0s 129us/step - loss: 0.3411 - accuracy: 0.8978
+    468/468 [==============================] - 0s 224us/step - loss: 0.3112 - accuracy: 0.9049
     Epoch 3/3
-    936/936 [==============================] - 0s 129us/step - loss: 0.2348 - accuracy: 0.9306
-    
+    468/468 [==============================] - 0s 653us/step - loss: 0.2229 - accuracy: 0.9339
+
     Evaluation
     INFO:tensorflow:The provided set of data has an unknown size. This can result in runtime errors if not enough data is provided during execution.
-    156/156 [==============================] - 21s 135ms/step - loss: 0.1655 - accuracy: 0.9501
+    INFO:tensorflow:The provided set of data has an unknown size. This can result in runtime errors if not enough data is provided during execution.
+    78/78 [==============================] - 23s 299ms/step - loss: 0.1378 - accuracy: 0.9587
 
 
 With replication, the model trains even faster.
@@ -665,28 +666,26 @@ If we use more than two IPUs, the model will be automatically replicated to fill
 up the requested number of IPUs. For example, if we select 8 IPUs for our 2-IPU
 model, four replicas of the model will be produced.
 
-We also need to adjust `steps_per_execution` to be divisible by the total number
-of gradient accumulation steps across all replicas, so we make a slight change
-to the dataset-adjusting code:
+We also need to adjust `steps_per_execution` to be divisible by the number of
+gradient accumulation steps per replica, so we add some lines to the
+dataset-adjusting code:
 
 
 ```python
 (x_train, y_train), (x_test, y_test) = load_data()
 
-total_gradient_accumulation_steps = gradient_accumulation_steps_per_replica * num_replicas
-
 # Adjust dataset lengths to be divisible by the batch size
 train_data_len = x_train.shape[0]
 train_steps_per_execution = train_data_len // (batch_size * num_replicas)
-# `steps_per_execution` needs to be divisible by `total_gradient_accumulation_steps`
-train_steps_per_execution = make_divisible(train_steps_per_execution, total_gradient_accumulation_steps)
+# `steps_per_execution` needs to be divisible by `gradient_accumulation_steps_per_replica`
+train_steps_per_execution = make_divisible(train_steps_per_execution, gradient_accumulation_steps_per_replica)
 train_data_len = make_divisible(train_data_len, train_steps_per_execution * batch_size)
 x_train, y_train = x_train[:train_data_len], y_train[:train_data_len]
 
 test_data_len = x_test.shape[0]
 test_steps_per_execution = test_data_len // (batch_size * num_replicas)
-# `steps_per_execution` needs to be divisible by `total_gradient_accumulation_steps`
-test_steps_per_execution = make_divisible(test_steps_per_execution, total_gradient_accumulation_steps)
+# `steps_per_execution` needs to be divisible by `gradient_accumulation_steps_per_replica`
+test_steps_per_execution = make_divisible(test_steps_per_execution, gradient_accumulation_steps_per_replica)
 test_data_len = make_divisible(test_data_len, test_steps_per_execution * batch_size)
 x_test, y_test = x_test[:test_data_len], y_test[:test_data_len]
 ```
@@ -757,43 +756,45 @@ with strategy.scope():
     Keras MNIST example, running on IPU with pipelining
     Model: "model_4"
     _________________________________________________________________
-    Layer (type)                 Output Shape              Param #   
+    Layer (type)                 Output Shape              Param #
     =================================================================
-    input_5 (InputLayer)         [(None, 28, 28, 1)]       0         
+    input_5 (InputLayer)         [(None, 28, 28, 1)]       0
     _________________________________________________________________
-    conv2d_8 (Conv2D)            (None, 26, 26, 32)        320       
+    conv2d_8 (Conv2D)            (None, 26, 26, 32)        320
     _________________________________________________________________
-    max_pooling2d_8 (MaxPooling2 (None, 13, 13, 32)        0         
+    max_pooling2d_8 (MaxPooling2 (None, 13, 13, 32)        0
     _________________________________________________________________
-    conv2d_9 (Conv2D)            (None, 11, 11, 64)        18496     
+    conv2d_9 (Conv2D)            (None, 11, 11, 64)        18496
     _________________________________________________________________
-    max_pooling2d_9 (MaxPooling2 (None, 5, 5, 64)          0         
+    max_pooling2d_9 (MaxPooling2 (None, 5, 5, 64)          0
     _________________________________________________________________
-    flatten_4 (Flatten)          (None, 1600)              0         
+    flatten_4 (Flatten)          (None, 1600)              0
     _________________________________________________________________
-    dropout_4 (Dropout)          (None, 1600)              0         
+    dropout_4 (Dropout)          (None, 1600)              0
     _________________________________________________________________
-    dense_4 (Dense)              (None, 10)                16010     
+    dense_4 (Dense)              (None, 10)                16010
     =================================================================
     Total params: 34,826
     Trainable params: 34,826
     Non-trainable params: 0
     _________________________________________________________________
-    
+
     Training
     INFO:tensorflow:The provided set of data has an unknown size. This can result in runtime errors if not enough data is provided during execution.
+    INFO:tensorflow:The provided set of data has an unknown size. This can result in runtime errors if not enough data is provided during execution.
     Epoch 1/3
-    936/936 [==============================] - 49s 53ms/step - loss: 1.1540 - accuracy: 0.6357
+    936/936 [==============================] - 51s 55ms/step - loss: 1.0371 - accuracy: 0.6820
     Epoch 2/3
-    936/936 [==============================] - 0s 256us/step - loss: 0.3159 - accuracy: 0.9081
+    936/936 [==============================] - 0s 218us/step - loss: 0.3097 - accuracy: 0.9064
     Epoch 3/3
-    936/936 [==============================] - 0s 254us/step - loss: 0.2245 - accuracy: 0.9320
-    
+    936/936 [==============================] - 0s 207us/step - loss: 0.2178 - accuracy: 0.9358
+
     Evaluation
+    INFO:tensorflow:The provided set of data has an unknown size. This can result in runtime errors if not enough data is provided during execution.
     INFO:tensorflow:The provided set of data has an unknown size. This can result in runtime errors if not enough data is provided during execution.
     WARNING:tensorflow:offload_weight_update_variables will have no effect since this pipeline is in inference.
     WARNING:tensorflow:offload_weight_update_variables will have no effect since this pipeline is in inference.
-    152/152 [==============================] - 26s 171ms/step - loss: 0.1469 - accuracy: 0.9219
+    152/152 [==============================] - 29s 190ms/step - loss: 0.1829 - accuracy: 0.9062
 
 
 Within the scope of an `IPUStrategy`, IPU-specific methods such as
@@ -803,3 +804,5 @@ interleaved schedule here by changing `Grouped` to `Interleaved`.
 
 The file `completed_demos/completed_demo_pipelining.py` shows what the code
 looks like after the above changes are made.
+
+Generated:2022-03-23T10:23 Source:demo.py SDK:2.5.0+942 SST:0.0.5

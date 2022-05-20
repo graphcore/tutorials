@@ -51,3 +51,5 @@ with strategy.scope():
                   optimizer = keras.optimizers.SGD(),
                   steps_per_execution=100)
     model.fit(ds, steps_per_epoch=2000, epochs=4)
+
+# Generated:2022-03-23T10:21 Source:mnist.py SST:0.0.5

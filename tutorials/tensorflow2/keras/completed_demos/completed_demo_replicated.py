@@ -76,16 +76,12 @@ def make_divisible(number, divisor):
 # Adjust dataset lengths to be divisible by the batch size
 train_data_len = x_train.shape[0]
 train_steps_per_execution = train_data_len // (batch_size * num_replicas)
-# `steps_per_execution` needs to be divisible by the number of replicas
-train_steps_per_execution = make_divisible(train_steps_per_execution, num_replicas)
-train_data_len = make_divisible(train_data_len, train_steps_per_execution * batch_size)
+train_data_len = make_divisible(train_data_len, batch_size * num_replicas)
 x_train, y_train = x_train[:train_data_len], y_train[:train_data_len]
 
 test_data_len = x_test.shape[0]
 test_steps_per_execution = test_data_len // (batch_size * num_replicas)
-# `steps_per_execution` needs to be divisible by the number of replicas
-test_steps_per_execution = make_divisible(test_steps_per_execution, num_replicas)
-test_data_len = make_divisible(test_data_len, test_steps_per_execution * batch_size)
+test_data_len = make_divisible(test_data_len, batch_size * num_replicas)
 x_test, y_test = x_test[:test_data_len], y_test[:test_data_len]
 
 # Add IPU configuration

@@ -8,4 +8,4 @@ This directory contains several examples showing how to use TensorFlow 2 on the 
 
 - [Inspecting tensors using custom outfeed layers and a custom optimizer](inspecting_tensors): This example trains a choice of simple fully connected models on the MNIST numeral data set and shows how tensors (containing activations and gradients) can be returned to the host via outfeeds for inspection.
 
-- [PopDist training example](popdist): This shows how to make an application ready for distributed training by using the PopDist API, and how to launch it with the PopRun distributed launcher.
+- [PopDist training and inference example](popdist): This shows how to make an application ready for distributed training and inference by using the PopDist API, and how to launch it with the PopRun distributed launcher.

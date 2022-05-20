@@ -4,6 +4,7 @@ Copyright (c) 2020 Graphcore Ltd. All rights reserved.
 """
 """
 # PyTorch (PopTorch) MNIST Training Demo
+
 This example demonstrates how to train a neural network for classification on the MNIST dataset using PopTorch.
 To learn more about PopTorch, see our [PyTorch for the IPU: User Guide](https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/index.html).
 """
@@ -19,7 +20,7 @@ Requirements:
 """
 To run the Jupyter notebook version of this tutorial:
 1. Enable a Poplar SDK environment and install required packages with `python -m pip install -r requirements.txt`
-2. In the same environment, install the Jupyter notebook server: `python -m pip install notebook`
+2. In the same environment, install the Jupyter notebook server: `python -m pip install jupyter`
 3. Launch a Jupyter Server on a specific port: `jupyter-notebook --no-browser --port <port number>`
 4. Connect via SSH to your remote machine, forwarding your chosen port:
 `ssh -NL <port number>:localhost:<port number> <your username>@<remote machine>`
@@ -105,8 +106,11 @@ test_dataset = torchvision.datasets.MNIST(
         transform=transform_mnist
 )
 """
-We use the [data loader provided by PopTorch](https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/pytorch_to_poptorch.html#preparing-your-data).
-More information about the use of `poptorch.Dataloader` can be found in [PopTorch tutorial on efficient data loading](../tut2_efficient_data_loading)
+We use the [data loader provided by
+PopTorch](https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/pytorch_to_poptorch.html#preparing-your-data).
+More information about the use of `poptorch.Dataloader` can be found in
+[PopTorch tutorial on efficient data
+loading](../../../tutorials/pytorch/tut2_efficient_data_loading)
 """
 """
 A `poptorch.Options()` instance contains a set of default hyperparameters and options for the IPU.
@@ -257,7 +261,7 @@ training_model = poptorch.trainingModel(
 We are ready to start training! However to track the accuracy while training
 we need to define one more helper function. During the training, not every
 samples prediction is returned for efficiency reasons, so this helper function
-will check accuracy for labels where prediction is available. This behavior
+will check accuracy for labels where prediction is available. This behaviour
 is controlled by setting `AnchorMode` in `poptorch.Options()`.
 """
 from metrics import accuracy

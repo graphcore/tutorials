@@ -82,7 +82,7 @@ std::ostream &operator<<(std::ostream &os, const std::vector<float> &values) {
   return os;
 }
 
-int main(int argc, char *argv[]) {
+int main() {
   const unsigned elements = 8;
   const unsigned repeat = 5;
   const unsigned numIpus = 1;
@@ -125,8 +125,7 @@ int main(int argc, char *argv[]) {
       repeat, Sequence({Copy(inStream, t), Execute(cs), Copy(t, outStream)}));
 
   // Compile program
-  OptionFlags options{{"exchange.streamBufferOverlap", "none"},
-                      {"exchange.enablePrefetch", "true"}};
+  OptionFlags options{{"exchange.streamBufferOverlap", "none"}};
   Engine eng(graph, prog, options);
   eng.load(device);
 

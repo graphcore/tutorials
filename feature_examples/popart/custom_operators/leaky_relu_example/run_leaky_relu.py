@@ -15,11 +15,13 @@ def build_and_run_graph(input_data, alpha, run_on_ipu):
 
     input_tensor = builder.addInputTensor(popart.TensorInfo("FLOAT", [input_len]))
 
-    output_tensor = builder.customOp(opName="LeakyRelu",
-                                     opVersion=1,
-                                     domain="custom.ops",
-                                     inputs=[input_tensor],
-                                     attributes={"alpha": alpha})[0]
+    output_tensor = builder.customOp(
+        opName="LeakyRelu",
+        opVersion=1,
+        domain="custom.ops",
+        inputs=[input_tensor],
+        attributes={"alpha": alpha},
+    )[0]
 
     builder.addOutputTensor(output_tensor)
 
@@ -45,16 +47,14 @@ def build_and_run_graph(input_data, alpha, run_on_ipu):
     X = (np.array(input_data)).astype(np.float32)
     print("X={}".format(X))
 
-    stepio = popart.PyStepIO({input_tensor: X},
-                             result)
-    session.run(stepio, 'LeakyReLU')
+    stepio = popart.PyStepIO({input_tensor: X}, result)
+    session.run(stepio, "LeakyReLU")
 
     return result
 
 
 def load_custom_ops_lib():
-    so_path = os.path.join(os.path.dirname(__file__),
-                           "build/custom_ops.so")
+    so_path = os.path.join(os.path.dirname(__file__), "build/custom_ops.so")
 
     if not os.path.isfile(so_path):
         print("Build the custom ops library with `make` before running this script")
@@ -63,16 +63,19 @@ def load_custom_ops_lib():
     ctypes.cdll.LoadLibrary(so_path)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     load_custom_ops_lib()
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--alpha", help="sets the lrelu alpha attribute", type=float,
-                        default=0.02)
-    parser.add_argument("--ipu", help="run on available IPU hardware device",
-                        action='store_true')
-    parser.add_argument('input_data', metavar='X', type=float, nargs='+',
-                        help='input tensor data')
+    parser.add_argument(
+        "--alpha", help="sets the lrelu alpha attribute", type=float, default=0.02
+    )
+    parser.add_argument(
+        "--ipu", help="run on available IPU hardware device", action="store_true"
+    )
+    parser.add_argument(
+        "input_data", metavar="X", type=float, nargs="+", help="input tensor data"
+    )
 
     args = parser.parse_args()
 

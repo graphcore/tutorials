@@ -96,7 +96,7 @@ int main(int argc, char **argv) {
 
     if (it == devices.end()) {
       std::cerr << "Error attaching to device\n";
-      return -1;
+      return 1; //EXIT_FAILURE
     }
 
     device = std::move(*it);

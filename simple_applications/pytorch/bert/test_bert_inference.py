@@ -7,6 +7,7 @@ import subprocess
 import unittest
 
 import pytest
+import tutorials_tests.testing_util as testing_util
 
 EXPECTED_RESULTS = [
     ("How many islands are there in Scotland?", "more than 790"),
@@ -35,14 +36,7 @@ def run_poptorch_bert_inference(**kwargs):
     args = [str(item) for sublist in kwargs.items()
             for item in sublist if item != '']
     cmd.extend(args)
-    try:
-        out = subprocess.check_output(
-            cmd, cwd=os.path.dirname(__file__), stderr=subprocess.PIPE).decode("utf-8")
-    except subprocess.CalledProcessError as e:
-        print(f"TEST FAILED")
-        print(f"stdout={e.stdout.decode('utf-8',errors='ignore')}")
-        print(f"stderr={e.stderr.decode('utf-8',errors='ignore')}")
-        raise
+    out = testing_util.run_command_fail_explicitly(cmd, os.path.dirname(__file__))
     return out
 
 

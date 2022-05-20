@@ -41,8 +41,9 @@ class ImageClassifier(object):
         checkpoint_file = os.path.join(weights_path, '16bit-0')
 
         self.jpeg_input = tf.placeholder(tf.string)
+        # The raw uint8 byte string can be passed directly to the normalise_image ipu op
         raw_img = tf.image.decode_jpeg(self.jpeg_input, channels=3)
-        image_data = tf.cast(tf.reshape(raw_img, [1, img_size, img_size, 3]), tf.float16) / 255.0
+        image_data = tf.reshape(raw_img, [1, img_size, img_size, 3])
 
         # Build model
         with tf.device('/device:IPU:0'):

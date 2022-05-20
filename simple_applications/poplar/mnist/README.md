@@ -9,6 +9,7 @@ regression on the MNIST data set, using gradient descent.
 * `regression_demo.cpp` The main script containing the model.
 * `mnist.h` and `mnist.cpp` Helper files to iterate over the MNIST dataset.
 * `get_data.sh` A script to download the MNIST dataset.
+* `tests/` A folder containing tests for this model.
 * `README.rst` This file.
 
 ## How to use this application

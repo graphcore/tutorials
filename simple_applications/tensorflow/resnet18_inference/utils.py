@@ -189,9 +189,9 @@ def _bn(x, is_train, name='bn'):
         batch_mean, batch_var = tf.nn.moments(x, [0, 1, 2])
 
         mu = tf.get_variable('mu', batch_mean.get_shape(), tf.float16,
-                             initializer=tf.zeros_initializer(), trainable=False)
+                             initializer=tf.zeros_initializer())
         sigma = tf.get_variable('sigma', batch_var.get_shape(), tf.float16,
-                                initializer=tf.ones_initializer(), trainable=False)
+                                initializer=tf.ones_initializer())
         beta = tf.get_variable('beta', batch_mean.get_shape(), tf.float16,
                                initializer=tf.zeros_initializer())
         gamma = tf.get_variable('gamma', batch_var.get_shape(), tf.float16,
@@ -200,6 +200,3 @@ def _bn(x, is_train, name='bn'):
         bn = tf.nn.batch_normalization(x, mu, sigma, beta, gamma, 1e-5)
 
     return bn
-
-
-# Other helper functions

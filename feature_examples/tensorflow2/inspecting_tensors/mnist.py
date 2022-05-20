@@ -43,16 +43,20 @@ def create_dataset():
     return train_ds.repeat()
 
 
-def create_sequential_model(activations_outfeed_queue, gradient_accumulation_steps_per_replica):
+def create_sequential_model(multi_activations_outfeed_queue, gradient_accumulation_steps_per_replica):
     """ Create the model using the Keras Sequential class.
 
-        Outfeed the activations for a single layer.
+        Outfeed the activations for multiple layers.
     """
-    model = keras.Sequential(
-        [keras.layers.Flatten(),
-         keras.layers.Dense(128, activation='relu', name="Dense_128"),
-         outfeed_layers.Outfeed(activations_outfeed_queue, name="Dense_128_acts"),
-         keras.layers.Dense(10, activation='softmax', name="Dense_10")])
+    model = keras.Sequential([
+                keras.layers.Flatten(),
+                keras.layers.Dense(128, activation='relu', name="Dense_128"),
+                outfeed_layers.MaybeOutfeed(multi_activations_outfeed_queue,
+                                            final_outfeed=False, name="Dense_128_acts"),
+                keras.layers.Dense(10, activation='softmax', name="Dense_10"),
+                outfeed_layers.MaybeOutfeed(multi_activations_outfeed_queue,
+                                            final_outfeed=True, name="Dense_10_acts")
+            ])
     model.set_gradient_accumulation_options(
         gradient_accumulation_steps_per_replica=gradient_accumulation_steps_per_replica)
     return model
@@ -220,8 +224,8 @@ def main():
             else:
                 gradient_accumulation_steps_per_replica = 1
             if args.model_type == "Sequential":
-                model = create_sequential_model(activations_outfeed_queue, gradient_accumulation_steps_per_replica)
-                callbacks += [layer_outfeed_callback]
+                model = create_sequential_model(multi_activations_outfeed_queue, gradient_accumulation_steps_per_replica)
+                callbacks += [multi_layer_outfeed_callback]
             elif args.model_type == "Model":
                 model = create_model(activations_outfeed_queue, gradient_accumulation_steps_per_replica)
                 callbacks += [layer_outfeed_callback]

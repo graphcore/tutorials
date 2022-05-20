@@ -3,7 +3,7 @@
 Creates a simple custom operator that adds two vectors of arbitrary size. The operator
 is created in Poplar using a custom vertex. This simple example does not show
 how to create the corresponding gradient operator: to see how to create a custom gradient operator,
-see the [TensorFlow Custom Gradient example](tutorials/feature_examples/tensorflow/custom_gradient).
+see the [TensorFlow Custom Gradient example](../custom_gradient).
 
 ## File structure
 

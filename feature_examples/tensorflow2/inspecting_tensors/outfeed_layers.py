@@ -4,6 +4,7 @@
 """
 
 from tensorflow import keras
+import tensorflow as tf
 
 
 class Outfeed(keras.layers.Layer):
@@ -74,6 +75,11 @@ class MaybeOutfeed(keras.layers.Layer):
         Returns:
             The inputs.
         """
+        # This is called twice, once to build a scratch graph to propagate shapes and once to do the actual enqueue.
+        # For a non-pipelined model the outfeed should only be enqueued on the second call: after the scratch graph has been used.
+        if tf.compat.v1.get_default_graph().name.endswith("_scratch_graph"):
+            return inputs
+
         self._outfeed_queue.maybe_outfeed(self.name, inputs)
         if self._final_outfeed:
             self._outfeed_queue.maybe_enqueue()

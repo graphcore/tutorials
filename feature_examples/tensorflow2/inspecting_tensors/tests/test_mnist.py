@@ -95,5 +95,5 @@ class TestTensorFlow2InspectingTensors(SubProcessChecker):
                          [r"Gradients callback\n" +
                           r"key: Dense_10\/bias:0_grad shape: \(500, 10\)",
                           r"key: Dense_128\/bias:0_grad shape: \(500, 128\)",
-                          r"Single layer activations callback\n" +
+                          r"Multi-layer activations callback\n" +
                           r"key: Dense_128_acts shape: \(500, 32, 128\)"])

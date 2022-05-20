@@ -18,7 +18,7 @@
 # %pip install -r requirements.txt
 # To run this Jupyter notebook on a remote IPU machine:
 # 1. Enable a Poplar SDK environment (see the [Getting Started](https://docs.graphcore.ai/en/latest/getting-started.html) guide for your IPU system) and install required packages with `python -m pip install -r requirements.txt`
-# 2. In the same environment, install the Jupyter notebook server: `python -m pip install notebook`
+# 2. In the same environment, install the Jupyter notebook server: `python -m pip install jupyter`
 # 3. Launch a Jupyter Server on a specific port: `jupyter-notebook --no-browser --port <port number>`
 # 4. Connect via SSH to your remote machine, forwarding your chosen port:
 # `ssh -NL <port number>:localhost:<port number> <your username>@<remote machine>`

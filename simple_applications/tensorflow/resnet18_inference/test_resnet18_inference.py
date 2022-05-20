@@ -41,7 +41,7 @@ class TestResnet18Inference(SubProcessChecker):
                 self.run_command("./get_images_and_weights.sh",
                                  working_path,
                                  ["Fetching images224.tar.gz",
-                                  "Unpacking ResNet18.tar.gz"],
+                                  "Unpacking ResNet18TrainingExampleCkpt.tar.gz"],
                                  env=None,
                                  timeout=timeout)
 

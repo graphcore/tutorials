@@ -1,6 +1,8 @@
 // Copyright (c) 2018 Graphcore Ltd. All rights reserved.
 
 #include <poplar/Engine.hpp>
+#include <poplar/IPUModel.hpp>
+#include <poputil/TileMapping.hpp>
 
 #include <iostream>
 #include <vector>
@@ -55,6 +57,8 @@ Program buildMultiplyProgram(Graph &graph, Tensor matrix, Tensor in,
                                                  // of the vertex to a single
                                                  // element of the output
                                                  // vector.
+    graph.setTileMapping(v, i);
+    graph.setPerfEstimate(v, 20);
   }
   // The returned program just executes the 'mulCS' compute set i.e. executes
   // every vertex calculation in parallel.
@@ -72,16 +76,25 @@ int main(int argc, char **argv) {
   std::cout << "Multiplying matrix of size " << numRows << "x" << numCols
             << " by vector of size " << numCols << "\n";
 
-  std::cout << "Creating environment (compiling vertex programs)\n";
+  // Create the IPU model device
+  IPUModel ipuModel;
+  Device device = ipuModel.createDevice();
+  Target target = device.getTarget();
 
-  std::cout << "Constructing compute graph and control program\n";
-  Graph graph(Target::createCPUTarget());
+  std::cout << "Creating new graph object and compiling vertex program additions\n";
+
+  Graph graph(target);
   graph.addCodelets("matrix-mul-codelets.cpp");
+
+  std::cout << "Constructing full compute graph and control program\n";
 
   // Create tensors in the graph to hold the input/output data.
   Tensor matrix = graph.addVariable(FLOAT, {numRows, numCols}, "matrix");
   Tensor inputVector = graph.addVariable(FLOAT, {numCols}, "inputVector");
   Tensor outputVector = graph.addVariable(FLOAT, {numRows}, "outputVector");
+  poputil::mapTensorLinearly(graph, matrix);
+  poputil::mapTensorLinearly(graph, inputVector);
+  poputil::mapTensorLinearly(graph, outputVector);
 
   // Create host buffers for the inputs and outputs and fill the inputs
   // with sample data.
@@ -114,7 +127,7 @@ int main(int argc, char **argv) {
 
   // Create an engine from the compute graph and control program.
   Engine engine(graph, prog);
-  engine.load(Device::createCPUDevice());
+  engine.load(device);
   engine.connectStream("inputVector", hInput.data());
   engine.connectStream("inputMatrix", hMatrix.data());
   engine.connectStream("out", hOutput.data());

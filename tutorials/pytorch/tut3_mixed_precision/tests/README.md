@@ -1,12 +1,16 @@
-To run the tests, create a Python 3 virtual environment with Poplar and PopTorch for IPU installed. Then you can install the specific requirements of the tests and run them by calling:
+# `tut3_mixed_precision` tests
 
-```
+To run the tests, create a Python 3 virtual environment with Poplar and
+PopTorch for IPU installed. Then you can install the specific requirements of
+the tests and run them by calling:
+
+```bash
 pip3 install -r requirements.txt
 python -m pytest
 ```
 
 The tests can also be run in parallel by calling:
 
-```
+```bash
 python -m pytest -n5 --forked
 ```
