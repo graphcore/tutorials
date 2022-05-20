@@ -2,10 +2,13 @@
 
 # Half and mixed precision in PopTorch
 
-
 This tutorial shows how to use half and mixed precision in PopTorch with the
 example task of training a simple CNN model on a single Graphcore IPU (Mk1 or
 Mk2).
+
+Before starting this tutorial, we recommend that you read through our
+[tutorial on the basics of PyTorch on the IPU](../basics) and our
+[MNIST starting tutorial](../../../simple_applications/pytorch/mnist/).
 
 Requirements:
 
@@ -118,8 +121,8 @@ from tqdm import tqdm
 
 ### Build the model
 
-We use the same model as in [the previous tutorials on PopTorch](../).
-Just like in the [previous tutorial](../tut2_efficient_data_loading), we are
+We use the same model as in [the other tutorials on PopTorch](../).
+Just like in the [tutorial on efficient data loading](../efficient_data_loading), we are
 using larger images (128x128) to simulate a heavier data load. This will make
 the difference in memory between FP32 and FP16 meaningful enough to showcase
 in this tutorial.
@@ -531,4 +534,4 @@ poptorch_model.detachFromDevice()
   Analyser](https://docs.graphcore.ai/projects/graph-analyser-userguide/en/latest/index.html)
   can be used to inspect the memory usage of a model and to help debug issues.
 
-Generated:2022-04-29T10:29 Source:walkthrough.py SDK:2.5.0+968 SST:0.0.6
+Generated:2022-05-19T17:36 Source:walkthrough.py SDK:2.5.1+1001 SST:0.0.7

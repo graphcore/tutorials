@@ -426,7 +426,7 @@ cm_plot = ConfusionMatrixDisplay(cm, display_labels=classes)\
 ```
 
 ```output
-Eval accuracy: 89.45%
+Eval accuracy: 89.39%
 ```
 
 ![png](static/output_48_1.png)
@@ -520,4 +520,4 @@ In the meantime, to learn more about the IPU and the lower level Poplar
 libraries and graph programming framework, you can go through our Poplar
 tutorials and read our Poplar SDK overview.
 
-Generated:2022-05-10T11:21 Source:walkthrough.py SDK:2.5.0+981 SST:0.0.6
+Generated:2022-05-19T17:26 Source:walkthrough.py SDK:2.5.1+1001 SST:0.0.7

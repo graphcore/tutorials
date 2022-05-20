@@ -19,6 +19,9 @@ guide](https://docs.graphcore.ai/projects/memory-performance-optimisation/en/lat
 This tutorial first provides an overview of the key concepts from this document.
 It then provides a walkthrough of how pipelining can be applied to an existing
 TensorFlow application that currently runs on a single IPU.
+
+If you are not familiar with how to run TensorFlow 1 models on the IPU, you may
+wish to read our [introductory tutorials](../basics) on the subject.
 """
 """
 ## Requirements

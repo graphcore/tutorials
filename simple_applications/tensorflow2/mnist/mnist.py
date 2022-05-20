@@ -10,6 +10,7 @@ digits (0-9) that must be classified according to which digit they represent.
 """
 """
 We will do the following steps in order:
+
 1. Load and pre-process the MNIST dataset from Keras.
 2. Define a simple model.
 3. Configure the IPU system
@@ -17,12 +18,15 @@ We will do the following steps in order:
 """
 """
 ## 1. Preparing your environment
+
 In order to run this tutorial on the IPU you will need:
+
 - A Poplar SDK environment enabled (see the [Getting Started](https://docs.graphcore.ai/en/latest/getting-started.html) guide for your IPU system).
 - TensorFlow 2 set up for the IPU (see the [Setup Instructions](https://docs.graphcore.ai/projects/ipu-pod-getting-started/en/latest/installation.html#setting-up-tensorflow-for-the-ipu))
 """
 """
 To run the Jupyter notebook version of this tutorial:
+
 1. Enable a Poplar SDK environment
 2. In the same environment, install the Jupyter notebook server: `python -m pip install jupyter`
 3. Launch a Jupyter Server on a specific port: `jupyter-notebook --no-browser --port <port number>`
@@ -110,13 +114,17 @@ cfg.configure_ipu_system()
 
 """
 This is all we need to get a small model up and running, though a full list of
-configuration options is available in the [API documentation](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/tensorflow/api.html#tensorflow.python.ipu.config.IPUConfig).
+configuration options is available in the [API
+documentation](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/tensorflow/api.html#tensorflow.python.ipu.config.IPUConfig).
 
 If you're interested in learning how to optimally use models that require
 multiple IPUs (for example due to their size), see the section on pipelining
-from our documentation on [model parallelism](https://docs.graphcore.ai/projects/tf-model-parallelism/en/latest/model.html).
+from our documentation on [model
+parallelism](https://docs.graphcore.ai/projects/tf-model-parallelism/en/latest/model.html).
 
-> To see how this process can be implemented, head over to the pipelining section of our [TensorFlow 2 Keras tutorial](../../../tutorials/tensorflow2/keras).
+> To see how this process can be implemented, head over to the pipelining
+section of our [TensorFlow 2 Keras
+tutorial](../../../tutorials/tensorflow2/keras).
 
 ## 6. Specify IPU strategy
 
@@ -133,7 +141,9 @@ with one or more IPUs attached. For a multi-system configuration, the
 [PopDistStrategy](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/tensorflow/api.html#tensorflow.python.ipu.horovod.popdist_strategy.PopDistStrategy)
 should be used, in conjunction with our PopDist library.
 
-> To see an example of how to distribute training and inference over multiple instances with PopDist, head over to our [TensorFlow 2 PopDist example](../../../feature_examples/tensorflow2/popdist).
+> To see an example of how to distribute training and inference over multiple
+instances with PopDist, head over to our [TensorFlow 2 PopDist
+example](../../../feature_examples/tensorflow2/popdist).
 
 ## 7. Wrap the model within the IPU strategy scope
 
@@ -157,23 +167,29 @@ with strategy.scope():
     model.fit(ds, steps_per_epoch=2000, epochs=4)
 # sst_hide_output
 """
-The `steps_per_execution` argument in `model.compile()` sets the
-number of batches processed in each execution of the underlying IPU program.
-Not specifying this argument causes the program that runs on the IPU to only
-process a single batch per execution, which means more time is wasted waiting
-for I/O instead of using the IPU.
+The `steps_per_execution` argument in `model.compile()` sets the number of
+batches processed in each execution of the underlying IPU program. Not
+specifying this argument causes the program that runs on the IPU to only process
+a single batch per execution, which means more time is wasted waiting for I/O
+instead of using the IPU.
 
 Another way to speed up the training of a model is through replication. This
 process involves copying the model on each of multiple IPUs, updating the
 parameters of the model on all IPUs after each forward and backward pass. To
-learn more about this process, head over to our documentation on
-[graph replication](https://docs.graphcore.ai/projects/memory-performance-optimisation/en/latest/main.html?highlight=replication#graph-replication).
+learn more about this process, head over to our documentation on [graph
+replication](https://docs.graphcore.ai/projects/memory-performance-optimisation/en/latest/main.html?highlight=replication#graph-replication).
 
-> To see how this process can be implemented, take a look at the Replication section of our [TensorFlow 2 Keras tutorial](../../../tutorials/tensorflow2/keras).
+> To see how this process can be implemented, take a look at the Replication
+section of our [TensorFlow 2 Keras
+tutorial](../../../tutorials/tensorflow2/keras).
 
 ## Other useful resources
 
-- [TensorFlow Docs](https://docs.graphcore.ai/en/latest/software.html#tensorflow): all Graphcore documentation specifically relating to TensorFlow.
+- [TensorFlow
+  Docs](https://docs.graphcore.ai/en/latest/software.html#tensorflow): all
+  Graphcore documentation specifically relating to TensorFlow.
 
-- [IPU TensorFlow 2 Code Examples](https://github.com/graphcore/examples/tree/master/code_examples/tensorflow2): examples of different use cases of TensorFlow 2 on the IPU.
+- [IPU TensorFlow 2 Code
+  Examples](https://github.com/graphcore/examples/tree/master/code_examples/tensorflow2):
+  examples of different use cases of TensorFlow 2 on the IPU.
 """

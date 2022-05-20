@@ -121,4 +121,4 @@ opts = poptorch.Options()\
     .randomSeed(123)\
     .useIpuModel(True)
 
-# Generated:2022-05-10T11:25 Source:walkthrough.py SST:0.0.6
+# Generated:2022-05-19T17:30 Source:walkthrough.py SST:0.0.7

@@ -18,6 +18,9 @@ This tutorial first provides an overview of the key concepts from this document.
 It then provides a walkthrough of how pipelining can be applied to an existing
 TensorFlow application that currently runs on a single IPU.
 
+If you are not familiar with how to run TensorFlow 1 models on the IPU, you may
+wish to read our [introductory tutorials](../basics) on the subject.
+
 ## Requirements
 
 In order to run this tutorial on the IPU you will need to have:
@@ -1102,4 +1105,4 @@ See the TensorFlow 1 API documentation for details:
 [TensorFlow IPUPipelineEstimatorSpec](<https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/tensorflow/api.html#tensorflow.python.ipu.ipu_pipeline_estimator.IPUPipelineEstimatorSpec>)
 [TensorFlow IPUPipelineEstimator Example](<https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/tensorflow/ipu_pipeline_estimator_example.html>)
 
-Generated:2022-04-25T19:22 Source:tutorial.py SDK:2.5.0+942 SST:0.0.6
+Generated:2022-05-19T17:28 Source:tutorial.py SDK:2.5.1+1001 SST:0.0.7

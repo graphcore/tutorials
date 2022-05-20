@@ -2,7 +2,6 @@
 
 # Efficient data loading with PopTorch
 
-
 This tutorial will present how PopTorch can help to efficiently load data to
 your model and how to avoid common performance bottlenecks when passing data
 from the host to the IPU. It also covers the more general notion of data
@@ -345,8 +344,8 @@ training_data.terminate()
 ```
 
 ```output
-Total execution time: 0.26 s
-DataLoader throughput: 37319.43 items/s
+Total execution time: 0.15 s
+DataLoader throughput: 65717.73 items/s
 ```
 
    > ***Note about releasing resources***:
@@ -437,8 +436,8 @@ training_data.terminate()
 
 ```output
 Evaluating: 12 steps of 800 items
-Total execution time: 0.27 s
-IPU throughput: 35753.23 items/s
+Total execution time: 0.31 s
+IPU throughput: 30487.88 items/s
 ```
 
 ### What if the DataLoader throughput is too low?
@@ -588,10 +587,10 @@ validate_model_performance(dataset, batch_size=16, replicas=1,
 ```
 
 ```output
-DataLoader: 72743.98 items/s
-Dataloader execution time: 0.13 s
-IPU throughput: 35162.65 items/s
-Dataloader with IPU training execution time: 0.27 s
+DataLoader: 89886.97 items/s
+Dataloader execution time: 0.11 s
+IPU throughput: 29659.83 items/s
+Dataloader with IPU training execution time: 0.32 s
 ```
 
 => Global batch size 16 with real data
@@ -603,10 +602,10 @@ validate_model_performance(dataset, batch_size=16, replicas=1,
 ```
 
 ```output
-DataLoader: 62280.37 items/s
-Dataloader execution time: 0.15 s
-IPU throughput: 27824.16 items/s
-Dataloader with IPU training execution time: 0.35 s
+DataLoader: 103842.43 items/s
+Dataloader execution time: 0.09 s
+IPU throughput: 23195.42 items/s
+Dataloader with IPU training execution time: 0.41 s
 ```
 
 From the tests you should be able to see that the throughput with processing
@@ -639,10 +638,10 @@ validate_model_performance(dataset, batch_size=16, replicas=4,
 ```
 
 ```output
-DataLoader: 2109899.31 items/s
+DataLoader: 24403223.27 items/s
 Dataloader execution time: 0.00 s
-IPU throughput: 138005.99 items/s
-Dataloader with IPU training execution time: 0.07 s
+IPU throughput: 120783.76 items/s
+Dataloader with IPU training execution time: 0.08 s
 ```
 
 => Global batch size 64 with real data
@@ -654,10 +653,10 @@ validate_model_performance(dataset, batch_size=16, replicas=4,
 ```
 
 ```output
-DataLoader: 225423.21 items/s
-Dataloader execution time: 0.04 s
-IPU throughput: 33201.31 items/s
-Dataloader with IPU training execution time: 0.29 s
+DataLoader: 21942952.81 items/s
+Dataloader execution time: 0.00 s
+IPU throughput: 28186.22 items/s
+Dataloader with IPU training execution time: 0.34 s
 ```
 
 Throughput of dataloader for synthetic and real data should be roughly the
@@ -690,4 +689,4 @@ Further information on Host-IPU IO optimisation can be found in our [memory and
 performance optimisation
 guide](https://docs.graphcore.ai/projects/memory-performance-optimisation/en/latest/main.html#host-ipu-io-optimisation).
 
-Generated:2022-04-29T10:22 Source:walkthrough.py SDK:2.5.0+968 SST:0.0.6
+Generated:2022-05-19T17:33 Source:walkthrough.py SDK:2.5.1+1001 SST:0.0.7

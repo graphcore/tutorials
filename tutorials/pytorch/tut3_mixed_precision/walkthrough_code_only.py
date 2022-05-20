@@ -174,4 +174,4 @@ assert poptorch_model(float32_tensor, float16_tensor).dtype == torch.float32
 
 poptorch_model.detachFromDevice()
 
-# Generated:2022-04-29T10:34 Source:walkthrough.py SST:0.0.6
+# Generated:2022-05-19T17:41 Source:walkthrough.py SST:0.0.7

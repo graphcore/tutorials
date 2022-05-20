@@ -32,13 +32,13 @@ Additionally, some knowledge of data loading in poptorch and batching on IPU is 
 """
 # File structure
 
-* `mnist_pipeline.py` The main example script.
-* `walkthrough.ipynb` The Jupyter notebook for this tutorial.
-* `README.md` The markdown version of this tutorial.
-* `walkthrough.py` The tutorial annotated script (for notebook generation only).
-* `walkthrough_code_only.py` The tutorial code only (for notebook generation only).
-* `requirements.txt` The packages to be installed in order to run the code.
-* `tests/` The unit tests for `mnist_pipeline.py`.
+- `mnist_pipeline.py` The main example script.
+- `walkthrough.ipynb` The Jupyter notebook for this tutorial.
+- `README.md` The markdown version of this tutorial.
+- `walkthrough.py` The tutorial annotated script (for notebook generation only).
+- `walkthrough_code_only.py` The tutorial code only (for notebook generation only).
+- `requirements.txt` The packages to be installed in order to run the code.
+- `tests/` The unit tests for `mnist_pipeline.py`.
 """
 """
 Requirements:
@@ -64,9 +64,11 @@ For more details about this process, or if you need troubleshooting, see our [gu
 """
 """
 >**Note**: In the Python script of this tutorial `mnist_pipeline.py`, the main function is executed under the scope:
+>
 >```python
 >if __name__ == '__main__':
 >```
+>
 > This is necessary to avoid [issues with asynchronous DataLoader](https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/batching.html#poptorch-asynchronousdataaccessor).
 > Implications of the asynchronous data loader are covered in [PyTorch tutorial 2](../tut2_efficient_data_loading)
 """
@@ -264,10 +266,12 @@ executed on different IPUs. The picture below illustrates this process.
 
 As described in the [User Guide](https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/overview.html#model-partitioning-using-blocks),
 there are three ways to define blocks:
+
 - using the [poptorch.Block](https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/reference.html#poptorch.Block) scope;
 - using the [poptorch.BlockFunction](https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/reference.html#poptorch.BlockFunction) decorator on the forward method of a `Module`;
 - wrapping layers with
 [poptorch.BeginBlock](https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/reference.html#poptorch.BeginBlock).
+
 You can use a combination of these three annotation options.
 In this tutorial we will use the `poptorch.Block` scope.
 
@@ -394,6 +398,7 @@ Next, we set pipelining as the execution strategy in our training options.
 train_opts.setExecutionStrategy(pipelined_strategy)
 """
 Note: Since IPUs are all set *in order* from 0 to 3, this shorter notation can also be used to, both, set the execution strategy and place the stages on the IPUs:
+
 ```python
 train_opts.setExecutionStrategy(poptorch.PipelinedExecution("B1", "B2", "B3", "B4"))
 ```
@@ -558,13 +563,17 @@ def accuracy(predictions, labels):
         labels.size()[0] * 100.0
     return accuracy
 """
-When we call `training_model()`, the outputs are not returned for every mini-batch by default.
-This results in incomplete evaluation and inaccurate training accuracy.
-This behavior can be changed by modifying [outputMode](https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/reference.html#poptorch.OutputMode) in `poptorch.Options()`.
-For performance reasons, PopTorch uses `OutputMode.Final` by default. It only returns the final batch loss and predictions to the host machine.
-We can set this to `OutputMode.All` to be able to present the full information in this tutorial.
-In that case, `preds` and `losses` will be lists containing the results for the 100 mini-batches passed to the pipeline.
-However, this has an impact on the speed of training, due to the overhead of transferring more data to the host machine.
+When we call `training_model()`, the outputs are not returned for every
+mini-batch by default. This results in incomplete evaluation and inaccurate
+training accuracy. This behaviour can be changed by modifying
+[outputMode](https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/reference.html#poptorch.OutputMode)
+in `poptorch.Options()`. For performance reasons, PopTorch uses
+`OutputMode.Final` by default. It only returns the final batch loss and
+predictions to the host machine. We can set this to `OutputMode.All` to be able
+to present the full information in this tutorial. In that case, `preds` and
+`losses` will be lists containing the results for the 100 mini-batches passed to
+the pipeline. However, this has an impact on the speed of training, due to the
+overhead of transferring more data to the host machine.
 """
 # Warning: impacts performance
 train_opts.outputMode(poptorch.OutputMode.All)
@@ -629,18 +638,18 @@ python3 mnist_pipeline.py
 
 The program has a few command-line options:
 
-* `-h` Show usage information.
-* `--batch-size` Sets the mini-batch size for training. Default: 40.
-* `--device-iterations`  Number of device iterations for training. Default: 10.
-* `--test-batch-size` Sets the batch size for inference. Default: 8.
-* `--epochs` Number of epochs to train for. Default: 3.
-* `--learning-rate` Learning rate of the optimiser. Default (tuned for AdamW): 0.001.
-* `--profile` Enable profiling.
-* `--profile-dir` Select a directory to save the profile (default: ./profile).
-* `--profile-dir` Select a directory to save the profile. Default: ./profile.
-* `--strategy` Sets the execution strategy (pipelined, sharded). Default: pipelined.
-* `--debug` Prints out the debug logging while running.
-* `--offload-optimiser` Set this option to offload the optimiser state.
+- `-h` Show usage information.
+- `--batch-size` Sets the mini-batch size for training. Default: 40.
+- `--device-iterations`  Number of device iterations for training. Default: 10.
+- `--test-batch-size` Sets the batch size for inference. Default: 8.
+- `--epochs` Number of epochs to train for. Default: 3.
+- `--learning-rate` Learning rate of the optimiser. Default (tuned for AdamW): 0.001.
+- `--profile` Enable profiling.
+- `--profile-dir` Select a directory to save the profile (default: ./profile).
+- `--profile-dir` Select a directory to save the profile. Default: ./profile.
+- `--strategy` Sets the execution strategy (pipelined, sharded). Default: pipelined.
+- `--debug` Prints out the debug logging while running.
+- `--offload-optimiser` Set this option to offload the optimiser state.
 
 Among these input arguments, `--strategy` and `--offload-optimiser`
 are associated with the execution methods.

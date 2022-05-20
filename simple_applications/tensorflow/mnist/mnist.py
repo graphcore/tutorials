@@ -10,6 +10,7 @@ digits (0-9) that must be classified according to which digit they represent.
 """
 """
 We will do the following steps in order:
+
 1. Load and pre-process the MNIST dataset from Keras.
 2. Define a simple model.
 3. Define and compile the training loop.
@@ -18,7 +19,9 @@ We will do the following steps in order:
 """
 """
 ## 1. Preparing your environment
+
 In order to run this tutorial on the IPU you will need to have:
+
 - A Poplar SDK environment enabled (see the
 [Getting Started](https://docs.graphcore.ai/en/latest/getting-started.html) guide for your IPU system).
 - The Graphcore port of TensorFlow 1 set up for the IPU (see the
@@ -26,6 +29,7 @@ In order to run this tutorial on the IPU you will need to have:
 """
 """
 To run the Jupyter notebook version of this tutorial:
+
 1. Enable a Poplar SDK environment
 2. In the same environment, install the Jupyter notebook server:
 `python -m pip install jupyter`
