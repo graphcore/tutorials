@@ -10,6 +10,18 @@ In this tutorial you will:
 
 A brief `summary`_ and a list of additional resources are included at the end this tutorial.
 
+Setup
+......
+
+In order to run this tutorial on the IPU you will need to have a Poplar SDK environment enabled (see the
+`Getting Started Guide for your IPU system <https://docs.graphcore.ai/en/latest/getting-started.html>`_).
+
+You will also need a C++ toolchain compatible with the C++11 standard, build commands in this tutorial use GCC.
+
+
+Profiling on the IPU
+......
+
 There are three ways of profiling code for the IPU:
 
   - outputting summary profile data to the console.

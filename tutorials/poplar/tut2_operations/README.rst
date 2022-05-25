@@ -4,6 +4,18 @@ Tutorial 2: using PopLibs
 To complement this tutorial, do not hesitate to read through our `Poplar and PopLibs
 User Guide <https://docs.graphcore.ai/projects/poplar-user-guide/en/latest/index.html>`_.
 
+Setup
+......
+
+In order to run this tutorial on the IPU you will need to have a Poplar SDK environment enabled (see the
+`Getting Started Guide for your IPU system <https://docs.graphcore.ai/en/latest/getting-started.html>`_).
+
+You will also need a C++ toolchain compatible with the C++11 standard, build commands in this tutorial use GCC.
+
+
+Using PopLibs
+......
+
 Using ``tut2_operations/start_here`` as your working
 directory, open ``tut2.cpp`` in an editor. This file contains a basic Poplar program
 structure similar to that seen in tutorial 1. It creates a graph with a couple

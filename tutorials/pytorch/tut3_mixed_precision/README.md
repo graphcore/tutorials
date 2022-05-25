@@ -7,7 +7,7 @@ example task of training a simple CNN model on a single Graphcore IPU (Mk1 or
 Mk2).
 
 Before starting this tutorial, we recommend that you read through our
-[tutorial on the basics of PyTorch on the IPU](../basics) and our
+[tutorial on the basics of PyTorch on the IPU](../tut1_basics) and our
 [MNIST starting tutorial](../../../simple_applications/pytorch/mnist/).
 
 Requirements:
@@ -122,7 +122,7 @@ from tqdm import tqdm
 ### Build the model
 
 We use the same model as in [the other tutorials on PopTorch](../).
-Just like in the [tutorial on efficient data loading](../efficient_data_loading), we are
+Just like in the [tutorial on efficient data loading](../tut2_efficient_data_loading), we are
 using larger images (128x128) to simulate a heavier data load. This will make
 the difference in memory between FP32 and FP16 meaningful enough to showcase
 in this tutorial.

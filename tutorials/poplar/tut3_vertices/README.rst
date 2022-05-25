@@ -8,6 +8,19 @@ PopLibs libraries use.
 To learn more about vertices, please refer to our `Poplar and PopLibs User Guide:
 Understanding Vertices <https://docs.graphcore.ai/projects/poplar-user-guide/en/latest/vertices_overview.html>`_.
 
+
+Setup
+......
+
+In order to run this tutorial on the IPU you will need to have a Poplar SDK environment enabled (see the
+`Getting Started Guide for your IPU system <https://docs.graphcore.ai/en/latest/getting-started.html>`_).
+
+You will also need a C++ toolchain compatible with the C++11 standard, build commands in this tutorial use GCC.
+
+
+Writing vertex code
+......
+
 Using ``tut3_vertices/start_here`` as your working directory, open ``tut3.cpp`` in an
 editor. This file has an outline program like tutorial 2, but does not use the
 PopLibs libraries. Instead, we will write the device code for the vertices in

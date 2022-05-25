@@ -21,16 +21,8 @@ Graphcore also provides tutorials using Python deep learning frameworks `PyTorch
 Setup
 ......
 
-In order to complete this tutorial you will need to have the Poplar SDK installed and
-enabled on your machine, you can download the latest release in the `Graphcore downloads centre
-<https://downloads.graphcore.ai/>`_ . Before you start, make sure to activate the SDK. How
-this is done will depend on whether you are using
-an `IPU-POD system <https://docs.graphcore.ai/projects/ipu-pod-getting-started/en/latest/i
-nstallation.html#setting-up-the-sdk-environment>`_,
-an `IPU-POD Direct Attach <https://docs.graphcore.ai/projects/ipu-pod-da-getting-started/en
-/latest/sw-installation.html#setting-up-the-sdk-environment>`_,
-or `Graphcloud <https://docs.graphcore.ai/projects/graphcloud-getting-started/en/latest/ins
-tallation.html#setting-up-the-sdk-environment>`_.
+In order to run this tutorial on the IPU you will need to have a Poplar SDK environment enabled (see the
+`Getting Started Guide for your IPU system <https://docs.graphcore.ai/en/latest/getting-started.html>`_).
 
 You will also need a C++ toolchain compatible with the C++11 standard, build commands in this tutorial use GCC.
 
@@ -484,9 +476,6 @@ It is also possible to get a specific device using its device-manager ID with th
 
     $ g++ --std=c++11 tut1_ipu_hardware.cpp -lpoplar -o tut1_ipu_hardware
 
-Before running this you need to make sure that you have set the environment
-variables for the Graphcore drivers (see the `Getting Started Guide for your IPU
-system <https://docs.graphcore.ai/en/latest/getting-started.html>`_).
 
 * Run the program to see the same results.
 

@@ -5,6 +5,18 @@ As always, do not hesitate to read through the `Poplar and PopLibs User
 Guide <https://docs.graphcore.ai/projects/poplar-user-guide/en/latest/index.html>`_
 to complement this tutorial.
 
+Setup
+......
+
+In order to run this tutorial on the IPU you will need to have a Poplar SDK environment enabled (see the
+`Getting Started Guide for your IPU system <https://docs.graphcore.ai/en/latest/getting-started.html>`_).
+
+You will also need a C++ toolchain compatible with the C++11 standard, build commands in this tutorial use GCC.
+
+
+Optimising matrix-vector multiplication
+......
+
 In the previous tutorial, we learnt how to build a more complex vertex that multiplies
 a matrix by a vector. However, for a massively parallel machine such as the IPU, the
 strategy in tutorial 5 is not the most efficient. In particular:
