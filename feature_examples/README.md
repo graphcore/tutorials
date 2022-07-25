@@ -79,6 +79,7 @@ Specific layers:
 - [Embeddings](tensorflow2/embeddings): an example of a model with an embedding layer and an
 LSTM, trained on the IPU to predict the sentiment of an IMDB review.
 
+- [Recomputation Checkpoints](tensorflow2/recomputation_checkpoints): an example demonstrating the checkpointing of intermediate values to reduce live memory peaks with a simple Keras LSTM model.
 
 ## PyTorch
 

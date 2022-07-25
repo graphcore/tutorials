@@ -23,6 +23,7 @@ working_path = Path(__file__).parent.parent
 class TestComplete(SubProcessChecker):
 
     @pytest.mark.category1
+    @pytest.mark.ipus(1)
     def test_run_demo_ipu(self):
         self.run_command("python3 completed_demos/completed_demo_ipu.py",
                          working_path,
@@ -43,7 +44,7 @@ class TestComplete(SubProcessChecker):
                          "Program ran successfully")
 
     @pytest.mark.category1
-    @pytest.mark.ipus(2)
+    @pytest.mark.ipus(4)
     def test_run_demo_pipelining(self):
         self.run_command("python3 completed_demos/completed_demo_pipelining.py",
                          working_path,

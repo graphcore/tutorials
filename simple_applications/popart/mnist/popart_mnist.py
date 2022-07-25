@@ -6,14 +6,35 @@ A simple program that uses the PopART library ONNX builder to create
 a linear model and then trains it on the MNIST data set.
 """
 import argparse
+import datetime
+import functools
 import os
 import struct
 import tempfile
 from collections import namedtuple
-from time import time
+from time import time, sleep
 
 import numpy as np
 import popart
+
+
+@functools.wraps(popart.DeviceManager.acquireAvailableDevice)
+def acquireAvailableDevice(*args, **kwargs):
+    """
+    Provides an 'OnDemand' device to allow for more efficient parallel execution
+    """
+    timeout = datetime.timedelta(hours=1)
+    end = datetime.datetime.now() + timeout
+    while datetime.datetime.now() < end:
+        d = popart.DeviceManager.tryAcquireAvailableDevice(*args, **kwargs)
+        if d is not None:
+            return d
+        print("Failed to acquire device, waiting for 10 seconds")
+        sleep(10)
+    raise RuntimeError("Timeout: failed to acquire any device")
+
+# Override PopART's device acquisition method with our own, better one
+popart.DeviceManager.acquireAvailableDevice = acquireAvailableDevice
 
 Session = namedtuple('Session', ['session', 'anchors'])
 
@@ -134,10 +155,9 @@ def get_device(num_ipus, sim=True):
         }
         device = deviceManager.createIpuModelDevice(options)
     else:
-        device = deviceManager.acquireAvailableDevice(num_ipus)
-        if device is None:
-            print("Failed to acquire IPU. Exiting.")
-            return None
+        device = deviceManager.acquireAvailableDevice(
+            num_ipus,
+        )
     return device
 
 
@@ -238,57 +258,56 @@ def train(opts):
         userOpts.replicatedGraphCount = opts.replication_factor
 
     # A single device is shared between training and validation sessions
-    device = get_device(opts.num_ipus, opts.simulation)
+    with get_device(opts.num_ipus, opts.simulation) as device:
+        training = init_session(proto, loss, dataFlow, userOpts, device, training=True)
+        validation = init_session(proto, loss, dataFlow, userOpts, device, training=False)
 
-    training = init_session(proto, loss, dataFlow, userOpts, device, training=True)
-    validation = init_session(proto, loss, dataFlow, userOpts, device, training=False)
+        # Make weight transfer file
+        _, onnx_file_name = tempfile.mkstemp()
 
-    # Make weight transfer file
-    _, onnx_file_name = tempfile.mkstemp()
+        print("Running training loop.")
+        for i in range(opts.epochs):
+            # Training
+            if i > 0:
+                training.session.resetHostWeights(onnx_file_name)
+            training.session.weightsFromHost()
+            for step, (data, labels) in enumerate(training_set):
+                stepio = popart.PyStepIO({data_in: data, labels_in: labels}, training.anchors)
 
-    print("Running training loop.")
-    for i in range(opts.epochs):
-        # Training
-        if i > 0:
-            training.session.resetHostWeights(onnx_file_name)
-        training.session.weightsFromHost()
-        for step, (data, labels) in enumerate(training_set):
-            stepio = popart.PyStepIO({data_in: data, labels_in: labels}, training.anchors)
-
-            start = time()
-            training.session.run(stepio, 'Epoch ' + str(i) + ' training step' + str(step))
-            if opts.test_mode == "training":
-                log_run_info(training, start, opts)
-
-        training.session.modelToHost(onnx_file_name)
-
-        if not opts.validation_final_epoch or i == opts.epochs - 1:
-            aggregated_loss = 0
-            aggregated_accuracy = 0
-            validation.session.resetHostWeights(onnx_file_name)
-            validation.session.weightsFromHost()
-
-            # Evaluation
-            for step, (data, labels) in enumerate(test_set):
-                stepio = popart.PyStepIO({data_in: data, labels_in: labels}, validation.anchors)
                 start = time()
-                validation.session.run(stepio, 'Epoch ' + str(i) + ' evaluation step ' + str(step))
-                if opts.test_mode == "inference":
-                    log_run_info(validation, start, opts)
+                training.session.run(stepio, 'Epoch ' + str(i) + ' training step' + str(step))
+                if opts.test_mode == "training":
+                    log_run_info(training, start, opts)
 
-                # Loss
-                aggregated_loss += np.mean(validation.anchors[loss])
-                # Accuracy
-                results = np.argmax(validation.anchors[output].reshape([test_set.inputs_per_step, 10]), 1)
-                num_correct = np.sum(results == labels.reshape([test_set.inputs_per_step]))
-                aggregated_accuracy += num_correct / test_set.inputs_per_step
+            training.session.modelToHost(onnx_file_name)
 
-            # Log statistics
-            aggregated_loss /= len(test_set)
-            aggregated_accuracy /= len(test_set)
-            print("Epoch #{}".format(i + 1))
-            print("   Loss={0:.4f}".format(aggregated_loss))
-            print("   Accuracy={0:.2f}%".format(aggregated_accuracy * 100))
+            if not opts.validation_final_epoch or i == opts.epochs - 1:
+                aggregated_loss = 0
+                aggregated_accuracy = 0
+                validation.session.resetHostWeights(onnx_file_name)
+                validation.session.weightsFromHost()
+
+                # Evaluation
+                for step, (data, labels) in enumerate(test_set):
+                    stepio = popart.PyStepIO({data_in: data, labels_in: labels}, validation.anchors)
+                    start = time()
+                    validation.session.run(stepio, 'Epoch ' + str(i) + ' evaluation step ' + str(step))
+                    if opts.test_mode == "inference":
+                        log_run_info(validation, start, opts)
+
+                    # Loss
+                    aggregated_loss += np.mean(validation.anchors[loss])
+                    # Accuracy
+                    results = np.argmax(validation.anchors[output].reshape([test_set.inputs_per_step, 10]), 1)
+                    num_correct = np.sum(results == labels.reshape([test_set.inputs_per_step]))
+                    aggregated_accuracy += num_correct / test_set.inputs_per_step
+
+                # Log statistics
+                aggregated_loss /= len(test_set)
+                aggregated_accuracy /= len(test_set)
+                print("Epoch #{}".format(i + 1))
+                print("   Loss={0:.4f}".format(aggregated_loss))
+                print("   Accuracy={0:.2f}%".format(aggregated_accuracy * 100))
 
     # Remove weight transfer file
     os.remove(onnx_file_name)

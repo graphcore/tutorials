@@ -10,7 +10,7 @@ It is assumed that you have already downloaded and installed the Poplar SDK, and
 you are familiar with Python and command-line compilation tools.
 
 You can download and install the PopVision Graph Analyser and PopVision System Analyser
-from the `Downloads Portal <https://downloads.graphcore.ai/>`_.
+from the `PopVision Tools page <https://www.graphcore.ai/developer/popvision-tools>`_.
 
 The PopVision Graph Analyser User Guide is available `here <https://docs.graphcore.ai/projects/graph-analyser-userguide/en/latest/>`_,
 and the PopVision System Analyser User Guide `here <https://docs.graphcore.ai/projects/system-analyser-userguide/en/latest/>`_.
@@ -21,12 +21,13 @@ and the other, ``complete``, contains the finished code for reference.
 Each tutorial also has a ``tests`` directory, which checks that the code can be
 compiled and run. See the README file in each test directory for more information.
 
-They can run on a simulated IPU, so you should be able to create the code, compile
+Some tutorials can run on a simulated IPU, so you should be able to create the code, compile
 and run them as you work through this text even if you do not have access to IPU hardware.
 
 Each of the tutorials contains its own README file with full instructions.
 
-* Tutorial 1: Instrumenting applications to view in the PopVision System Analyser
-* Tutorial 2: Accessing profiling information
+* Instrumenting applications to view in the PopVision System Analyser
+* Accessing profiling information
+* Using _lightweight_ profiling
 
-Copyright (c) 2020 Graphcore Ltd. All rights reserved.
+Copyright (c) 2020-2022 Graphcore Ltd. All rights reserved.

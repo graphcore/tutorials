@@ -15,6 +15,9 @@ import unittest
 """Library of utility functions common between frameworks"""
 
 
+DEFAULT_PROCESS_TIMEOUT_SECONDS = 40 * 60
+
+
 class CalledProcessError(subprocess.CalledProcessError):
     """An error for subprocesses which captures stdout and stderr in the error message."""
     def __str__(self) -> str:
@@ -493,7 +496,7 @@ class SubProcessChecker(unittest.TestCase):
         )
 
 
-    def run_command(self, cmd, working_path, expected_strings, env=None, timeout=None):
+    def run_command(self, cmd, working_path, expected_strings, env=None, timeout=DEFAULT_PROCESS_TIMEOUT_SECONDS):
         """
         Please use :func:`run_command` instead.
 
@@ -589,6 +592,7 @@ def run_command_fail_explicitly(
     DEFAULT_KWARGS = {
         "shell": isinstance(command, str) and " " in command,
         "stderr": subprocess.PIPE,
+        "timeout": DEFAULT_PROCESS_TIMEOUT_SECONDS,
         "universal_newlines": True,
     }
 

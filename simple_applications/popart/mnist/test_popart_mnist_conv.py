@@ -60,7 +60,7 @@ class TestPopARTMNISTImageClassificationConvolution:
         cmd, args = self.generic_cmd.copy(), self.generic_arguments.copy()
         args["--batch-size"] = 1
         args["--batches-per-step"] = 1
-        args["--epochs"] = 1
+        args["--epochs"] = 0.001
         args["--simulation"] = None
         cmd = testing_util.add_args(cmd, args)
         testing_util.run_command_fail_explicitly(cmd, self.cwd)

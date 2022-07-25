@@ -5,8 +5,7 @@ Optimizer wrapper that selectively outfeeds gradients
 """
 
 from enum import Enum
-from tensorflow.python.keras import optimizers
-from tensorflow.python.keras.optimizer_v2 import optimizer_v2
+from keras.optimizer_v2 import optimizer_v2
 from tensorflow.python.training.optimizer import Optimizer
 
 

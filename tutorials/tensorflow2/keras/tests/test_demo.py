@@ -22,11 +22,13 @@ working_path = Path(__file__).parent.parent
 
 class TestDemo(SubProcessChecker):
     @pytest.mark.category2
+    @pytest.mark.ipus(2)
     def test_run_demo(self):
         self.run_command("python3 demo.py",
                          working_path,
                          "152/152")  # test_steps_per_execution for pipelining
 
+    @pytest.mark.ipus(2)
     @pytest.mark.category2
     def test_run_demo_code_only(self):
         self.run_command("python3 demo_code_only.py",

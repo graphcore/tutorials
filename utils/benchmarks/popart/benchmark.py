@@ -56,13 +56,15 @@ def run(benchmark, opts):
 
     # Select a device
     deviceManager = popart.DeviceManager()
-    deviceManager.setOnDemandAttachTimeout(10000)
     if opts.simulation:
         deviceOptions = {"compileIPUCode": True,
                          'numIPUs': opts.shards, "tilesPerIPU": 1216}
         device = deviceManager.createIpuModelDevice(deviceOptions)
     else:
-        device = deviceManager.acquireAvailableDevice(opts.shards)
+        deviceManager.setOnDemandAttachTimeout(10000)
+        device = deviceManager.acquireAvailableDevice(
+            opts.shards, connectionType=popart.DeviceConnectionType.OnDemand
+        )
         if device is None:
             raise OSError("Failed to acquire IPU.")
 

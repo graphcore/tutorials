@@ -86,6 +86,7 @@ x_test, y_test = x_test[:test_data_len], y_test[:test_data_len]
 
 # Add IPU configuration
 ipu_config = ipu.config.IPUConfig()
+ipu_config.device_connection.type = ipu.config.DeviceConnectionType.ON_DEMAND
 ipu_config.auto_select_ipus = num_ipus
 ipu_config.configure_ipu_system()
 

@@ -26,6 +26,7 @@
 #include <popart/tensordata.hpp>
 #include <popart/tensorinfo.hpp>
 #include <popart/tensornames.hpp>
+#include <popart/stepio.hpp>
 
 #include <popops/ElementWise.hpp>
 

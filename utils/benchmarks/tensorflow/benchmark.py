@@ -14,7 +14,7 @@ import json
 import argparse
 from collections import namedtuple
 
-from tensorflow.python.ipu.config import IPUConfig
+from tensorflow.python.ipu.config import IPUConfig, DeviceConnectionType
 from tensorflow.python.ipu.scopes import ipu_scope
 from tensorflow.python.ipu import utils, loops, ipu_infeed_queue, ipu_compiler
 
@@ -180,6 +180,7 @@ def get_config(opts):
     """Builds ipu_options"""
 
     config = IPUConfig()
+    config.device_connection.type = DeviceConnectionType.ON_DEMAND
 
     if opts.device_id == -1:
         config.auto_select_ipus = opts.shards*opts.replicas

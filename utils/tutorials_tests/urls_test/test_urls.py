@@ -94,6 +94,10 @@ def check_file_links(file_path: Path, links: Iterable[str]) -> List[str]:
     failed_paths = []
 
     for link in links:
+        if "mailto:support@graphcore.ai" in link:
+            print(f"SKIPPING EMAIL: {link}")
+            continue
+
         link_target = file_path.parent / link
         if link_target.exists():
             print(f"\t{link_target} -> EXISTS")

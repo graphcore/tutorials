@@ -203,6 +203,7 @@ To use the IPU, you must create an IPU session configuration:
 """
 
 ipu_config = ipu.config.IPUConfig()
+ipu_config.device_connection.type = ipu.config.DeviceConnectionType.ON_DEMAND  # Optional - allows parallel execution
 ipu_config.auto_select_ipus = 1
 ipu_config.configure_ipu_system()
 # sst_hide_output

@@ -13,7 +13,7 @@ import os
 import sys
 import tensorflow as tf
 from tensorflow.python.ipu import utils
-from tensorflow.python.ipu import rnn_ops
+from ipu_tensorflow_addons.layers import rnn_ops
 
 
 def lstm_block(input_tensor, num_units, opts, name=""):

@@ -1,0 +1,5 @@
+numpy
+tqdm
+torch
+torchvision
+popxl-addons @ git+https://github.com/graphcore/popxl-addons.git@sdk-release-2.6

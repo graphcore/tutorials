@@ -1,0 +1,8 @@
+pandas
+datasets
+torchvision==0.11.1
+transformers
+optimum
+optimum-graphcore
+matplotlib
+sklearn

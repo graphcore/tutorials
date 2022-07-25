@@ -201,7 +201,7 @@ all Graphcore documentation specifically relating to TensorFlow.
 - [IPU TensorFlow 1 Code Examples](https://github.com/graphcore/examples/tree/master/code_examples/tensorflow):
 examples of different use cases of TensorFlow 1 on the IPU.
 
-- [Graphcore tutorials](https://github.com/graphcore/tutorials/tree/master/tutorials):
+- [Graphcore tutorials](../../../tutorials):
 a list of existing tutorials for using the IPU.
 
 Generated:2022-05-19T17:37 Source:mnist.py SDK:2.5.1+1001 SST:0.0.7

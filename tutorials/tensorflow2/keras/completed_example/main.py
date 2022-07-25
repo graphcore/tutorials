@@ -53,6 +53,7 @@ else:
 
     # Standard IPU TensorFlow setup.
     ipu_config = ipu.config.IPUConfig()
+    ipu_config.device_connection.type = ipu.config.DeviceConnectionType.ON_DEMAND
     ipu_config.auto_select_ipus = num_ipus
     ipu_config.configure_ipu_system()
 

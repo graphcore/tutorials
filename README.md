@@ -8,7 +8,7 @@ repository. If you are actively using this repository and want to report any iss
 
 The latest version of the documentation for the Poplar software stack, and other developer resources, is available at https://www.graphcore.ai/developer.
 
->  The code presented here requires using Poplar SDK 2.5. Please check other branches of this repository for code compatible with previous releases.
+>  The code presented here requires using Poplar SDK 2.6. Please check other branches of this repository for code compatible with previous releases.
 
 Please install and enable the Poplar SDK following the instructions in the [Getting Started guide for your IPU system](https://docs.graphcore.ai/en/latest/getting-started.html).
 

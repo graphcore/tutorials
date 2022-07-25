@@ -10,6 +10,7 @@
 #include <popart/popx/opxmanager.hpp>
 
 #include <popops/ElementWise.hpp>
+#include <popart/popx/opx.hpp>
 
 namespace CustomOperators {
 const popart::OperatorIdentifier LeakyReluId = {"custom.ops", "LeakyRelu", 1};

@@ -208,6 +208,6 @@ all Graphcore documentation specifically relating to TensorFlow.
 - [IPU TensorFlow 1 Code Examples](https://github.com/graphcore/examples/tree/master/code_examples/tensorflow):
 examples of different use cases of TensorFlow 1 on the IPU.
 
-- [Graphcore tutorials](https://github.com/graphcore/tutorials/tree/master/tutorials):
+- [Graphcore tutorials](../../../tutorials):
 a list of existing tutorials for using the IPU.
 """

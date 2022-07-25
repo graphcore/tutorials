@@ -2,6 +2,9 @@
 
 In this tutorial, you will write code for training a simple fully connected network on the MNIST dataset to illustrate how to use infeed and outfeed queues with a custom training function.
 
+If you are not familiar with how to run TensorFlow 2 models on the IPU, you may wish to read our [MNIST starter tutorial](../../../simple_applications/tensorflow2/mnist) .
+
+
 Requirements:
 
 * Installed and enabled Poplar

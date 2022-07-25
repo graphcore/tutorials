@@ -110,7 +110,7 @@ We use the [data loader provided by
 PopTorch](https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/pytorch_to_poptorch.html#preparing-your-data).
 More information about the use of `poptorch.Dataloader` can be found in
 [PopTorch tutorial on efficient data
-loading](../../../tutorials/pytorch/tut2_efficient_data_loading)
+loading](../../../tutorials/pytorch/efficient_data_loading).
 """
 """
 A `poptorch.Options()` instance contains a set of default hyperparameters and options for the IPU.
