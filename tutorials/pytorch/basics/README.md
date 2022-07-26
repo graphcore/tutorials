@@ -438,7 +438,7 @@ cm_plot = ConfusionMatrixDisplay(cm, display_labels=classes).plot(
 ```
 
 ```output
-Eval accuracy: 89.55%
+Eval accuracy: 90.18%
 ```
 
 ![png](static/output_48_1.png)
@@ -553,9 +553,9 @@ print(output)
 ```
 
 ```output
-Graph compilation: 100%|██████████| 100/100 [00:08<00:00]
-tensor([[-14.6161,  -0.0574, -16.2903, -19.4362,  -2.9447,  -5.9299,  -8.0451,
-         -15.5745,  -8.6237, -11.7268]])
+Graph compilation: 100%|██████████| 100/100 [00:07<00:00]
+tensor([[-15.2817,  -0.0553,  -7.6824,  -9.8223, -12.4960, -21.5640,  -2.9329,
+         -12.9931, -11.0685, -14.9132]])
 ```
 
 Now we interpret the output and print the name of the class.
@@ -685,8 +685,10 @@ seen before. When submitting our own images for classification, we needed to mak
 sure that we were aware of the limitations of our model.
 
 ### Next steps:
-To continue learning about PopTorch and how to use it to run your models on the IPU, look at our tutorials on [efficient data loading](https://github.com/graphcore/tutorials/tree/master/tutorials/pytorch/tut2_efficient_data_loading)
-, [pipelining your model in PopTorch](https://github.com/graphcore/tutorials/tree/master/tutorials/pytorch/tut5_pipelining)
-and [fine-tuning a BERT model to run on the IPU](https://github.com/graphcore/tutorials/tree/master/tutorials/pytorch/tut_finetuning_bert).
+To continue learning about PopTorch and how to use it to run your models on the
+IPU, look at our tutorials on [efficient data
+loading](../efficient_data_loading), [pipelining your model in
+PopTorch](../pipelining) and [fine-tuning a BERT model to run on the
+IPU](../finetuning_bert).
 
-Generated:2022-07-13T16:32 Source:walkthrough.py SDK:2.6.0+1049 SST:0.0.7
+Generated:2022-07-26T09:38 Source:walkthrough.py SDK:2.6.0+1074 SST:0.0.7

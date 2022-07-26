@@ -214,4 +214,4 @@ inference_model = poptorch.inferenceModel(model, inf_options)
 
 test(inference_model, test_data)
 
-# Generated:2022-05-19T17:25 Source:walkthrough.py SST:0.0.7
+# Generated:2022-07-25T21:49 Source:walkthrough.py SST:0.0.7

@@ -20,7 +20,7 @@ Here are some other useful resources:
 [TensorFlow Docs](https://docs.graphcore.ai/en/latest/software.html#tensorflow)
 - All Graphcore documentation specifically relating to TensorFlow.
 
-[IPU TensorFlow Code Examples](https://github.com/graphcore/examples/tree/master/code_examples/tensorflow)
+[IPU TensorFlow Code Examples](../../../feature_examples/tensorflow)
 - Lots of examples of different use cases of TensorFlow on the IPU.
 
 If you need any more personal help, please do not hesitate to contact our [support desk](https://www.graphcore.ai/support).

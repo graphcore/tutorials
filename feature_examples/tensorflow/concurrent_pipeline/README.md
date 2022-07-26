@@ -14,7 +14,7 @@ use the library in such an application.
 
 A more general introduction to Pipelining can be found in our [memory and
 performance optimisation
-guide](https://docs.graphcore.ai/projects/memory-performance-optimisation/en/latest/main.html#pipeline-execution-scheme).
+guide](https://docs.graphcore.ai/projects/memory-performance-optimisation/en/2.6.0/optimising-performance.html#pipeline-execution-scheme).
 
 ### File structure
 

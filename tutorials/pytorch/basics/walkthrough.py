@@ -643,7 +643,9 @@ sure that we were aware of the limitations of our model.
 """
 """
 ### Next steps:
-To continue learning about PopTorch and how to use it to run your models on the IPU, look at our tutorials on [efficient data loading](https://github.com/graphcore/tutorials/tree/master/tutorials/pytorch/tut2_efficient_data_loading)
-, [pipelining your model in PopTorch](https://github.com/graphcore/tutorials/tree/master/tutorials/pytorch/tut5_pipelining)
-and [fine-tuning a BERT model to run on the IPU](https://github.com/graphcore/tutorials/tree/master/tutorials/pytorch/tut_finetuning_bert).
+To continue learning about PopTorch and how to use it to run your models on the
+IPU, look at our tutorials on [efficient data
+loading](../efficient_data_loading), [pipelining your model in
+PopTorch](../pipelining) and [fine-tuning a BERT model to run on the
+IPU](../finetuning_bert).
 """

@@ -1,7 +1,6 @@
 # Copyright (c) 2020 Graphcore Ltd. All rights reserved.
 import os
 import sys
-import unittest
 
 import pytest
 import tutorials_tests.testing_util as testing_util
@@ -19,16 +18,12 @@ def run_multi_ipu(shards, batch_size, batches_per_step):
     return out
 
 
-class TestMultiIPUPopART(unittest.TestCase):
-    """Tests for multi-IPU popART code example"""
 
-    @classmethod
-    def setUpClass(cls):
-        pass
+"""Tests for multi-IPU popART code example"""
 
-    # Multi-IPU tests
 
-    @pytest.mark.ipus(2)
-    @pytest.mark.category1
-    def test_multi_ipu_2_10(self):
-        out = run_multi_ipu(shards=2, batch_size=10, batches_per_step=100000)
+# Multi-IPU tests
+@pytest.mark.ipus(2)
+@pytest.mark.category1
+def test_multi_ipu_2_10():
+    out = run_multi_ipu(shards=2, batch_size=10, batches_per_step=100000)

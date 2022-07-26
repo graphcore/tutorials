@@ -362,7 +362,7 @@ train_opts.setExecutionStrategy(pipelined_strategy)
 ```
 
 ```output
-<poptorch.options.Options at 0x7f421dc95160>
+<poptorch.options.Options at 0x7f0930038f98>
 ```
 
 Note: Since IPUs are all set *in order* from 0 to 3, this shorter notation can also be used to, both, set the execution strategy and place the stages on the IPUs:
@@ -399,7 +399,7 @@ train_opts.Training.gradientAccumulation(gradient_accumulation)
 ```
 
 ```output
-<poptorch.options._TrainingOptions at 0x7f41eedd0978>
+<poptorch.options._TrainingOptions at 0x7f06852ae630>
 ```
 
 The following execution profile illustrates how these parameters affect the computation on IPUs.
@@ -448,7 +448,7 @@ pipelined_strategy = poptorch.PipelinedExecution(
 This format places two blocks into two stages onto two IPUs instead of the four used earlier in the tutorial.
 
 More information on splitting models for pipelining are available in the
-[memory and performance optimisation guide](https://docs.graphcore.ai/projects/memory-performance-optimisation/en/latest/main.html#pipeline-execution-scheme), and
+[memory and performance optimisation guide](https://docs.graphcore.ai/projects/memory-performance-optimisation/en/2.6.0/optimising-performance.html#pipeline-execution-scheme), and
 the [TensorFlow pipelining technical note](https://docs.graphcore.ai/projects/tf-model-parallelism/en/latest/index.html).
 
 ## Sharded execution (sequential)
@@ -496,7 +496,7 @@ train_opts.TensorLocations.setOptimizerLocation(
 ```
 
 ```output
-<poptorch.options._TensorLocationOptions at 0x7f421dca3208>
+<poptorch.options._TensorLocationOptions at 0x7f06852ae6a0>
 ```
 
 # Training the model
@@ -551,7 +551,7 @@ train_opts.outputMode(poptorch.OutputMode.All)
 ```
 
 ```output
-<poptorch.options.Options at 0x7f421dc95160>
+<poptorch.options.Options at 0x7f0930038f98>
 ```
 
 We are ready to start training!
@@ -563,12 +563,12 @@ train(training_model, training_data)
 
 ```output
 Epoch 1/3
-Graph compilation: 100%|██████████| 100/100 [01:28<00:00]
-Loss:0.1735 | Accuracy:94.77%: 100%|██████████| 15/15 [01:31<00:00,  6.11s/it]
+Graph compilation: 100%|██████████| 100/100 [01:36<00:00]
+Loss:0.1192 | Accuracy:96.65%: 100%|██████████| 15/15 [01:39<00:00,  6.65s/it]
 Epoch 2/3
-Loss:0.0842 | Accuracy:97.50%: 100%|██████████| 15/15 [00:00<00:00, 17.91it/s]
+Loss:0.0808 | Accuracy:97.55%: 100%|██████████| 15/15 [00:00<00:00, 16.92it/s]
 Epoch 3/3
-Loss:0.0616 | Accuracy:98.25%: 100%|██████████| 15/15 [00:00<00:00, 18.89it/s]
+Loss:0.0710 | Accuracy:97.92%: 100%|██████████| 15/15 [00:00<00:00, 16.68it/s]
 ```
 
 # Inference
@@ -605,8 +605,8 @@ test(inference_model, test_data)
 ```
 
 ```output
-Graph compilation: 100%|██████████| 100/100 [00:31<00:00]
-100%|██████████| 12/12 [00:34<00:00,  2.87s/it]Accuracy on test set: 98.41%
+Graph compilation: 100%|██████████| 100/100 [00:30<00:00]
+100%|██████████| 12/12 [00:33<00:00,  2.82s/it]Accuracy on test set: 98.02%
 ```
 
 # How to run the example script
@@ -669,14 +669,23 @@ This information is key to choosing a model partitioning that will reduce the ti
 Additionally, memory usage on the IPU was reduced at the expense of execution time by offloading optimiser-specific tensors to the host.
 This trade-off is worth considering if you need to fit memory intensive models on the IPU.
 
-To continue your journey with the Graphcore IPU
-you may want to look at the Graphcore [examples repository](https://github.com/graphcore/examples/tree/master/applications/pytorch) which contains implementations of standard deep learning models optimised for the IPU.
-You will find, amongst others: convolutional neural networks, BERT, and ViT models.
+To continue your journey with the Graphcore IPU you may want to look at the
+Graphcore [examples
+repository](https://github.com/graphcore/examples/tree/v2.6.0) which contains
+implementations of standard deep learning models optimised for the IPU. You will
+find, amongst others: [convolutional neural
+networks](https://github.com/graphcore/examples/tree/v2.6.0/vision/cnns),
+[BERT](https://github.com/graphcore/examples/tree/v2.6.0/nlp/bert/pytorch),
+[mini
+DALL-E](https://github.com/graphcore/examples/tree/v2.6.0/multimodal/mini_dalle/pytorch),
+and [ViT](https://github.com/graphcore/examples/tree/v2.6.0/vision/vit/pytorch)
+models.
+
 If you are looking to port and optimise your own model, the
-[memory and performance optimisation guide](https://docs.graphcore.ai/projects/memory-performance-optimisation/en/latest/main.html)
+[memory and performance optimisation guide](https://docs.graphcore.ai/projects/memory-performance-optimisation/en/2.6.0/index.html)
 will help you make the most of the hardware.
 Finally the
 [TensorFlow pipelining tech note](https://docs.graphcore.ai/projects/tf-model-parallelism/en/latest/pipelining.html#optimising-the-pipeline)
 contains additional information on the core concepts required to optimise your pipelined model.
 
-Generated:2022-05-19T17:22 Source:walkthrough.py SDK:2.5.1+1001 SST:0.0.7
+Generated:2022-07-25T21:47 Source:walkthrough.py SDK:2.6.0+1074 SST:0.0.7

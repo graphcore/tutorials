@@ -379,7 +379,7 @@ Outlining is the opposite of inlining:
 
 Further information on graph outlining can be found in our [memory performance
 optimisation
-guide](https://docs.graphcore.ai/projects/memory-performance-optimisation/en/latest/main.html?highlight=outlining#graph-outlining).
+guide](https://docs.graphcore.ai/projects/memory-performance-optimisation/en/2.6.0/common-memory-optimisations.html#graph-outlining).
 
 These concepts becomes important when we start building more complicated models
 using the

@@ -36,13 +36,13 @@ static std::vector<float> createRandomInitializers(unsigned numElements) {
   return inits;
 }
 
-// A simple program to train the model Wx + b = y on the MNIST
-// dataset using gradient descent.
-// If -IPU is passed as the first argument then use an IPU;
-// otherwise use an IPUModel
-// Any other arguments will be used to change the number of epochs to run
-// and (optionally) the percentage of the images to use for training
-// For example, regresssion-demo -IPU 2 10.0
+// A simple program to train the model Wx + b = y on the MNIST dataset using
+// gradient descent.
+// If -IPU is passed as the first argument then use an IPU; otherwise use an
+// IPUModel
+// Any other arguments will be used to change the number of epochs to run and
+// (optionally) the percentage of the images to use for training For example,
+// regression-demo -IPU 2 10.0
 int main(int argc, char **argv) {
   unsigned numberOfImages = 0, imageSize = 0;
   std::vector<float> data =
@@ -57,10 +57,10 @@ int main(int argc, char **argv) {
   // Default number of epochs which can be changed by passing an argument
   unsigned epochs = 50;
 
-  // If -IPU is passed as the first argument then use an IPU;
-  // otherwise use an IPUModel
-  // Any other arguments will be used to change the number of epochs to run
-  // and (optionally) the percentage of the images to use
+  // If -IPU is passed as the first argument then use an IPU; otherwise use an
+  // IPUModel
+  // Any other arguments will be used to change the number of epochs to run and
+  // (optionally) the percentage of the images to use
   if (argc > 1 && std::strcmp(argv[1], "-IPU") == 0) {
     useModel = false;
     std::cout << "Using the IPU" << std::endl;
@@ -96,7 +96,7 @@ int main(int argc, char **argv) {
 
     if (it == devices.end()) {
       std::cerr << "Error attaching to device\n";
-      return 1; //EXIT_FAILURE
+      return 1; // EXIT_FAILURE
     }
 
     device = std::move(*it);
@@ -125,9 +125,8 @@ int main(int argc, char **argv) {
   Tensor expected = graph.addVariable(UNSIGNED_INT, {1}, "expected");
   poputil::mapTensorLinearly(graph, expected);
 
-  // Create the graph and program to execute the model, calculate
-  // the gradients of W, b and subtract the scaled gradients from the
-  // parameters
+  // Create the graph and program to execute the model, calculate the gradients
+  // of W, b and subtract the scaled gradients from the parameters
   Sequence mProg;
 
   // Calculate y = Wx + b
@@ -173,7 +172,11 @@ int main(int argc, char **argv) {
   trainProg.add(Copy(numCorrect, numCorrectOut));
 
   // Create a Poplar engine.
-  Engine engine(graph, trainProg);
+  // By default, in order to reduce host memory consumption, the generation and
+  // retention of debug information is not enabled. Because we wish to print a
+  // Profile Summary below, we need to tell the Engine at `prog` compile time to
+  // retain this information via the `retainDebugInformation` option.
+  auto engine = Engine{graph, trainProg, {{"debug.retainDebugInformation", "true"}}};
   engine.load(device);
 
   // Connect up the data streams

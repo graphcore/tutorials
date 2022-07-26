@@ -31,7 +31,7 @@ int main() {
 
   if (it == devices.end()) {
     std::cerr << "Error attaching to device\n";
-    return 1; //EXIT_FAILURE
+    return 1; // EXIT_FAILURE
   }
 
   auto device = std::move(*it);
@@ -61,7 +61,7 @@ int main() {
   // Create the engine. We instruct the engine to perform instrumentation - this
   // adds cycle counters to the compiled program to enable the execution profile
   // to be retrieved after the program is run.
-  Engine engine(graph, prog, {{"debug.instrument", "true"}});
+  auto engine = Engine{graph, prog, {{"debug.instrument", "true"}}};
   engine.load(device);
 
   // Run the control program

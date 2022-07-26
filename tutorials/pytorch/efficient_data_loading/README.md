@@ -691,6 +691,6 @@ file: `tuto_data_loading.py`. Helpful arguments:
 
 Further information on Host-IPU IO optimisation can be found in our [memory and
 performance optimisation
-guide](https://docs.graphcore.ai/projects/memory-performance-optimisation/en/latest/main.html#host-ipu-io-optimisation).
+guide](https://docs.graphcore.ai/projects/memory-performance-optimisation/en/2.6.0/optimising-performance.html#host-ipu-io-optimisation).
 
 Generated:2022-05-19T17:33 Source:walkthrough.py SDK:2.5.1+1001 SST:0.0.7

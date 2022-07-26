@@ -478,7 +478,7 @@ pipelined_strategy = poptorch.PipelinedExecution(
 This format places two blocks into two stages onto two IPUs instead of the four used earlier in the tutorial.
 
 More information on splitting models for pipelining are available in the
-[memory and performance optimisation guide](https://docs.graphcore.ai/projects/memory-performance-optimisation/en/latest/main.html#pipeline-execution-scheme), and
+[memory and performance optimisation guide](https://docs.graphcore.ai/projects/memory-performance-optimisation/en/2.6.0/optimising-performance.html#pipeline-execution-scheme), and
 the [TensorFlow pipelining technical note](https://docs.graphcore.ai/projects/tf-model-parallelism/en/latest/index.html).
 
 """
@@ -679,11 +679,20 @@ This information is key to choosing a model partitioning that will reduce the ti
 Additionally, memory usage on the IPU was reduced at the expense of execution time by offloading optimiser-specific tensors to the host.
 This trade-off is worth considering if you need to fit memory intensive models on the IPU.
 
-To continue your journey with the Graphcore IPU
-you may want to look at the Graphcore [examples repository](https://github.com/graphcore/examples/tree/master/applications/pytorch) which contains implementations of standard deep learning models optimised for the IPU.
-You will find, amongst others: convolutional neural networks, BERT, and ViT models.
+To continue your journey with the Graphcore IPU you may want to look at the
+Graphcore [examples
+repository](https://github.com/graphcore/examples/tree/v2.6.0) which contains
+implementations of standard deep learning models optimised for the IPU. You will
+find, amongst others: [convolutional neural
+networks](https://github.com/graphcore/examples/tree/v2.6.0/vision/cnns),
+[BERT](https://github.com/graphcore/examples/tree/v2.6.0/nlp/bert/pytorch),
+[mini
+DALL-E](https://github.com/graphcore/examples/tree/v2.6.0/multimodal/mini_dalle/pytorch),
+and [ViT](https://github.com/graphcore/examples/tree/v2.6.0/vision/vit/pytorch)
+models.
+
 If you are looking to port and optimise your own model, the
-[memory and performance optimisation guide](https://docs.graphcore.ai/projects/memory-performance-optimisation/en/latest/main.html)
+[memory and performance optimisation guide](https://docs.graphcore.ai/projects/memory-performance-optimisation/en/2.6.0/index.html)
 will help you make the most of the hardware.
 Finally the
 [TensorFlow pipelining tech note](https://docs.graphcore.ai/projects/tf-model-parallelism/en/latest/pipelining.html#optimising-the-pipeline)

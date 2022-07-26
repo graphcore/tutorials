@@ -43,7 +43,11 @@ int main() {
   Tensor m5 = poplin::matMul(graph, m4, m3, prog, "m5");
 
   // Create the engine
-  Engine engine(graph, prog);
+  // By default, in order to reduce host memory consumption, the generation and
+  // retention of debug information is not enabled. Because we wish to print a
+  // Profile Summary below, we need to tell the Engine at `prog` compile time to
+  // retain this information via the `retainDebugInformation` option.
+  auto engine = Engine{graph, prog, {{"debug.retainDebugInformation", "true"}}};
   engine.load(device);
 
   // Run the control program

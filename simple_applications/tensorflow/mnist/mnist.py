@@ -205,7 +205,7 @@ print("Program ran successfully")
 - [TensorFlow Docs](https://docs.graphcore.ai/en/latest/software.html#tensorflow):
 all Graphcore documentation specifically relating to TensorFlow.
 
-- [IPU TensorFlow 1 Code Examples](https://github.com/graphcore/examples/tree/master/code_examples/tensorflow):
+- [IPU TensorFlow 1 Code Examples](../../../feature_examples/tensorflow):
 examples of different use cases of TensorFlow 1 on the IPU.
 
 - [Graphcore tutorials](../../../tutorials):

@@ -365,7 +365,7 @@ else:
 """
 Further information on the Partials Type setting can be found in our [memory and
 performance optimisation
-guide](https://docs.graphcore.ai/projects/memory-performance-optimisation/en/latest/main.html#partials-type).
+guide](https://docs.graphcore.ai/projects/memory-performance-optimisation/en/2.6.0/common-memory-optimisations.html#partials-type).
 """
 """
 ### Train the model

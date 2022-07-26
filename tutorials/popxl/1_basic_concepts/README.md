@@ -228,17 +228,17 @@ with ir.main_graph:
 ```
 
 ```output
-factories: 
+factories:
  {'weight': <popxl_addons.variable_factory.VariableFactory object at 0x7feaf5cb1160>, 'bias': <popxl_addons.variable_factory.VariableFactory object at 0x7fe851acee10>}
 
- graph: 
+ graph:
  Graph : Linear_subgraph(0)
   (%1, weight=%2, bias=%3) -> (%5) {
     MatMul.100 (%1 [(2, 4) float32], %2 [(4, 32) float32]) -> (%4 [(2, 32) float32])
     Add.101 (%4 [(2, 32) float32], %3 [(32,) float32]) -> (%5 [(2, 32) float32])
   }
 
- variables: 
+ variables:
  {'bias': Tensor[bias popxl.dtypes.float32 (32,)], 'weight': Tensor[weight popxl.dtypes.float32 (4, 32)]}
 ```
 
@@ -330,7 +330,7 @@ with ir.main_graph:
 
 ```output
 
- two different bound graphs: 
+ two different bound graphs:
  <popxl_addons.graph.BoundGraph object at 0x7fe851b717b8> <popxl_addons.graph.BoundGraph object at 0x7fe851c3b4a8>
 ```
 
@@ -377,7 +377,7 @@ Outlining is the opposite of inlining:
 
 Further information on graph outlining can be found in our [memory performance
 optimisation
-guide](https://docs.graphcore.ai/projects/memory-performance-optimisation/en/latest/main.html?highlight=outlining#graph-outlining).
+guide](https://docs.graphcore.ai/projects/memory-performance-optimisation/en/2.6.0/common-memory-optimisations.html#graph-outlining).
 
 These concepts becomes important when we start building more complicated models
 using the
@@ -565,7 +565,7 @@ with ir.main_graph:
 ----- DotTree functionalities -----
 
 A nested collection: the nested structure appear from the dot structure of names
-{'layer1.bias': Tensor[bias popxl.dtypes.float32 (32,)], 'layer1.weight': Tensor[weight popxl.dtypes.float32 (4, 32)], 'layer2.bias': Tensor[bias__t0 popxl.dtypes.float32 (32,)], 'layer2.weight': Tensor[weight__t1 popxl.dtypes.float32 (4, 32)]} 
+{'layer1.bias': Tensor[bias popxl.dtypes.float32 (32,)], 'layer1.weight': Tensor[weight popxl.dtypes.float32 (4, 32)], 'layer2.bias': Tensor[bias__t0 popxl.dtypes.float32 (32,)], 'layer2.weight': Tensor[weight__t1 popxl.dtypes.float32 (4, 32)]}
 
 Each leaf can be accessed with dot syntax: collection.layer1
 {'bias': Tensor[bias popxl.dtypes.float32 (32,)], 'weight': Tensor[weight popxl.dtypes.float32 (4, 32)]}
@@ -573,7 +573,7 @@ Each leaf can be accessed with dot syntax: collection.layer1
 
 ----- NamedTensors -----
 
-{'layer1.bias': Tensor[bias popxl.dtypes.float32 (32,)], 'layer1.weight': Tensor[weight popxl.dtypes.float32 (4, 32)], 'layer2.bias': Tensor[bias__t0 popxl.dtypes.float32 (32,)], 'layer2.weight': Tensor[weight__t1 popxl.dtypes.float32 (4, 32)]} 
+{'layer1.bias': Tensor[bias popxl.dtypes.float32 (32,)], 'layer1.weight': Tensor[weight popxl.dtypes.float32 (4, 32)], 'layer2.bias': Tensor[bias__t0 popxl.dtypes.float32 (32,)], 'layer2.weight': Tensor[weight__t1 popxl.dtypes.float32 (4, 32)]}
 
 Get only tensors, sorted by name
 (Tensor[bias popxl.dtypes.float32 (32,)], Tensor[bias__t0 popxl.dtypes.float32 (32,)], Tensor[weight popxl.dtypes.float32 (4, 32)], Tensor[weight__t1 popxl.dtypes.float32 (4, 32)])

@@ -641,6 +641,4 @@ The `stochastic_rounding.py` code example also offers a `--disable-stochastic-ro
 
 ## Other examples
 
-Further examples of how FP16 can be used on the IPU are available in our [examples repository](https://github.com/graphcore/examples) on GitHub, including our TensorFlow 1 convolutional network applications for [training](https://github.com/graphcore/examples/tree/master/applications/tensorflow/cnns/training) and [inference](https://github.com/graphcore/examples/tree/master/applications/tensorflow/cnns/inference).
-
-
+Further examples of how FP16 can be used on the IPU are available in our [examples repository](https://github.com/graphcore/examples) on GitHub, including our TensorFlow 1 convolutional network applications for [training](https://github.com/graphcore/examples/tree/v2.6.0/vision/cnns/tensorflow1/training) and [inference](https://github.com/graphcore/examples/tree/v2.6.0/vision/cnns/tensorflow1/inference).

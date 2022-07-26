@@ -169,7 +169,7 @@ Another way to speed up the training of a model is through replication. This
 process involves copying the model on each of multiple IPUs, updating the
 parameters of the model on all IPUs after each forward and backward pass. To
 learn more about this process, head over to our documentation on [graph
-replication](https://docs.graphcore.ai/projects/memory-performance-optimisation/en/latest/main.html?highlight=replication#graph-replication).
+replication](https://docs.graphcore.ai/projects/memory-performance-optimisation/en/2.6.0/optimising-performance.html#graph-replication).
 
 > To see how this process can be implemented, take a look at the Replication
 section of our [TensorFlow 2 Keras
@@ -182,7 +182,7 @@ tutorial](../../../tutorials/tensorflow2/keras).
   Graphcore documentation specifically relating to TensorFlow.
 
 - [IPU TensorFlow 2 Code
-  Examples](https://github.com/graphcore/examples/tree/master/code_examples/tensorflow2):
+  Examples](../../../feature_examples/tensorflow2):
   examples of different use cases of TensorFlow 2 on the IPU.
 
 Generated:2022-05-19T17:37 Source:mnist.py SDK:2.5.1+1001 SST:0.0.7
