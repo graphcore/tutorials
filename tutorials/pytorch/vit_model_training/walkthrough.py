@@ -26,7 +26,7 @@ To run your own PyTorch model on the IPU see the [Pytorch basics tutorial](../ba
 This tutorial uses the NIH Chest X-ray Dataset downloaded from <http://nihcc.app.box.com/v/ChestXray-NIHCC>. Download the `/images` directory and unpack all images. You can use `bash` to extract the files:
 ```for f in images*.tar.gz; do tar xfz "$f"; done```.
 
-Also download the `Data_Entry_2017_v2020.csv` file, which contains the labels. By default the tutorial expectes the `/images` folder and `csv` file to be in the same folder as the script being run.
+Also download the `Data_Entry_2017_v2020.csv` file, which contains the labels. By default the tutorial expects the `/images` folder and `csv` file to be in the folder `chest-xray-nihcc`.
 
 ### Environment
 
@@ -100,7 +100,9 @@ from torchvision import transforms
 import transformers
 import datasets
 
-dataset_rootdir = Path("./").absolute()
+# The `chest-xray-nihcc` directory is assumed to be in the pwd, but may be overridden by the environment variable `DATASET_DIR`
+dataset_rootdir = Path(os.environ.get("DATASET_DIR", "."))/"chest-xray-nihcc"
+
 # sst_hide_output"
 """
 This cell exists to provide compatibility with unit tests for this tutorial.
@@ -113,7 +115,7 @@ It will be automatically removed in the Jupyter and Markdown export formats.
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--dataset-dir', default='./')
+parser.add_argument('--dataset-dir', default=dataset_rootdir)
 
 args = parser.parse_args()
 
@@ -172,7 +174,9 @@ data["labels"] = data["Finding Labels"].apply(string_to_N_hot)
 When loading data using the `datasets.load_dataset` function, labels can be provided either by having folders for each of the labels (see ["ImageFolder" documentation](https://huggingface.co/docs/datasets/v2.3.2/en/image_process#imagefolder)) or by having a `metadata.jsonl` file ((see ["ImageFolder with metadata" documentation](https://huggingface.co/docs/datasets/v2.3.2/en/image_process#imagefolder-with-metadata))). As the images in this dataset can have multiple labels, we have chosen to use a `metadata.jsonl` file.
 We write the image file names and their associated labels to the `metadata.jsonl` file.
 """
-data[["Image Index", "labels"]].rename(columns={"Image Index": "file_name"}).to_json(images_dir / 'metadata.jsonl', orient='records', lines=True)
+metadata_file = images_dir/"metadata.jsonl"
+if not metadata_file.is_file():
+    data[["Image Index", "labels"]].rename(columns={"Image Index": "file_name"}).to_json(images_dir / 'metadata.jsonl', orient='records', lines=True)
 """
 ### Create the dataset
 

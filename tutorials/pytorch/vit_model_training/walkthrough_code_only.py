@@ -19,12 +19,13 @@ from torchvision import transforms
 import transformers
 import datasets
 
-dataset_rootdir = Path("./").absolute()
+# The `chest-xray-nihcc` directory is assumed to be in the pwd, but may be overridden by the environment variable `DATASET_DIR`
+dataset_rootdir = Path(os.environ.get("DATASET_DIR", ".")) / "chest-xray-nihcc"
 
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--dataset-dir', default='./')
+parser.add_argument('--dataset-dir', default=dataset_rootdir)
 
 args = parser.parse_args()
 
@@ -59,7 +60,9 @@ def string_to_N_hot(string: str):
 
 data["labels"] = data["Finding Labels"].apply(string_to_N_hot)
 
-data[["Image Index", "labels"]].rename(columns={"Image Index": "file_name"}).to_json(images_dir / 'metadata.jsonl', orient='records', lines=True)
+metadata_file = images_dir / "metadata.jsonl"
+if not metadata_file.is_file():
+    data[["Image Index", "labels"]].rename(columns={"Image Index": "file_name"}).to_json(images_dir / 'metadata.jsonl', orient='records', lines=True)
 
 train_val_split = 0.05
 dataset = datasets.load_dataset(
@@ -208,4 +211,4 @@ metrics = trainer.evaluate()
 trainer.log_metrics("eval", metrics)
 trainer.save_metrics("eval", metrics)
 
-# Generated:2022-07-19T10:04 Source:walkthrough.py SST:0.0.7
+# Generated:2022-08-04T14:51 Source:walkthrough.py SST:0.0.7

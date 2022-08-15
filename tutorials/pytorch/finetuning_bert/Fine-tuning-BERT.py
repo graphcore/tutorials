@@ -53,6 +53,7 @@ from tqdm.notebook import trange, tqdm
 from datasets import load_dataset, load_metric
 import time
 from pathlib import Path
+import os
 
 # To run on IPU we import popart and poptorch packages
 import popart
@@ -354,6 +355,8 @@ num_epochs = 3
 
 # In[21]:
 
+CACHE_DIR = os.environ.get("CACHE_DIR", "exe_cache")
+
 
 def ipu_training_options(gradient_accumulation, replication_factor, device_iterations):
     opts = poptorch.Options()
@@ -378,7 +381,7 @@ def ipu_training_options(gradient_accumulation, replication_factor, device_itera
     opts.outputMode(poptorch.OutputMode.All)
 
     # Cache compiled executable to disk
-    opts.enableExecutableCaching("./exe_cache")
+    opts.enableExecutableCaching(CACHE_DIR)
 
     # On-chip Replicated Tensor Sharding of Optimizer State
     opts.TensorLocations.setOptimizerLocation(
@@ -602,7 +605,7 @@ def ipu_validation_options(replication_factor, device_iterations):
     opts.outputMode(poptorch.OutputMode.All)
 
     # Cache compiled executable to disk
-    opts.enableExecutableCaching("./exe_cache")
+    opts.enableExecutableCaching(CACHE_DIR)
 
     return opts
 

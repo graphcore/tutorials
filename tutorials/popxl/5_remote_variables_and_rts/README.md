@@ -1,6 +1,7 @@
-# Remote variables
+<!-- Copyright (c) 2022 Graphcore Ltd. All rights reserved. -->
+# Remote variables and RTS
 
-This tutorial on Remote variables in PopXL is available as a jupyter notebook.
+This tutorial on remote variables and replicated tensor sharding (RTS) in PopXL is available as a jupyter notebook.
 
 To run the [notebook](mnist.ipynb) in this folder:
 

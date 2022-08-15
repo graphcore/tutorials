@@ -16,7 +16,7 @@ It provides a generic interface on which the other frameworks are built.
 - [Tutorial 5: Matrix-vector multiplication](poplar/tut5_matrix_vector)
 - [Tutorial 6: Matrix-vector multiplication optimisation](poplar/tut6_matrix_vector_opt)
 
-## TensorFlow 1
+## TensorFlow 1 [![Gradient](https://assets.paperspace.io/img/gradient-badge.svg)](https://console.paperspace.com/github/graphcore/tutorials?machine=Free-IPU-POD16&container=graphcore%2Ftensorflow-jupyter%3A1-amd-2.6.0-ubuntu-18.04-20220809)
 
 Getting started with the IPU:
 
@@ -35,7 +35,7 @@ Using multiple IPUs and handling large models:
 
 - [Converting a model to run on multiple IPUs with pipelining](tensorflow1/pipelining)
 
-## TensorFlow 2
+## TensorFlow 2 [![Gradient](https://assets.paperspace.io/img/gradient-badge.svg)](https://console.paperspace.com/github/graphcore/tutorials?machine=Free-IPU-POD16&container=graphcore%2Ftensorflow-jupyter%3A2-amd-2.6.0-ubuntu-20.04-20220804)
 
 Getting started with the IPU:
 
@@ -50,7 +50,7 @@ Debugging and analysis:
 
 - [TensorFlow 2: How to use TensorBoard](tensorflow2/tensorboard)
 
-## PyTorch
+## PyTorch [![Gradient](https://assets.paperspace.io/img/gradient-badge.svg)](https://console.paperspace.com/github/graphcore/tutorials?machine=Free-IPU-POD16&container=graphcore%2Fpytorch-jupyter%3A2.6.0-ubuntu-20.04-20220804)
 
 Getting started with the IPU:
 
@@ -95,7 +95,7 @@ Improving performance and optimising throughput:
 
 - [Tutorial 3: Data Parallelism](popxl/3_data_parallelism)
 - [Tutorial 4: Pipelining](popxl/4_pipelining)
-- [Tutorial 5: Remote Variables](popxl/5_remote_variables)
+- [Tutorial 5: Remote Variables](popxl/5_remote_variables_and_rts)
 - [Tutorial 6: Phased Execution](popxl/6_phased_execution)
 
 ## Standard tools

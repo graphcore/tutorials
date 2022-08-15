@@ -23,7 +23,7 @@ To run your own PyTorch model on the IPU see the [Pytorch basics tutorial](../ba
 This tutorial uses the NIH Chest X-ray Dataset downloaded from <http://nihcc.app.box.com/v/ChestXray-NIHCC>. Download the `/images` directory and unpack all images. You can use `bash` to extract the files:
 ```for f in images*.tar.gz; do tar xfz "$f"; done```.
 
-Also download the `Data_Entry_2017_v2020.csv` file, which contains the labels. By default the tutorial expectes the `/images` folder and `csv` file to be in the same folder as the script being run.
+Also download the `Data_Entry_2017_v2020.csv` file, which contains the labels. By default the tutorial expects the `/images` folder and `csv` file to be in the folder `chest-xray-nihcc`.
 
 ### Environment
 
@@ -91,7 +91,8 @@ from torchvision import transforms
 import transformers
 import datasets
 
-dataset_rootdir = Path("./").absolute()
+# The `chest-xray-nihcc` directory is assumed to be in the pwd, but may be overridden by the environment variable`DATASET_DIR`
+dataset_rootdir = Path(os.environ.get("DATASET_DIR", "."))/"chest-xray-nihcc"
 ```
 
 ## Preparing the NIH Chest X-ray Dataset
@@ -155,7 +156,9 @@ When loading data using the `datasets.load_dataset` function, labels can be prov
 We write the image file names and their associated labels to the `metadata.jsonl` file.
 
 ```python
-data[["Image Index", "labels"]].rename(columns={"Image Index": "file_name"}).to_json(images_dir / 'metadata.jsonl', orient='records', lines=True)
+metadata_file = images_dir/"metadata.jsonl"
+if not metadata_file.is_file():
+    data[["Image Index", "labels"]].rename(columns={"Image Index": "file_name"}).to_json(images_dir / 'metadata.jsonl', orient='records', lines=True)
 ```
 
 ### Create the dataset
@@ -272,10 +275,10 @@ model = transformers.AutoModelForImageClassification.from_pretrained(
 ```
 
 ```output
-Some weights of the model checkpoint at google/vit-base-patch16-224-in21k were not used when initializing ViTForImageClassification: ['pooler.dense.weight', 'pooler.dense.bias']
+Some weights of the model checkpoint at google/vit-base-patch16-224-in21k were not used when initializing ViTForImageClassification: ['pooler.dense.bias', 'pooler.dense.weight']
 - This IS expected if you are initializing ViTForImageClassification from the checkpoint of a model trained on another task or with another architecture (e.g. initializing a BertForSequenceClassification model from a BertForPreTraining model).
 - This IS NOT expected if you are initializing ViTForImageClassification from the checkpoint of a model that you expect to be exactly identical (initializing a BertForSequenceClassification model from a BertForSequenceClassification model).
-Some weights of ViTForImageClassification were not initialized from the model checkpoint at google/vit-base-patch16-224-in21k and are newly initialized: ['classifier.bias', 'classifier.weight']
+Some weights of ViTForImageClassification were not initialized from the model checkpoint at google/vit-base-patch16-224-in21k and are newly initialized: ['classifier.weight', 'classifier.bias']
 You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
 ```
 
@@ -396,7 +399,7 @@ Compiling Model...
 /localdata/evaw/workspace/venv/poplar_sdk-ubuntu_18_04-2.6.0+1074-33d3efd05d/2.6.0+1074_poptorch/lib/python3.6/site-packages/transformers/models/vit/modeling_vit.py:186: TracerWarning: Converting a tensor to a Python boolean might cause the trace to be incorrect. We can't record the data flow of Python values, so this value will be treated as a constant in the future. This means that the trace might not generalize to other inputs!
   if height != self.image_size[0] or width != self.image_size[1]:
 Graph compilation: 100%|██████████| 100/100 [00:15<00:00]
-Compiled/Loaded model in 32.70255442708731 secs
+Compiled/Loaded model in 30.087702617049217 secs
 ***** Running training *****
   Num examples = 106514
   Num Epochs = 3
@@ -406,7 +409,7 @@ Compiled/Loaded model in 32.70255442708731 secs
   Gradient Accumulation steps = 128
   Total train batch size (w. parallel, distributed & accumulation) = 128
   Total optimization steps = 2496
- 40%|████      | 1000/2496 [06:59<10:13,  2.44it/s]Saving model checkpoint to ./results/checkpoint-1000
+ 40%|████      | 1000/2496 [06:59<10:24,  2.40it/s]Saving model checkpoint to ./results/checkpoint-1000
 ---------- Device Allocation -----------
 Embedding  --> IPU 0
 Encoder 0  --> IPU 0
@@ -424,7 +427,7 @@ Encoder 11 --> IPU 3
 Head       --> IPU 3
 ---------------------------------------
 Configuration saved in ./results/checkpoint-1000/ipu_config.json
- 80%|████████  | 2000/2496 [14:04<03:26,  2.40it/s]Saving model checkpoint to ./results/checkpoint-2000
+ 80%|████████  | 2000/2496 [14:02<03:27,  2.39it/s]Saving model checkpoint to ./results/checkpoint-2000
 ---------- Device Allocation -----------
 Embedding  --> IPU 0
 Encoder 0  --> IPU 0
@@ -442,26 +445,26 @@ Encoder 11 --> IPU 3
 Head       --> IPU 3
 ---------------------------------------
 Configuration saved in ./results/checkpoint-2000/ipu_config.json
-100%|██████████| 2496/2496 [17:37<00:00,  2.47it/s]
+100%|██████████| 2496/2496 [17:33<00:00,  2.47it/s]
 
 Training completed. Do not forget to share your model on huggingface.co/models =)
 
 
-100%|██████████| 2496/2496 [17:37<00:00,  2.36it/s]
-{'loss': 0.6216, 'learning_rate': 1.602564102564103e-05, 'epoch': 0.06}
-{'loss': 0.4267, 'learning_rate': 3.205128205128206e-05, 'epoch': 0.12}
-{'loss': 0.3673, 'learning_rate': 4.8076923076923084e-05, 'epoch': 0.18}
-{'loss': 0.3178, 'learning_rate': 6.410256410256412e-05, 'epoch': 0.24}
-{'loss': 0.2707, 'learning_rate': 8.012820512820514e-05, 'epoch': 0.3}
-{'loss': 0.2589, 'learning_rate': 9.615384615384617e-05, 'epoch': 0.36}
-{'loss': 0.2541, 'learning_rate': 0.00011217948717948718, 'epoch': 0
+100%|██████████| 2496/2496 [17:34<00:00,  2.37it/s]
+{'loss': 0.6061, 'learning_rate': 1.602564102564103e-05, 'epoch': 0.06}
+{'loss': 0.4228, 'learning_rate': 3.205128205128206e-05, 'epoch': 0.12}
+{'loss': 0.3562, 'learning_rate': 4.8076923076923084e-05, 'epoch': 0.18}
+{'loss': 0.2945, 'learning_rate': 6.410256410256412e-05, 'epoch': 0.24}
+{'loss': 0.2759, 'learning_rate': 8.012820512820514e-05, 'epoch': 0.3}
+{'loss': 0.2298, 'learning_rate': 9.615384615384617e-05, 'epoch': 0.36}
+{'loss': 0.2082, 'learning_rate': 0.00011217948717948718, 'epoch': 0
 ...
-: 0.1613, 'learning_rate': 8.401392014073405e-06, 'epoch': 2.7}
-{'loss': 0.1605, 'learning_rate': 5.361064379673464e-06, 'epoch': 2.76}
-{'loss': 0.2045, 'learning_rate': 2.9866889774481044e-06, 'epoch': 2.82}
-{'loss': 0.1533, 'learning_rate': 1.2949737362087156e-06, 'epoch': 2.88}
-{'loss': 0.1611, 'learning_rate': 2.978228636022262e-07, 'epoch': 2.94}
-{'train_runtime': 1057.5667, 'train_samples_per_second': 302.148, 'train_steps_per_second': 2.36, 'train_loss': 0.2094740134019118, 'epoch': 3.0}
+: 0.1829, 'learning_rate': 8.401392014073405e-06, 'epoch': 2.7}
+{'loss': 0.1754, 'learning_rate': 5.361064379673464e-06, 'epoch': 2.76}
+{'loss': 0.1952, 'learning_rate': 2.9866889774481044e-06, 'epoch': 2.82}
+{'loss': 0.1625, 'learning_rate': 1.2949737362087156e-06, 'epoch': 2.88}
+{'loss': 0.168, 'learning_rate': 2.978228636022262e-07, 'epoch': 2.94}
+{'train_runtime': 1054.0016, 'train_samples_per_second': 303.17, 'train_steps_per_second': 2.368, 'train_loss': 0.20729565620422363, 'epoch': 3.0}
 ```
 
 ### Plotting convergence
@@ -505,17 +508,17 @@ trainer.save_metrics("eval", metrics)
 ```output
 Compiling Model...
 Graph compilation: 100%|██████████| 100/100 [00:06<00:00]
-Compiled/Loaded model in 18.938771307468414 secs
+Compiled/Loaded model in 18.52151568233967 secs
 ***** Running Evaluation *****
   Num examples = 5606
   Batch size = 4
-100%|██████████| 1401/1401 [00:16<00:00, 82.96it/s]***** eval metrics *****
+100%|██████████| 1401/1401 [00:16<00:00, 84.59it/s]***** eval metrics *****
   epoch                   =        3.0
-  eval_loss               =      0.181
-  eval_roc_auc            =     0.7756
-  eval_runtime            = 0:00:17.42
-  eval_samples_per_second =    321.742
-  eval_steps_per_second   =     80.464
+  eval_loss               =     0.1829
+  eval_roc_auc            =     0.7752
+  eval_runtime            = 0:00:17.14
+  eval_samples_per_second =    327.045
+  eval_steps_per_second   =      81.79
 ```
 
 The metrics show the validation AUC_ROC score the tutorial achieves after 3 epochs.
@@ -541,4 +544,4 @@ how models are run please consult the [Hugging Face documentation](https://huggi
 For information on how to optimise models for the IPU see the [Memory and Performance Optimisation Guide](https://docs.graphcore.ai/projects/memory-performance-optimisation/).
 Graphcore also provides reference implementations of model architectures for many applications in the [Graphcore examples repository](https://github.com/graphcore/examples) and in the [Graphcore Model Garden](https://www.graphcore.ai/resources/model-garden).
 
-Generated:2022-07-19T09:43 Source:walkthrough.py SDK:2.6.0+1074 SST:0.0.7
+Generated:2022-08-04T14:30 Source:walkthrough.py SDK:2.6.0+1074 SST:0.0.7
