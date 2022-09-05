@@ -101,7 +101,7 @@ if __name__ == "__main__" and not is_interactive():
 
 """
 Let's reuse the model from [the introductory tutorial on
-PopTorch](https://github.com/graphcore/tutorials/tree/master/tutorials/pytorch/tut1_basics)
+PopTorch](https://github.com/graphcore/tutorials/tree/sdk-release-2.5/tutorials/pytorch/tut1_basics)
 and make a random dataset to experiment with the different IPU parameters.
 
 We will start by importing the necessary libraries:
@@ -704,5 +704,5 @@ file: `tuto_data_loading.py`. Helpful arguments:
 
 Further information on Host-IPU IO optimisation can be found in our [memory and
 performance optimisation
-guide](https://docs.graphcore.ai/projects/memory-performance-optimisation/en/latest/main.html#host-ipu-io-optimisation).
+guide](https://docs.graphcore.ai/projects/memory-performance-optimisation/en/2.5.0/main.html#host-ipu-io-optimisation).
 """

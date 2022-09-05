@@ -14,7 +14,7 @@ Parallelism](https://docs.graphcore.ai/projects/tf-model-parallelism/en/latest/m
 Pipelining can also be a way to improve model performance. More information on
 splitting models for pipelining is available in the [memory and performance
 optimisation
-guide](https://docs.graphcore.ai/projects/memory-performance-optimisation/en/latest/main.html#pipeline-execution-scheme).
+guide](https://docs.graphcore.ai/projects/memory-performance-optimisation/en/2.5.0/main.html#pipeline-execution-scheme).
 
 This tutorial first provides an overview of the key concepts from this document.
 It then provides a walkthrough of how pipelining can be applied to an existing

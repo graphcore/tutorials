@@ -538,6 +538,6 @@ and learn more about the PopVision analysis API (libpva), which has been introdu
 
 For techniques to optimise memory usage and improve performance please refer to
 our [memory and performance optimisation
-guide](https://docs.graphcore.ai/projects/memory-performance-optimisation/en/latest/main.html#common-memory-optimisations).
+guide](https://docs.graphcore.ai/projects/memory-performance-optimisation/en/2.5.0/main.html#common-memory-optimisations).
 
 Copyright (c) 2018 Graphcore Ltd. All rights reserved.

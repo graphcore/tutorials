@@ -73,7 +73,7 @@ for more information about asynchronous mode.
 > **Note**: The dataset must be serializable by pickle.
 
 Let's reuse the model from [the introductory tutorial on
-PopTorch](https://github.com/graphcore/tutorials/tree/master/tutorials/pytorch/tut1_basics)
+PopTorch](https://github.com/graphcore/tutorials/tree/sdk-release-2.5/tutorials/pytorch/tut1_basics)
 and make a random dataset to experiment with the different IPU parameters.
 
 We will start by importing the necessary libraries:
@@ -687,6 +687,6 @@ file: `tuto_data_loading.py`. Helpful arguments:
 
 Further information on Host-IPU IO optimisation can be found in our [memory and
 performance optimisation
-guide](https://docs.graphcore.ai/projects/memory-performance-optimisation/en/latest/main.html#host-ipu-io-optimisation).
+guide](https://docs.graphcore.ai/projects/memory-performance-optimisation/en/2.5.0/main.html#host-ipu-io-optimisation).
 
 Generated:2022-05-19T17:33 Source:walkthrough.py SDK:2.5.1+1001 SST:0.0.7

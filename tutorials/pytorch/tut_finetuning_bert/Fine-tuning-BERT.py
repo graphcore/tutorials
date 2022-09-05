@@ -8,7 +8,7 @@
 #
 # We will show how to take a BERT model written in PyTorch from the 🤗`transformers` library from HuggingFace and parallelize and run it on IPU using PopTorch.
 #
-# This is an advanced tutorial: if you are new to PopTorch, we have a [PopTorch basics tutorial](https://github.com/graphcore/tutorials/tree/master/tutorials/pytorch/tut1_basics) that you can do first.
+# This is an advanced tutorial: if you are new to PopTorch, we have a [PopTorch basics tutorial](https://github.com/graphcore/tutorials/tree/sdk-release-2.5/tutorials/pytorch/tut1_basics) that you can do first.
 #
 # Requirements:
 # - A Poplar SDK environment enabled
@@ -306,7 +306,7 @@ model = PipelinedBertForQuestionAnswering.from_pretrained(
 #
 # We also call the `.half()` method to cast all the model weights to half-precision (FP16). The `.train()` sets the PyTorch model to training mode.
 #
-# If you unfamiliar with training in half precision on IPU, then we have a tutorial on [Half and Mixed Precision in Poptorch](https://github.com/graphcore/tutorials/tree/master/tutorials/pytorch/tut3_mixed_precision).
+# If you unfamiliar with training in half precision on IPU, then we have a tutorial on [Half and Mixed Precision in Poptorch](https://github.com/graphcore/tutorials/tree/sdk-release-2.5/tutorials/pytorch/tut3_mixed_precision).
 
 # In[17]:
 
@@ -438,7 +438,7 @@ sequence_length = 384
 #
 # For a compiled device like IPU that would require a recompilation of the execution graph for that one mini-batch. In order to not lose any training examples, we can pad the remainder mini-batch with zeros and set the target values to a special value which will set the loss to 0 in those cases so they don't affect training. This way we have consistent mini-batch sizes and we can train on all the data.
 #
-# More information can be found in the [`poptorch.DataLoader` documentation.](https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/batching.html#efficient-data-batching) and also in our [tutorial on efficient data loading.](https://github.com/graphcore/tutorials/tree/master/tutorials/pytorch/tut2_efficient_data_loading)
+# More information can be found in the [`poptorch.DataLoader` documentation.](https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/batching.html#efficient-data-batching) and also in our [tutorial on efficient data loading.](https://github.com/graphcore/tutorials/tree/sdk-release-2.5/tutorials/pytorch/tut2_efficient_data_loading)
 
 # In[25]:
 

@@ -21,7 +21,7 @@ In this tutorial you will:
 - Learn how to offload the optimiser tensors to save memory on device.
 - Use the [Popvision Graph Analyser](https://docs.graphcore.ai/projects/graph-analyser-userguide/en/latest/introduction.html) to look at execution profiles and understand how pipelining impacts the scheduling of a model across IPUs.
 
-If you are unfamiliar with PopTorch, you may want to check out [our tutorial introducing PopTorch](https://github.com/graphcore/tutorials/tree/master/tutorials/pytorch/tut1_basics)
+If you are unfamiliar with PopTorch, you may want to check out [our tutorial introducing PopTorch](https://github.com/graphcore/tutorials/tree/sdk-release-2.5/tutorials/pytorch/tut1_basics)
 and learn how to convert a model from PyTorch to PopTorch to make it run on a Graphcore IPU.
 Additionally, some knowledge of data loading in poptorch and batching on IPU is helpful, these topics are covered in [tutorial 2](../tut2_efficient_data_loading).
 
@@ -448,7 +448,7 @@ pipelined_strategy = poptorch.PipelinedExecution(
 This format places two blocks into two stages onto two IPUs instead of the four used earlier in the tutorial.
 
 More information on splitting models for pipelining are available in the
-[memory and performance optimisation guide](https://docs.graphcore.ai/projects/memory-performance-optimisation/en/latest/main.html#pipeline-execution-scheme), and
+[memory and performance optimisation guide](https://docs.graphcore.ai/projects/memory-performance-optimisation/en/2.5.0/main.html#pipeline-execution-scheme), and
 the [TensorFlow pipelining technical note](https://docs.graphcore.ai/projects/tf-model-parallelism/en/latest/index.html).
 
 ## Sharded execution (sequential)
@@ -669,10 +669,10 @@ This information is key to choosing a model partitioning that will reduce the ti
 Additionally, memory usage on the IPU was reduced at the expense of execution time by offloading optimiser-specific tensors to the host.
 This trade-off is worth considering if you need to fit memory intensive models on the IPU.
 To continue your journey with the Graphcore IPU
-you may want to look at the Graphcore [examples repository](https://github.com/graphcore/examples/tree/master/applications/pytorch) which contains implementations of standard deep learning models optimised for the IPU.
+you may want to look at the Graphcore [examples repository](https://github.com/graphcore/examples/tree/v2.5.0/applications/pytorch) which contains implementations of standard deep learning models optimised for the IPU.
 You will find, amongst others: convolutional neural networks, BERT, and ViT models.
 If you are looking to port and optimise your own model, the
-[memory and performance optimisation guide](https://docs.graphcore.ai/projects/memory-performance-optimisation/en/latest/main.html)
+[memory and performance optimisation guide](https://docs.graphcore.ai/projects/memory-performance-optimisation/en/2.5.0/main.html)
 will help you make the most of the hardware.
 Finally the
 [TensorFlow pipelining tech note](https://docs.graphcore.ai/projects/tf-model-parallelism/en/latest/pipelining.html#optimising-the-pipeline)

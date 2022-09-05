@@ -76,4 +76,4 @@ This example is licensed under Apache 2.0. See LICENSE for more information.
 
 The images downloaded by this example are attributed to employees of [Graphcore](https://graphcore.ai) and are provided permissively under a [Creative Commons Attribution 4.0 International License](http://creativecommons.org/licenses/by/4.0/)
 
-The weights downloaded by this example were trained using the (Graphcore TensorFlow 1 CNNs example](https://github.com/graphcore/examples/tree/master/applications/tensorflow/cnns/training) and are provided permissively under the MIT license. See the README and LICENSE files included in the archive for more information.
+The weights downloaded by this example were trained using the (Graphcore TensorFlow 1 CNNs example](https://github.com/graphcore/examples/tree/v2.5.0/applications/tensorflow/cnns/training) and are provided permissively under the MIT license. See the README and LICENSE files included in the archive for more information.
