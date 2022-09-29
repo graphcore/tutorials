@@ -26,7 +26,10 @@ def test_parameters():
     """Run with different settings and check that a loss and checkpoint warning is given."""
 
     out = testing_util.run_command_fail_explicitly(
-        [sys.executable, "recompute_lstm.py", '--seq-len', '512', '--checkpoints', '8'], working_directory
+        [sys.executable, "recompute_lstm.py", "--seq-len", "512", "--checkpoints", "8"],
+        working_directory,
     )
     assert "loss:" in out, "Model didn't compute a loss."
-    assert "can't be evenly divided" in out, "Warning over function outlining not given."
+    assert (
+        "can't be evenly divided" in out
+    ), "Warning over function outlining not given."

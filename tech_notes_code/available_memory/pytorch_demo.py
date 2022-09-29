@@ -16,6 +16,7 @@ class GeneratedDataset(Dataset):
     Generated dataset creates a random dataset with the given shape and precision.
     The size determines the number of items in the dataset.
     """
+
     def __init__(self, shape, size=60000, half_precision=False):
         self.size = size
         self.half_precision = half_precision
@@ -49,7 +50,13 @@ def run_model(batch_size=20, availableMemoryProportion=0.8):
     opts = poptorch.Options().deviceIterations(1)
     opts.setAvailableMemoryProportion({"IPU0": availableMemoryProportion})
 
-    test_dataloader = poptorch.DataLoader(opts, GeneratedDataset(shape=[3, 224, 224]), batch_size=batch_size, shuffle=True, num_workers=20)
+    test_dataloader = poptorch.DataLoader(
+        opts,
+        GeneratedDataset(shape=[3, 224, 224]),
+        batch_size=batch_size,
+        shuffle=True,
+        num_workers=20,
+    )
 
     poptorch_model = poptorch.inferenceModel(model, options=opts)
 
@@ -59,17 +66,27 @@ def run_model(batch_size=20, availableMemoryProportion=0.8):
         start = time.time()
         result = poptorch_model(data)
         end = time.time()
-        tput_acc += data.size()[0]/(end-start)
+        tput_acc += data.size()[0] / (end - start)
 
     return tput_acc / len(test_dataloader)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--batch-size', type=int, default=20, help="Batch size")
-    parser.add_argument('--available-memory-proportion', type=float, default=0.8, help="Available memory proportion")
+    parser.add_argument("--batch-size", type=int, default=20, help="Batch size")
+    parser.add_argument(
+        "--available-memory-proportion",
+        type=float,
+        default=0.8,
+        help="Available memory proportion",
+    )
     opts = parser.parse_args()
 
-    average_tput = run_model(batch_size=opts.batch_size, availableMemoryProportion=opts.available_memory_proportion)
+    average_tput = run_model(
+        batch_size=opts.batch_size,
+        availableMemoryProportion=opts.available_memory_proportion,
+    )
 
-    print(f"bs:{opts.batch_size},amp:{opts.available_memory_proportion},mean_throughput:{average_tput}")
+    print(
+        f"bs:{opts.batch_size},amp:{opts.available_memory_proportion},mean_throughput:{average_tput}"
+    )

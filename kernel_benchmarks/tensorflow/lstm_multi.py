@@ -18,7 +18,9 @@ from ipu_tensorflow_addons.layers import rnn_ops
 
 def lstm_block(input_tensor, num_units, opts, name=""):
     # PopnnLSTM uses a direct PopLibs implementation
-    lstm_cell = rnn_ops.PopnnLSTM(num_units=num_units, dtype=input_tensor.dtype, name=name)
+    lstm_cell = rnn_ops.PopnnLSTM(
+        num_units=num_units, dtype=input_tensor.dtype, name=name
+    )
     # The input is [timesteps, batch_size, input_size]
     return lstm_cell(input_tensor, training=opts.train)
 
@@ -38,7 +40,9 @@ def lstm_model(opts, inputs):
 def inputs(opts, index):
     value = tf.cast(index, tf.float16)
     return {
-        "inputs": tf.broadcast_to(value, [opts.timesteps, opts.batch_size, opts.input_size]),
+        "inputs": tf.broadcast_to(
+            value, [opts.timesteps, opts.batch_size, opts.input_size]
+        ),
         "labels": tf.broadcast_to(value, [opts.batch_size, 1]),
     }
 
@@ -54,10 +58,8 @@ def graph_builder(opts, inputs):
             # We need to ensure that the train op is executed as part of
             # the benchmarking loop by maintaining a step variable and
             # forcing a control dependency between it and the train op:
-            global_step = tf.get_variable(
-                "step_control", dtype=tf.int32, shape=[])
-            grads_and_vars = optimiser.compute_gradients(
-                loss, tf.trainable_variables())
+            global_step = tf.get_variable("step_control", dtype=tf.int32, shape=[])
+            grads_and_vars = optimiser.compute_gradients(loss, tf.trainable_variables())
             train = optimiser.apply_gradients(grads_and_vars, global_step)
             with tf.control_dependencies([train]):
                 global_step = tf.identity(global_step)
@@ -71,64 +73,66 @@ def initializer():
 
 
 def add_args(parser):
-    parser.add_argument("--batch-size", default=1, type=int,
-                        help="Number of inputs in a mini-batch")
-    parser.add_argument("--timesteps", default=200, type=int,
-                        help="Number of recurrent steps")
-    parser.add_argument("--input-size", default=16, type=int,
-                        help="Input size")
-    parser.add_argument("--hidden-size", default=256, type=int,
-                        help="LSTM hidden size")
-    parser.add_argument("--num-layers", default=2, type=int,
-                        help="LSTM number of layers")
-    parser.add_argument("--train", action='store_true', dest='train',
-                        help="Compute loss and optimization pass")
-    parser.add_argument("--no-train", action='store_false', dest='train',
-                        help="No loss or optimisation pass will be computed (default)")
+    parser.add_argument(
+        "--batch-size", default=1, type=int, help="Number of inputs in a mini-batch"
+    )
+    parser.add_argument(
+        "--timesteps", default=200, type=int, help="Number of recurrent steps"
+    )
+    parser.add_argument("--input-size", default=16, type=int, help="Input size")
+    parser.add_argument("--hidden-size", default=256, type=int, help="LSTM hidden size")
+    parser.add_argument(
+        "--num-layers", default=2, type=int, help="LSTM number of layers"
+    )
+    parser.add_argument(
+        "--train",
+        action="store_true",
+        dest="train",
+        help="Compute loss and optimization pass",
+    )
+    parser.add_argument(
+        "--no-train",
+        action="store_false",
+        dest="train",
+        help="No loss or optimisation pass will be computed (default)",
+    )
     parser.set_defaults(train=False, batches_per_step=1000, steps=5)
     return parser
 
 
 def iteration_report(opts, time):
-    return "{:5f} items/sec".format(opts.batch_size * opts.batches_per_step * opts.replicas / time)
+    rate = opts.batch_size * opts.batches_per_step * opts.replicas / time
+    return f"{rate:5f} items/sec"
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Add benchmark module to path
     cwd = os.path.dirname(os.path.abspath(inspect.stack()[0][1]))
-    sys.path.insert(1, os.path.join(cwd, '..', '..', 'utils',
-                                    'benchmarks', 'tensorflow'))
+    sys.path.insert(
+        1, os.path.join(cwd, "..", "..", "utils", "benchmarks", "tensorflow")
+    )
     import benchmark
 
     module = benchmark.Benchmark(
-        graph_builder,
-        inputs,
-        initializer,
-        add_args,
-        iteration_report
+        graph_builder, inputs, initializer, add_args, iteration_report
     )
 
     options = benchmark.parse_opts(module, False)
 
     if options.shards > 1:
         raise NotImplementedError(
-            "--shards option has not been implemented with this example")
+            "--shards option has not been implemented with this example"
+        )
 
     # Log Benchmark Message
-    print("Multi-layer LSTM with a dense final layer, {} Benchmark.\n"
-          " Batch size {}.\n"
-          " Batches per Step {}.\n"
-          " Steps {}.\n"
-          " Hidden size {}.\n"
-          " Number of layers {}.\n"
-          " Timesteps {}.\n"
-          .format(
-              "Training" if options.train else "Inference",
-              options.batch_size,
-              options.batches_per_step,
-              options.steps,
-              options.hidden_size,
-              options.num_layers,
-              options.timesteps))
+    print(
+        f"Multi-layer LSTM with a dense final layer, {'Training' if options.train else 'Inference'} Benchmark.\n"
+        f" Batch size {options.batch_size}.\n"
+        f" Batches per Step {options.batches_per_step}.\n"
+        f" Steps {options.steps}.\n"
+        f" Hidden size {options.hidden_size}.\n"
+        f" Number of layers {options.num_layers}.\n"
+        f" Timesteps {options.timesteps}.\n"
+    )
 
     benchmark.run(module, options)

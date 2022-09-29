@@ -21,17 +21,32 @@ LEARNING_RATE = 0.01
 def parse_args():
     # Handle command line arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument("--repeat-count", type=int, default=100,
-                        help="The number of times the pipeline will be executed for each step."
-                        " Set this to a small value (such as 1) if profiling.")
-    parser.add_argument("--epochs", type=float, default=3,
-                        help="Total number of epochs to train for.")
-    parser.add_argument('--gradient-accumulation-count', type=int, default=16,
-                        help="The number of times each pipeline stage will be executed in each pipeline execution.")
-    parser.add_argument('--outfeed-pre-accumulated-gradients', action='store_true',
-                        help="Outfeed the pre-accumulated rather than accumulated gradients.")
-    parser.add_argument('--run-single-step', action="store_true",
-                        help="Shorten the run for profiling: runs for a single step.")
+    parser.add_argument(
+        "--repeat-count",
+        type=int,
+        default=100,
+        help="The number of times the pipeline will be executed for each step."
+        " Set this to a small value (such as 1) if profiling.",
+    )
+    parser.add_argument(
+        "--epochs", type=float, default=3, help="Total number of epochs to train for."
+    )
+    parser.add_argument(
+        "--gradient-accumulation-count",
+        type=int,
+        default=16,
+        help="The number of times each pipeline stage will be executed in each pipeline execution.",
+    )
+    parser.add_argument(
+        "--outfeed-pre-accumulated-gradients",
+        action="store_true",
+        help="Outfeed the pre-accumulated rather than accumulated gradients.",
+    )
+    parser.add_argument(
+        "--run-single-step",
+        action="store_true",
+        help="Shorten the run for profiling: runs for a single step.",
+    )
     args = parser.parse_args()
     return args
 
@@ -58,6 +73,7 @@ def create_dataset():
     dataset = dataset.repeat()
     dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)
     return n_examples, dataset
+
 
 # The following is a schematic representation of the model defined in this example,
 # which also shows how it is split across two IPUs:
@@ -92,10 +108,12 @@ def stage2(stage2_outfeed_queue, lr, inputs, labels):
     if enqueue:
         with tf.control_dependencies([enqueue]):
             cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(
-                    labels=labels, logits=logits)
+                labels=labels, logits=logits
+            )
     else:
         cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(
-                labels=labels, logits=logits)
+            labels=labels, logits=logits
+        )
     loss = tf.reduce_mean(cross_entropy)
 
     return lr, loss
@@ -109,29 +127,40 @@ def optimizer_function(optimizer_outfeed_queue, outfeed_optimizer_mode, lr, loss
     # Wrap the optimizer to outfeed the gradients for selected layers.
     # OutfeedOptimizerMode.BEFORE_APPLY will enqueue the accumulated gradients.
     # OutfeedOptimizerMode.AFTER_COMPUTE will enqueue the individual gradients.
-    outfeed_optimizer = OutfeedOptimizer(optimizer, optimizer_outfeed_queue,
-                                         outfeed_optimizer_mode=outfeed_optimizer_mode)
+    outfeed_optimizer = OutfeedOptimizer(
+        optimizer,
+        optimizer_outfeed_queue,
+        outfeed_optimizer_mode=outfeed_optimizer_mode,
+    )
 
     return ipu.pipelining_ops.OptimizerFunctionOutput(outfeed_optimizer, loss)
 
 
-def model(stage1_outfeed_queue, stage2_outfeed_queue,
-          optimizer_outfeed_queue, outfeed_optimizer_mode, lr):
-    # Defines a pipelined model which is split accross two stages
+def model(
+    stage1_outfeed_queue,
+    stage2_outfeed_queue,
+    optimizer_outfeed_queue,
+    outfeed_optimizer_mode,
+    lr,
+):
+    # Defines a pipelined model which is split across two stages
     with tf.variable_scope("FCModel", use_resource=True):
         pipeline_op = ipu.pipelining_ops.pipeline(
-            computational_stages=[partial(stage1, stage1_outfeed_queue),
-                                  partial(stage2, stage2_outfeed_queue)],
+            computational_stages=[
+                partial(stage1, stage1_outfeed_queue),
+                partial(stage2, stage2_outfeed_queue),
+            ],
             gradient_accumulation_count=args.gradient_accumulation_count,
             repeat_count=args.repeat_count,
             inputs=[lr],
             infeed_queue=infeed_queue,
             outfeed_queue=outfeed_queue,
-            optimizer_function=partial(optimizer_function,
-                                       optimizer_outfeed_queue,
-                                       outfeed_optimizer_mode),
+            optimizer_function=partial(
+                optimizer_function, optimizer_outfeed_queue, outfeed_optimizer_mode
+            ),
             outfeed_loss=True,
-            name="Pipeline")
+            name="Pipeline",
+        )
     return pipeline_op
 
 
@@ -143,19 +172,24 @@ def print_vals(vals, step):
         data_item = [index]
         index += 1
         data_item.append(val_name)
-        data_item.append(f'{np.mean(val):<4.6f}')  # means
-        data_item.append(f'{np.std(val.astype(np.float64)):<4.6f}')  # stds
-        data_item.append(f'{np.min(val):<4.6f}')  # min extreme
-        data_item.append(f'{np.max(val):<4.6f}')  # max extreme
-        data_item.append(f'{np.isnan(val).any()}')  # nans?
-        data_item.append(f'{np.isinf(val).any()}')  # infs?
+        data_item.append(f"{np.mean(val):<4.6f}")  # means
+        data_item.append(f"{np.std(val.astype(np.float64)):<4.6f}")  # stds
+        data_item.append(f"{np.min(val):<4.6f}")  # min extreme
+        data_item.append(f"{np.max(val):<4.6f}")  # max extreme
+        data_item.append(f"{np.isnan(val).any()}")  # nans?
+        data_item.append(f"{np.isinf(val).any()}")  # infs?
         data.append(data_item)
 
     print(f"\nStep {step} - Summary Stats")
-    print(f'{"Index":<5} {"Name":<{name_length}} {"Mean":<12} {"Std":<12} {"Minimum":<12} {"Maximum":<12} {"NaNs":<7} {"infs":<7}')
+    print(
+        f'{"Index":<5} {"Name":<{name_length}} {"Mean":<12} {"Std":<12} {"Minimum":<12} {"Maximum":<12} {"NaNs":<7} {"infs":<7}'
+    )
     for index, name, avg, std, dmin, dmax, nans, infs in data:
-        print(f"{index:<5} {name:<{name_length}} {avg:<12} {std:<12} {dmin:<12} {dmax:<12} {nans:<7} {infs:<7}")
+        print(
+            f"{index:<5} {name:<{name_length}} {avg:<12} {std:<12} {dmin:<12} {dmax:<12} {nans:<7} {infs:<7}"
+        )
     print()
+
 
 if __name__ == "__main__":
     args = parse_args()
@@ -185,20 +219,28 @@ if __name__ == "__main__":
     # at every step n = (BS * GA * RPT) examples are used.
     # So in order to evaluate at least N total examples, do ceil(N / n) steps
     num_train_examples = int(args.epochs * n_examples)
-    examples_per_step = BATCH_SIZE * args.gradient_accumulation_count * args.repeat_count
+    examples_per_step = (
+        BATCH_SIZE * args.gradient_accumulation_count * args.repeat_count
+    )
     steps = ((num_train_examples - 1) // examples_per_step) + 1
 
     if args.run_single_step:
         steps = 1
 
-    with tf.device('cpu'):
+    with tf.device("cpu"):
         lr = tf.placeholder(np.float32, [])
 
     with ipu.scopes.ipu_scope("/device:IPU:0"):
         compiled_model = ipu.ipu_compiler.compile(
-                partial(model, stage1_outfeed_queue, stage2_outfeed_queue,
-                        optimizer_outfeed_queue, outfeed_optimizer_mode),
-                inputs=[lr])
+            partial(
+                model,
+                stage1_outfeed_queue,
+                stage2_outfeed_queue,
+                optimizer_outfeed_queue,
+                outfeed_optimizer_mode,
+            ),
+            inputs=[lr],
+        )
 
     outfeed_op = outfeed_queue.dequeue()
 
@@ -261,5 +303,4 @@ if __name__ == "__main__":
                 print_vals(gradients, step)
 
             epoch = float(examples_per_step * step / n_examples)
-            print("Epoch {:.1f}, Mean loss: {:.3f}\n".format(
-                epoch, np.mean(losses)))
+            print(f"Epoch {epoch:.1f}, Mean loss: {np.mean(losses):.3f}\n")

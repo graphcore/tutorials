@@ -6,4 +6,5 @@ def pytest_sessionstart(session):
     # We import after the start of the session to allow the tests
     # to be discovered without requiring test specific dependencies.
     from tensorflow.keras.datasets import cifar10
+
     cifar10.load_data()

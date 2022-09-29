@@ -1,13 +1,14 @@
+<!-- Copyright (c) 2020 Graphcore Ltd. All rights reserved. -->
 # Tutorial: Instrumenting applications
 
 In this tutorial you will learn to use:
 
 - the [PopVision System
-  Analyser](https://docs.graphcore.ai/projects/system-analyser-userguide/en/latest/),
+  Analyser](https://docs.graphcore.ai/projects/system-analyser-userguide/en/2.11.2/),
   a desktop tool for profiling the execution of IPU-targeted software on your
   host system processors;
 - the [`libpvti`
-  module](https://docs.graphcore.ai/projects/libpvti/en/latest/index.html) in
+  module](https://docs.graphcore.ai/projects/libpvti/en/3.0.0/index.html) in
   python which can be used to profile, time, and log information from your IPU
   applications and plot it directly in the PopVision System Analyser.
 
@@ -83,9 +84,9 @@ instrument the epoch loop.
 
 ```python
 print("Running training loop.")
-    for i in range(opts.epochs):
-        with pvti.Tracepoint(mnistPvtiChannel, f"Epoch:{i}"):
-            ...
+for i in range(opts.epochs):
+    with pvti.Tracepoint(mnistPvtiChannel, f"Epoch:{i}"):
+        ...
 ```
 
 We leave it as an exercise for the reader to add instrumentation of the
@@ -127,14 +128,14 @@ training and validation loss. We take the loss from the anchors (which is an
 array) and compute the mean value:
 
 ```python
-training.session.run(stepio, 'Epoch ' + str(i) + ' training step' + str(step))
+training.session.run(stepio, "Epoch " + str(i) + " training step" + str(step))
 
 # Record the training loss
 training_loss_series.add(np.mean(training.anchors[loss]).item())
 
 ...
 
-validation.session.run(stepio, 'Epoch ' + str(i) + ' evaluation step ' + str(step))
+validation.session.run(stepio, "Epoch " + str(i) + " evaluation step " + str(step))
 
 # Record the validation loss
 validation_loss_series.add(np.mean(validation.anchors[loss]).item())
@@ -185,6 +186,6 @@ the `psutil` library, and plots both of them.
 This is a very simple use case for adding instrumentation. The PopVision trace
 instrumentation library (libpvti) provides other functions, classes & methods
 to instrument your Python and C++ code. For more information please see the
-[PVTI library documentation](https://docs.graphcore.ai/projects/libpvti/en/latest/index.html).
+[PVTI library documentation](https://docs.graphcore.ai/projects/libpvti/en/3.0.0/index.html).
 
 Copyright (c) 2020 Graphcore Ltd. All rights reserved.

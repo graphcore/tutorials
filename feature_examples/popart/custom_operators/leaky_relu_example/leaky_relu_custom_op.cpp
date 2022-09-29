@@ -9,15 +9,15 @@
 #include <popart/opserialiser.hpp>
 #include <popart/popx/opxmanager.hpp>
 
-#include <popops/ElementWise.hpp>
 #include <popart/popx/opx.hpp>
+#include <popops/ElementWise.hpp>
 
 namespace CustomOperators {
 const popart::OperatorIdentifier LeakyReluId = {"custom.ops", "LeakyRelu", 1};
 } // namespace CustomOperators
 namespace CustomGradOperators {
-const popart::OperatorIdentifier LeakyReluGradId = {"custom.ops", "LeakyReluGrad",
-                                                    1};
+const popart::OperatorIdentifier LeakyReluGradId = {"custom.ops",
+                                                    "LeakyReluGrad", 1};
 } // namespace CustomGradOperators
 
 class LeakyReluOp;
@@ -95,25 +95,25 @@ private:
 };
 
 namespace {
-using popart::OpDefinition;
 using popart::DataType;
+using popart::OpDefinition;
 
 static OpDefinition::DataTypes T = {DataType::FLOAT16, DataType::FLOAT};
 
 static OpDefinition
-      leakyReluOpDef({OpDefinition::Inputs({{"input", T}}),
-                      OpDefinition::Outputs({{"output", T}}),
-                      OpDefinition::Attributes({{"alpha", {"*"}}})});
+    leakyReluOpDef({OpDefinition::Inputs({{"input", T}}),
+                    OpDefinition::Outputs({{"output", T}}),
+                    OpDefinition::Attributes({{"alpha", {"*"}}})});
 
 static popart::OpCreator<LeakyReluOp> leakyReluOpCreator(
-      popart::OpDefinitions({{CustomOperators::LeakyReluId, leakyReluOpDef}}),
-      [](const popart::OpCreatorInfo &info) {
-        // default alpha is 10**(-2)
-        float alpha = info.attributes.getAttribute<popart::Attributes::Float>(
-            "alpha", 1e-2f);
-        return std::make_unique<LeakyReluOp>(info.opid, alpha, info.settings);
-      },
-      true);
+    popart::OpDefinitions({{CustomOperators::LeakyReluId, leakyReluOpDef}}),
+    [](const popart::OpCreatorInfo &info) {
+      // default alpha is 10**(-2)
+      float alpha = info.attributes.getAttribute<popart::Attributes::Float>(
+          "alpha", 1e-2f);
+      return std::make_unique<LeakyReluOp>(info.opid, alpha, info.settings);
+    },
+    true);
 } // namespace
 
 namespace pe = popops::expr;
@@ -122,8 +122,7 @@ class LeakyReluOpx : public popart::popx::Opx {
 public:
   LeakyReluOpx(popart::Op *op, popart::popx::Devicex *devicex)
       : popart::popx::Opx(op, devicex) {
-    verifyOp<LeakyReluOp>(
-        op, {CustomOperators::LeakyReluId});
+    verifyOp<LeakyReluOp>(op, {CustomOperators::LeakyReluId});
   }
 
   void grow(poplar::program::Sequence &prog) const final {
@@ -202,7 +201,7 @@ void LeakyReluGradOp::appendOutlineAttributes(
   os.appendAttribute("alpha", getAlpha());
 }
 
-static popart::popx::OpxCreator<LeakyReluOpx> LeakyReluOpxCreator(
-    {CustomOperators::LeakyReluId});
+static popart::popx::OpxCreator<LeakyReluOpx>
+    LeakyReluOpxCreator({CustomOperators::LeakyReluId});
 static popart::popx::OpxCreator<LeakyReluGradOpx>
     LeakyReluGradOpxCreator({CustomGradOperators::LeakyReluGradId});

@@ -21,13 +21,12 @@ int main() {
   // Attempt to attach to a single IPU:
   auto devices = manager.getDevices(poplar::TargetType::IPU, 1);
   std::cout << "Trying to attach to IPU\n";
-  auto it = std::find_if(devices.begin(), devices.end(), [](Device &device) {
-     return device.attach();
-  });
+  auto it = std::find_if(devices.begin(), devices.end(),
+                         [](Device &device) { return device.attach(); });
 
   if (it == devices.end()) {
     std::cerr << "Error attaching to device\n";
-    return 1; //EXIT_FAILURE
+    return 1; // EXIT_FAILURE
   }
 
   auto device = std::move(*it);

@@ -25,7 +25,7 @@ In order to run this tutorial on the IPU you will need to have:
 - A Poplar SDK environment enabled (see the
 [Getting Started](https://docs.graphcore.ai/en/latest/getting-started.html) guide for your IPU system).
 - The Graphcore port of TensorFlow 1 set up for the IPU (see the
-[Setup Instructions](https://docs.graphcore.ai/projects/ipu-pod-getting-started/en/latest/installation.html#setting-up-tensorflow-for-the-ipu))
+[Setup Instructions](https://docs.graphcore.ai/projects/ipu-pod-getting-started/en/3.0.0/installation.html#setting-up-tensorflow-for-the-ipu))
 """
 """
 To run the Jupyter notebook version of this tutorial:
@@ -80,8 +80,8 @@ supported on the IPU.
 """
 
 # Cast and normalize the training data
-x_train = x_train.astype('float32') / 255
-y_train = y_train.astype('int32')
+x_train = x_train.astype("float32") / 255
+y_train = y_train.astype("int32")
 
 """
 We create a `tf.data.Dataset` object from the data. When batching the data, we set
@@ -105,11 +105,15 @@ Sequential API and create an instance of the model.
 
 
 def create_model():
-    model = tf.keras.Sequential([
-        tf.keras.layers.Flatten(),
-        tf.keras.layers.Dense(128, activation='relu'),
-        tf.keras.layers.Dense(10, activation='softmax')])
+    model = tf.keras.Sequential(
+        [
+            tf.keras.layers.Flatten(),
+            tf.keras.layers.Dense(128, activation="relu"),
+            tf.keras.layers.Dense(10, activation="softmax"),
+        ]
+    )
     return model
+
 
 model = create_model()
 
@@ -131,7 +135,8 @@ def training_loop_body(x, y):
     loss = tf.losses.sparse_softmax_cross_entropy(labels=y, logits=logits)
     train_op = tf.train.AdamOptimizer(learning_rate=0.01).minimize(loss=loss)
 
-    return([loss, train_op])
+    return [loss, train_op]
+
 
 """
 ## 7. Prepare the model for the IPU
@@ -149,9 +154,11 @@ Note that we build the operation within the scope of a particular device with `i
 # Get inputs from get_next() method of iterator
 (x, y) = dataset_iterator.get_next()
 
-with ipu.scopes.ipu_scope('/device:IPU:0'):
+with ipu.scopes.ipu_scope("/device:IPU:0"):
 
-    training_loop_body_on_ipu = ipu.ipu_compiler.compile(computation=training_loop_body, inputs=[x, y])
+    training_loop_body_on_ipu = ipu.ipu_compiler.compile(
+        computation=training_loop_body, inputs=[x, y]
+    )
 # sst_hide_output
 """
 ## 8. Add IPU configuration
@@ -176,7 +183,7 @@ with tf.Session() as sess:
     sess.run(tf.global_variables_initializer())
     sess.run(dataset_iterator.initializer)
 
-    batches_per_epoch = len(x_train)//BATCHSIZE
+    batches_per_epoch = len(x_train) // BATCHSIZE
 
     for epoch in range(EPOCHS):
 
@@ -193,8 +200,8 @@ with tf.Session() as sess:
             loss_running_total += loss[0]
 
         # Print average loss and time taken for epoch
-        print('\n', end='')
-        print("Loss:", loss_running_total/batches_per_epoch)
+        print("\n", end="")
+        print("Loss:", loss_running_total / batches_per_epoch)
         print("Time:", time.time() - epoch_start_time)
 
 print("Program ran successfully")

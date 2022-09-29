@@ -1,6 +1,10 @@
+<!-- Copyright (c) 2021 Graphcore Ltd. All rights reserved. -->
 # Graphcore tutorials
 
-These tutorials provide hands-on programming exercises to enable you to familiarise yourself with creating, running and profiling programs on the IPU. They are part of the Developer resources provided by Graphcore: https://www.graphcore.ai/developer.
+These tutorials provide hands-on programming exercises to enable you to
+familiarise yourself with creating, running and profiling programs on the IPU.
+They are part of the Developer resources provided by Graphcore:
+<https://www.graphcore.ai/developer>.
 
 Each of the tutorials contains its own README file with full instructions.
 
@@ -74,12 +78,17 @@ Debugging and analysis:
 
 - [Observing tensors in PopTorch](pytorch/observing_tensors)
 
+Running a Hugging Face model on the IPU:
+
+- [Fine-tuning a HuggingFace Vision Transformer (ViT) on the IPU using a local dataset](pytorch/vit_model_training)
+
 ## PopVision
 
 PopVision is Graphcore's suite of graphical application analysis tools.
 
 - [Instrumenting applications and using the PopVision System Analyser](popvision/system_analyser_instrumentation)
 - [Accessing profiling information with libpva](popvision/libpva)
+- [Reading application instrumentation from PVTI files](popvision/reading_pvti_files)
 - Profiling output with the PopVision Graph Analyser is currently included in [Poplar Tutorial 4: profiling output](poplar/tut4_profiling)
 
 ## PopXL and popxl.addons
@@ -104,3 +113,4 @@ In this folder you will find explanations of how to use standard deep learning t
 with the Graphcore IPU. Guides included are:
 
 - [Using IPUs from Jupyter Notebooks](standard_tools/using_jupyter)
+- [Using VS Code with the Poplar SDK and IPUs](standard_tools/using_vscode)

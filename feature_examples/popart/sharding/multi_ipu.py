@@ -6,14 +6,14 @@ import popart
 
 
 def graph_builder(opts):
-    if opts.mode == 'infer':
+    if opts.mode == "infer":
         builder_fn = infer_builder
-    elif opts.mode == 'eval':
+    elif opts.mode == "eval":
         builder_fn = eval_builder
-    elif opts.mode == 'train':
+    elif opts.mode == "train":
         builder_fn = train_builder
     else:
-        raise ValueError("Unknown mode '{}'".format(opts.mode))
+        raise ValueError(f"Unknown mode '{opts.mode}'")
     defn = builder_fn(opts)
     defn[0] = defn[0].getModelProto()
     return defn
@@ -31,7 +31,9 @@ def infer_builder(opts):
         b_data = np.zeros([opts.hidden_size], np.float16)
         input_data = np.zeros(input_shape, np.float16)
     else:
-        w_data = np.random.normal(0, 1, [opts.hidden_size, opts.hidden_size]).astype(np.float16)
+        w_data = np.random.normal(0, 1, [opts.hidden_size, opts.hidden_size]).astype(
+            np.float16
+        )
         b_data = np.random.normal(0, 1, [opts.hidden_size]).astype(np.float16)
         input_data = np.random.uniform(-1, 1, input_shape).astype(np.float16)
 
@@ -48,7 +50,7 @@ def infer_builder(opts):
         {input: input_data},
         {output: popart.AnchorReturnType("FINAL")},
         [],
-        None
+        None,
     ]
 
 
@@ -64,67 +66,59 @@ def eval_builder(opts):
     else:
         label_data = np.random.uniform(0, 2, label_shape).astype(np.int32)
 
-    loss = builder.aiGraphcore.nllloss([probs, label], popart.ReductionType.Sum, debugContext="nllLossVal")
+    loss = builder.aiGraphcore.nllloss(
+        [probs, label], popart.ReductionType.Sum, debugContext="nllLossVal"
+    )
 
     return [
         builder,
         {**data, label: label_data},
         {loss: popart.AnchorReturnType("FINAL")},
         [loss],
-        None
+        None,
     ]
 
 
 def train_builder(opts):
     builder, data, outputs, loss, __ = eval_builder(opts)
 
-    return [
-        builder,
-        data,
-        outputs,
-        loss,
-        popart.SGD(0.01)
-    ]
+    return [builder, data, outputs, loss, popart.SGD(0.01)]
 
 
 def add_args(parser):
-    parser.add_argument("--batch-size", default=1, type=int,
-                        help="Number of inputs in a mini-batch")
-    parser.add_argument("--hidden-size", default=128, type=int,
-                        help="Layer hidden size")
+    parser.add_argument(
+        "--batch-size", default=1, type=int, help="Number of inputs in a mini-batch"
+    )
+    parser.add_argument(
+        "--hidden-size", default=128, type=int, help="Layer hidden size"
+    )
     parser.set_defaults(batches_per_step=1000, steps=5, shards=2)
     return parser
 
 
 def iteration_report(opts, time):
-    return "{:5f} items/sec".format(opts.batch_size * opts.batches_per_step / time)
+    return f"{opts.batch_size * opts.batches_per_step / time:5f} items/sec"
 
 
-if __name__ == '__main__':
-    sys.path.insert(1, '../../../utils/benchmarks/popart')
+if __name__ == "__main__":
+    sys.path.insert(1, "../../../utils/benchmarks/popart")
     import benchmark
 
-    module = benchmark.Benchmark(
-        graph_builder,
-        add_args,
-        iteration_report
-    )
+    module = benchmark.Benchmark(graph_builder, add_args, iteration_report)
 
     opts = benchmark.parse_opts(module)
 
     opts.train = opts.mode == "train"
 
     # Log Benchmark Message
-    print("Popart Multi-IPU {} Synthetic benchmark.\n"
-          " Batch size {}.\n"
-          " Batches per Step {}.\n"
-          " Steps {}.\n"
-          " {} IPUs."
-          .format(
-              {"infer": "Inference", "eval": "Evaluation", "train": "Training"}[opts.mode],
-              opts.batch_size,
-              opts.batches_per_step,
-              opts.steps,
-              opts.shards))
+    mode_names = {"infer": "Inference", "eval": "Evaluation", "train": "Training"}
+    print(
+        f"PopART Multi-IPU {mode_names[opts.mode]} Synthetic benchmark.\n"
+        f" Batch size {opts.batch_size}.\n"
+        f" Batches per Step {opts.batches_per_step}.\n"
+        f" Steps {opts.steps}.\n"
+        f" {opts.shards} IPUs."
+    )
+
     np.random.seed(42)
     benchmark.run(module, opts)

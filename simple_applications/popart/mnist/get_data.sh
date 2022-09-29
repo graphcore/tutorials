@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Copyright (c) 2019 Graphcore Ltd. All rights reserved.
 
 RESOURCES_DIR='../../../utils/resources/'
 GET_FILE='get.py'

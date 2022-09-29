@@ -1,3 +1,4 @@
+<!-- Copyright (c) 2020 Graphcore Ltd. All rights reserved. -->
 # Kernel benchmarks: Convolutional and LSTM layers with PopART
 
 This README describes how to run benchmarks for models with a single type of layer and synthetic data in training and inference.
@@ -30,7 +31,7 @@ The structure of the repo is as follows:
 2. Run the training program. For example:
 
    `python3 lstm.py`
-   
+
    Use `--help` to show all available options.
 
 ### Profiling
@@ -44,6 +45,6 @@ The following enables report generation, and specifies a directory to generate r
 export POPLAR_ENGINE_OPTIONS='{"autoReport.all":"true", "autoReport.directory":"."}'
 ```
 
-After running a benchmark, the resulting report can be opened using the PopVision Graph Analyser. 
+After running a benchmark, the resulting report can be opened using the PopVision Graph Analyser.
 See the Graph Analyser user guide for more information:
-[PopVision Graph Analyser User Guide](https://docs.graphcore.ai/projects/graph-analyser-userguide/en/latest/).
+[PopVision Graph Analyser User Guide](https://docs.graphcore.ai/projects/graph-analyser-userguide/en/3.11.2/).

@@ -1,3 +1,4 @@
+<!-- Copyright (c) 2021 Graphcore Ltd. All rights reserved. -->
 # Code used in blogs
 
 This directory contains code used in Graphcore blogs

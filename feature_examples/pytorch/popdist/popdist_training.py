@@ -18,7 +18,7 @@ class ModelWithLoss(torch.nn.Module):
     def __init__(self):
         super().__init__()
         self.model = torchvision.models.resnet18()
-        self.loss = torch.nn.NLLLoss(reduction='mean')
+        self.loss = torch.nn.NLLLoss(reduction="mean")
 
     def forward(self, x, y=None):
         logits = self.model(x)
@@ -26,7 +26,7 @@ class ModelWithLoss(torch.nn.Module):
             return logits
         log_preds = F.log_softmax(logits, dim=1)
         loss = self.loss(log_preds, y)
-        return logits, poptorch.identity_loss(loss, reduction='none')
+        return logits, poptorch.identity_loss(loss, reduction="none")
 
 
 def train(args):
@@ -65,7 +65,7 @@ def train(args):
 
     # Persist checkpoints from all instances even though they are identical,
     # this is useful for testing purposes.
-    torch.save(model.state_dict(), f'checkpoint-instance-{instance}.pt')
+    torch.save(model.state_dict(), f"checkpoint-instance-{instance}.pt")
 
     # Validation in a single process.
     if popdist.isPopdistEnvSet() and instance != 0:
@@ -110,19 +110,21 @@ def create_options(args, train):
 def load_data(args, opts, train):
     # We need to lock the directory to avoid race conditions related to
     # downloading and writing a dataset.
-    datasets_dir = os.path.expanduser('~/.torch/datasets')
+    datasets_dir = os.path.expanduser("~/.torch/datasets")
     with create_and_lock_directory(datasets_dir):
         dataset = torchvision.datasets.CIFAR10(
             root=datasets_dir,
             train=train,
             download=True,
-            transform=torchvision.transforms.Compose([
-                torchvision.transforms.ToTensor(),
-                torchvision.transforms.Normalize(
-                    (0.5, 0.5, 0.5),
-                    (0.5, 0.5, 0.5),
-                ),
-            ]),
+            transform=torchvision.transforms.Compose(
+                [
+                    torchvision.transforms.ToTensor(),
+                    torchvision.transforms.Normalize(
+                        (0.5, 0.5, 0.5),
+                        (0.5, 0.5, 0.5),
+                    ),
+                ]
+            ),
         )
 
     # When using a dataloader with 'auto_distributed_partitioning=True',
@@ -158,16 +160,16 @@ def create_and_lock_directory(dir):
         os.close(dir_fd)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     parser = argparse.ArgumentParser(add_help=False)
-    parser.add_argument('--epochs', type=int, default=5)
-    parser.add_argument('--batch-size', type=int, default=64)
-    parser.add_argument('--learning-rate', type=float, default=0.001)
-    parser.add_argument('--momentum', type=float, default=0.9)
-    parser.add_argument('--num-replicas', type=int, default=4)
-    parser.add_argument('--dataloader-workers', type=int, default=5)
-    parser.add_argument('--seed', type=int, default=0)
+    parser.add_argument("--epochs", type=int, default=5)
+    parser.add_argument("--batch-size", type=int, default=64)
+    parser.add_argument("--learning-rate", type=float, default=0.001)
+    parser.add_argument("--momentum", type=float, default=0.9)
+    parser.add_argument("--num-replicas", type=int, default=4)
+    parser.add_argument("--dataloader-workers", type=int, default=5)
+    parser.add_argument("--seed", type=int, default=0)
     if popdist.isPopdistEnvSet():
         hvd.init()
     train(parser.parse_args())

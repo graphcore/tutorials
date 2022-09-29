@@ -11,26 +11,24 @@
 /// Check the Targeting the IPU from TensorFlow document for
 /// the API level required for the version of the Poplar SDK that you are using.
 extern "C" {
-  int32_t custom_op_api_level = 5;
+int32_t custom_op_api_level = 5;
 }
 
 /// This is an elementwise operation, so we tell the framework using the
 /// Build_metadata function.
 extern "C" void Build_metadata(
-  std::vector<std::int64_t>& allocating_indices,
-  std::vector<std::int64_t>& replica_identical_output_indices,
-  std::map<std::int64_t, std::int64_t>& input_to_output_tensor_aliasing,
-  bool& is_elementwise,
-  bool& is_stateless,
-  bool& is_hashable,
-  std::uint32_t num_inputs) {
+    std::vector<std::int64_t> &allocating_indices,
+    std::vector<std::int64_t> &replica_identical_output_indices,
+    std::map<std::int64_t, std::int64_t> &input_to_output_tensor_aliasing,
+    bool &is_elementwise, bool &is_stateless, bool &is_hashable,
+    std::uint32_t num_inputs) {
   is_elementwise = true;
 }
 
 // The Build function constructs the Poplar graph that computes the custom op.
-extern "C" poplar::program::Program Build(
-    poplar::Graph& graph, const std::vector<poplar::Tensor>& inputs,
-    std::vector<poplar::Tensor>& outputs, const std::string& debugPrefix) {
+extern "C" poplar::program::Program
+Build(poplar::Graph &graph, const std::vector<poplar::Tensor> &inputs,
+      std::vector<poplar::Tensor> &outputs, const std::string &debugPrefix) {
   if (inputs.size() != 2) {
     throw poputil::poplibs_error("VectorAdd requires 2 inputs");
   }
@@ -44,13 +42,11 @@ extern "C" poplar::program::Program Build(
   }
 
   if (inputs[0].dim(0) != inputs[1].dim(0)) {
-    throw poputil::poplibs_error(
-        "Length of input vectors must match");
+    throw poputil::poplibs_error("Length of input vectors must match");
   }
 
   if (inputs[0].elementType() != inputs[1].elementType()) {
-    throw poputil::poplibs_error(
-        "Data types of inputs must match");
+    throw poputil::poplibs_error("Data types of inputs must match");
   }
 
   auto dType = inputs[0].elementType();
@@ -60,13 +56,13 @@ extern "C" poplar::program::Program Build(
 
   // Get the tile mapping for the complete tensor.  We will map the vertices so
   // that they match the layout of the 'x' input tensor (input[0]).  If the 'x'
-  // tensor was layed out differently to the other ones, then Poplar will
+  // tensor was laid out differently to the other ones, then Poplar will
   // insert code to move the data in the other tensors to the mapped tile. So
   // ideally we would choose the best mapping for the vertices by analysing
   // all of the tensor mappings.
   auto tileMapping = graph.getTileMapping(inputs[0]);
 
-  // Get the target, which descibes properties of the hardware.
+  // Get the target, which describes properties of the hardware.
   auto target = graph.getTarget();
 
   // Get the vector width of the particular data type, so that later we can
@@ -92,7 +88,7 @@ extern "C" poplar::program::Program Build(
     auto vertexRegions = poputil::splitRegionsBetweenWorkers(
         target, tileMapping[tile], vectorWidth, 2 * vectorWidth);
 
-    for (const auto& regions : vertexRegions) {
+    for (const auto &regions : vertexRegions) {
       // If a region has no elements, then there is no need to add a vertex for
       // it.
       if (regions.empty()) {

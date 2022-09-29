@@ -75,7 +75,7 @@ lets you easily jump to their definitions. Consult the [VS Code setup
 guide](../VSCodeSetup.md) to use Intellisense for this tutorial.
 """
 
-# %pip install -r requirements.txt
+# %pip install -q -r requirements.txt
 # sst_ignore_md
 # sst_ignore_code_only
 # sst_hide_output
@@ -141,7 +141,10 @@ class Adam(addons.Module):
     ):
         # Gradient estimator for the variable `weight` - same shape as the variable
         first_order = self.add_variable_input(
-            "first_order", partial(np.zeros, weight.shape), first_order_dtype, by_ref=True
+            "first_order",
+            partial(np.zeros, weight.shape),
+            first_order_dtype,
+            by_ref=True,
         )
         ops.var_updates.accumulate_moving_average_(first_order, grad, f=beta1)
 
@@ -174,6 +177,7 @@ class Adam(addons.Module):
         # in-place weight update: weight += (-lr)*dw
         ops.scaled_add_(weight, dw, b=-lr)
 
+
 # sst_hide_output
 """
 The Adam optimiser needs state to store the mean and uncentred variance (first and second
@@ -193,7 +197,7 @@ tutorial](../1_basic_concepts) to add weights to our layers. However, in the
   operations.
 - The `weight` input is a `popxl.TensorByRef`: any change made to this variable
   will be automatically copied to the parent graph. See
-  [TensorByRef](https://docs.graphcore.ai/projects/popxl/en/latest/api.html#popxl.Ir.create_graph)
+  [TensorByRef](https://docs.graphcore.ai/projects/popxl/en/3.0.0/api.html#popxl.Ir.create_graph)
   for more information.
 - Some parameters, such as learning rate or weight decay, are defined as
   `Union[float, popxl.Tensor]`. If the parameter was provided as a simple
@@ -223,7 +227,7 @@ rules:
   updates `average` in-place with an exponential moving average rule:
 
   ```python
-  average = (coefficient * average) + ((1-coefficient) * new_sample)
+  average = (coefficient * average) + ((1 - coefficient) * new_sample)
   ```
 
 - `accumulate_moving_average_square_(average, new_sample, coefficient)` updates
@@ -317,7 +321,7 @@ def optimiser_step(
     for name, var in variables.named_tensors.items():
         # Create optimiser and state factories for the variable
         opt_facts, opt_graph = optimiser.create_graph(
-           var, var.spec, lr=learning_rate, weight_decay=0.0, bias_correction=False
+            var, var.spec, lr=learning_rate, weight_decay=0.0, bias_correction=False
         )
         state = opt_facts.init()
 
@@ -570,7 +574,7 @@ def accuracy(predictions: np.ndarray, labels: np.ndarray):
 
 num_batches = len(test_data)
 sum_acc = 0.0
-with torch.no_grad(), test_session:
+with test_session:
     for data, labels in tqdm(test_data, total=num_batches):
         inputs: Mapping[popxl.HostToDeviceStream, np.ndarray] = dict(
             zip(test_input_streams, [data.squeeze().float(), labels.int()])
@@ -602,7 +606,7 @@ To try out more features in PopXL [look at our other
 tutorials](../../README.md).
 
 You can also read our [PopXL User
-Guide](https://docs.graphcore.ai/projects/popxl/en/latest/) for more
+Guide](https://docs.graphcore.ai/projects/popxl/en/3.0.0/) for more
 information.
 
 As the PopXL API is still experimental, we would love to hear your feedback on it

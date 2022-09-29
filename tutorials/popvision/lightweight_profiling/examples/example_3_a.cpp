@@ -8,7 +8,8 @@ class DummyVertex : public SupervisorVertex {
 public:
   __attribute__((target("supervisor"))) bool compute() {
     // Simulate some computation
-    for (volatile int i{}; i < 100; ++i);
+    for (volatile int i{}; i < 100; ++i)
+      ;
     return true;
   }
 };
@@ -27,9 +28,9 @@ using namespace poplar::program;
 poplar::Device getIpuHwDevice(std::size_t numIpus) {
   auto dm = poplar::DeviceManager::createDeviceManager();
   auto hwDevices = dm.getDevices(poplar::TargetType::IPU, numIpus);
-  auto it = std::find_if(hwDevices.begin(), hwDevices.end(), [](poplar::Device &device) {
-     return device.attach();
-  });
+  auto it =
+      std::find_if(hwDevices.begin(), hwDevices.end(),
+                   [](poplar::Device &device) { return device.attach(); });
   if (it != hwDevices.end()) {
     return std::move(*it);
   }
@@ -52,17 +53,13 @@ int main(int argc, char **argv) {
   VertexRef v = graph.addVertex(op, "DummyVertex");
   graph.setTileMapping(v, computeTile);
 
-  Sequence seq{
-    Repeat{100, Sequence{
-      Execute(op)
-      }}
-  };
+  Sequence seq{Repeat{100, Sequence{Execute(op)}}};
 
   // Compile and execute the model
   OptionFlags engineOpts{
-    {"profiler.programs.filter", "operation"},
-    {"debug.instrumentExternalExchange", "true"},
-    {"profiler.blocks.implicitFlush", "true"},
+      {"profiler.programs.filter", "operation"},
+      {"debug.instrumentExternalExchange", "true"},
+      {"profiler.blocks.implicitFlush", "true"},
   };
   // Make sure the engine is destroyed before accessing the report
   auto report = [&]() {
@@ -99,4 +96,3 @@ int main(int argc, char **argv) {
   return 0;
 }
 #endif
-

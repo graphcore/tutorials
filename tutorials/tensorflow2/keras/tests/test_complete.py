@@ -15,28 +15,31 @@
 from pathlib import Path
 import pytest
 
-from tutorials_tests.testing_util import SubProcessChecker
+import tutorials_tests.testing_util as testing_util
 
-working_path = Path(__file__).parent.parent.joinpath("completed_example")
+working_path = Path(__file__).parents[1] / "completed_example"
 
 
-class TestComplete(SubProcessChecker):
-    @pytest.mark.category1
-    def test_run_complete_cpu(self):
-        self.run_command("python3 main.py",
-                         working_path,
-                         "Program ran successfully")
+@pytest.mark.category1
+def test_run_complete_cpu():
+    testing_util.run_command(
+        "python3 main.py", working_path, "Program ran successfully"
+    )
 
-    @pytest.mark.category1
-    @pytest.mark.ipus(2)
-    def test_run_complete_ipu(self):
-        self.run_command("python3 main.py --use-ipu",
-                         working_path,
-                         "Program ran successfully")
 
-    @pytest.mark.category1
-    @pytest.mark.ipus(2)
-    def test_run_complete_pipelining(self):
-        self.run_command("python3 main.py --use-ipu --pipelining",
-                         working_path,
-                         "Program ran successfully")
+@pytest.mark.category1
+@pytest.mark.ipus(2)
+def test_run_complete_ipu():
+    testing_util.run_command(
+        "python3 main.py --use-ipu", working_path, "Program ran successfully"
+    )
+
+
+@pytest.mark.category1
+@pytest.mark.ipus(2)
+def test_run_complete_pipelining():
+    testing_util.run_command(
+        "python3 main.py --use-ipu --pipelining",
+        working_path,
+        "Program ran successfully",
+    )

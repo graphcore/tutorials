@@ -1,3 +1,4 @@
+<!-- Copyright (c) 2020 Graphcore Ltd. All rights reserved. -->
 # PopART Phased Execution example
 
 This example runs a network in inference mode over two IPUs by splitting it in several execution phases, using PopART.

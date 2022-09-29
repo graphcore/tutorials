@@ -81,7 +81,8 @@ int main(int argc, char **argv) {
   Device device = ipuModel.createDevice();
   Target target = device.getTarget();
 
-  std::cout << "Creating new graph object and compiling vertex program additions\n";
+  std::cout
+      << "Creating new graph object and compiling vertex program additions\n";
 
   Graph graph(target);
   graph.addCodelets("matrix-mul-codelets.cpp");
@@ -110,12 +111,10 @@ int main(int argc, char **argv) {
   }
 
   // Create a device program to multiply two tensors together.
-  auto mulProg =
-      buildMultiplyProgram(graph, matrix, inputVector, outputVector);
+  auto mulProg = buildMultiplyProgram(graph, matrix, inputVector, outputVector);
 
   // Set up data streams to copy data in and out of graph
-  auto inStreamV =
-      graph.addHostToDeviceFIFO("inputVector", FLOAT, numCols);
+  auto inStreamV = graph.addHostToDeviceFIFO("inputVector", FLOAT, numCols);
   auto inStreamM =
       graph.addHostToDeviceFIFO("inputMatrix", FLOAT, numCols * numRows);
   auto outStream = graph.addDeviceToHostFIFO("out", FLOAT, numRows);
@@ -123,7 +122,7 @@ int main(int argc, char **argv) {
   // Create a program that copies data from the host buffers, multiplies
   // the result and copies the result back to the host.
   auto prog = Sequence({Copy(inStreamV, inputVector), Copy(inStreamM, matrix),
-                       mulProg, Copy(outputVector, outStream)});
+                        mulProg, Copy(outputVector, outStream)});
 
   // Create an engine from the compute graph and control program.
   Engine engine(graph, prog);

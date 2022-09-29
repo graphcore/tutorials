@@ -1,9 +1,10 @@
+<!-- Copyright (c) 2022 Graphcore Ltd. All rights reserved. -->
 # Graphcore: Sharding Pipeline Stages using Concurrent Pipelines
 
 ## Concurrent Pipeline Support in TensorFlow
 
 TensorFlow on IPU supports [concurrent
-pipelines](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/tensorflow/perf_training.html#concurrent-pipeline-stages).
+pipelines](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/3.0.0/tensorflow/perf_training.html#concurrent-pipeline-stages).
 These are single pipeline stages that use more than a single IPU to allow tensor
 parallel (sharded) computations to be defined in that stage. This code example
 shows how to use this feature to implement a tensor parallel tied embedding
@@ -14,7 +15,7 @@ use the library in such an application.
 
 A more general introduction to Pipelining can be found in our [memory and
 performance optimisation
-guide](https://docs.graphcore.ai/projects/memory-performance-optimisation/en/2.6.0/optimising-performance.html#pipeline-execution-scheme).
+guide](https://docs.graphcore.ai/projects/memory-performance-optimisation/en/3.0.0/optimising-performance.html#pipeline-execution-scheme).
 
 ### File structure
 

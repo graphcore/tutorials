@@ -40,10 +40,7 @@ with ipu_scope("/device:IPU:0"):
 
 with tf.Session() as sess:
     # sharded run
-    result = sess.run(result,
-                      feed_dict={
-                        pa: [1., 1.],
-                        pb: [0., 1.],
-                        pc: [1., 5.]
-                        })
+    result = sess.run(
+        result, feed_dict={pa: [1.0, 1.0], pb: [0.0, 1.0], pc: [1.0, 5.0]}
+    )
     print(result)

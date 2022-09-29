@@ -10,6 +10,7 @@ import jax.numpy as jnp
 from utils import ClosureInitializer
 import sys
 import pathlib
+
 # We need to add the parent directory to our PYTHONPATH in order to import ops from custom_ops.
 custom_ops_parent = pathlib.Path(__file__).parents[1].resolve()
 if str(custom_ops_parent) not in sys.path:
@@ -32,7 +33,9 @@ def softmax_cross_entropy(logits, labels):
 
 
 def loss_fn(features, indices, labels):
-    embed = hk.Embed(embedding_matrix=features, lookup_style='ARRAY_INDEX', name="tied_embedding")
+    embed = hk.Embed(
+        embedding_matrix=features, lookup_style="ARRAY_INDEX", name="tied_embedding"
+    )
     project = TiedProjection(embedding=embed, name="tied_projection")
     network = hk.Sequential([embed, project])
     logits = network(indices)
@@ -55,7 +58,12 @@ def embedding_stage(indices, weight_shape, weight_initialiser):
         "availableMemoryProportion": "0.3",
     }
     weight_type = tf.float16 if args.fp16 else tf.float32
-    weights = tf.get_variable('embedding_weights', dtype=weight_type, shape=weight_shape, initializer=weight_initialiser)
+    weights = tf.get_variable(
+        "embedding_weights",
+        dtype=weight_type,
+        shape=weight_shape,
+        initializer=weight_initialiser,
+    )
     weights, indices = sharded.allocate_tied_embedding(weights, indices, opts)
     shardedIndices = sharded.to_all(indices, args.ipus)
     embedded = sharded.embedding(weights, shardedIndices, opts)
@@ -73,7 +81,9 @@ def projection_stage(shardedIndices, weights, input):
     }
     # Projection using the same weights:
     inputSharded = sharded.to_all(input, args.ipus)
-    output = sharded.matmul(inputSharded, tf.transpose(weights), opts, name="custom_matmul")
+    output = sharded.matmul(
+        inputSharded, tf.transpose(weights), opts, name="custom_matmul"
+    )
     ce = sharded.log_softmax_cross_entropy(output, shardedIndices)
     loss = tf.reduce_mean(ce)
 
@@ -98,15 +108,19 @@ outfeed_queue = ipu.ipu_outfeed_queue.IPUOutfeedQueue()
 
 
 def pipelined_test(input_indices):
-
     def bound_embedding(indices):
         embedding_init = ClosureInitializer(lambda: tf.constant(features))
-        return embedding_stage(indices, weight_shape=features.shape, weight_initialiser=embedding_init)
+        return embedding_stage(
+            indices, weight_shape=features.shape, weight_initialiser=embedding_init
+        )
 
     with tf.variable_scope("Test", use_resource=True):
         pipeline_op = ipu.pipelining_ops.pipeline(
             computational_stages=[bound_embedding, loss_stage],
-            device_mapping=[ipu.pipelining_ops._ALL_DEVICES, args.ipus - 1],  # Need to reference last IPU
+            device_mapping=[
+                ipu.pipelining_ops._ALL_DEVICES,
+                args.ipus - 1,
+            ],  # Need to reference last IPU
             gradient_accumulation_count=1,
             repeat_count=1,
             inputs=[input_indices],
@@ -115,29 +129,52 @@ def pipelined_test(input_indices):
             optimizer_function=None,
             pipeline_schedule=ipu.pipelining_ops.PipelineSchedule.Sequential,
             outfeed_loss=False,
-            name="Pipeline")
+            name="Pipeline",
+        )
         return pipeline_op
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--vocab-size", type=int, default=20,
-                        help="Vocab size (number of rows in the embedding matrix).")
-    parser.add_argument("--feature-size", type=int, default=3,
-                        help="Dimension of embedded vector space (number of columns ion the embedding matrix).")
-    parser.add_argument("--sequence-length", type=int, default=7,
-                        help="Sequence length (number of vectors to gather in embedding stage).")
-    parser.add_argument("--ipus", type=int, default=2,
-                        help="Number of IPUs (number of shards for matmul).")
-    parser.add_argument("--no-checks", action="store_true",
-                        help="Don't check results: this avoids large host streams of grads so you can run with larger embeddings.")
-    parser.add_argument("--fp16", action="store_true",
-                        help="Use half precision for embedding/projection weights (note the weight type is propagated almost everywhere).")
+    parser.add_argument(
+        "--vocab-size",
+        type=int,
+        default=20,
+        help="Vocab size (number of rows in the embedding matrix).",
+    )
+    parser.add_argument(
+        "--feature-size",
+        type=int,
+        default=3,
+        help="Dimension of embedded vector space (number of columns ion the embedding matrix).",
+    )
+    parser.add_argument(
+        "--sequence-length",
+        type=int,
+        default=7,
+        help="Sequence length (number of vectors to gather in embedding stage).",
+    )
+    parser.add_argument(
+        "--ipus",
+        type=int,
+        default=2,
+        help="Number of IPUs (number of shards for matmul).",
+    )
+    parser.add_argument(
+        "--no-checks",
+        action="store_true",
+        help="Don't check results: this avoids large host streams of grads so you can run with larger embeddings.",
+    )
+    parser.add_argument(
+        "--fp16",
+        action="store_true",
+        help="Use half precision for embedding/projection weights (note the weight type is propagated almost everywhere).",
+    )
     args = parser.parse_args()
     return args
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     args = parse_args()
 
     features_shape = [args.vocab_size, args.feature_size]
@@ -154,7 +191,9 @@ if __name__ == '__main__':
     features = normalized(features)
     if not np.isfinite(features).any():
         raise ValueError("Random Input is not finite")
-    indices = rng.uniform(0, args.vocab_size, size=args.sequence_length).astype(np.int32)
+    indices = rng.uniform(0, args.vocab_size, size=args.sequence_length).astype(
+        np.int32
+    )
     indices = np.expand_dims(indices, axis=1)
 
     loss_fn_t = hk.transform(loss_fn)
@@ -163,9 +202,11 @@ if __name__ == '__main__':
     rng = jax.random.PRNGKey(42)
     params = loss_fn_t.init(rng, features, indices, indices.astype(dtype))
 
-    grads, (argmax_logits, hk_loss) = jax.grad(loss_fn_t.apply, has_aux=True)(params, features, indices, indices)
+    grads, (argmax_logits, hk_loss) = jax.grad(loss_fn_t.apply, has_aux=True)(
+        params, features, indices, indices
+    )
 
-    hk_embedding_grad = grads['tied_embedding']['embeddings']
+    hk_embedding_grad = grads["tied_embedding"]["embeddings"]
 
     if not np.array_equal(argmax_logits, indices):
         raise RuntimeError("Argmax of logits should match the input indices.")

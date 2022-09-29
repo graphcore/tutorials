@@ -32,20 +32,27 @@ def pack_using_spfhp(histogram, max_sequence_length, max_sequences_per_pack):
             if (length_to_bin + offset) in tmp_strategies_per_length:
                 # extract shortest pack that will get modified
                 n_sequences_to_pack, pack = tmp_strategies_per_length[
-                    length_to_bin + offset].pop()
+                    length_to_bin + offset
+                ].pop()
                 new_pack = pack + [length_to_bin]
                 count = min(n_sequences_to_pack, n_sequences_to_bin)
                 if n_sequences_to_pack > n_sequences_to_bin:
                     # old pack gets reduced
                     n_sequences_to_pack -= n_sequences_to_bin
                     tmp_strategies_per_length[length_to_bin + offset].append(
-                        (n_sequences_to_pack, pack))
+                        (n_sequences_to_pack, pack)
+                    )
                     n_sequences_to_bin = 0
                 else:
                     n_sequences_to_bin -= n_sequences_to_pack
-                add_pack(new_pack, count,
-                         tmp_strategies_per_length, strategies_per_length,
-                         max_sequences_per_pack, offset)
+                add_pack(
+                    new_pack,
+                    count,
+                    tmp_strategies_per_length,
+                    strategies_per_length,
+                    max_sequences_per_pack,
+                    offset,
+                )
                 # clean up to speed up main key search
                 if not tmp_strategies_per_length[length_to_bin + offset]:
                     tmp_strategies_per_length.pop(length_to_bin + offset)
@@ -53,9 +60,14 @@ def pack_using_spfhp(histogram, max_sequence_length, max_sequences_per_pack):
                 offset -= 1
             # Does not fit anywhere. Create new pack.
             if offset < 0:
-                add_pack([length_to_bin], n_sequences_to_bin,
-                         tmp_strategies_per_length, strategies_per_length,
-                         max_sequences_per_pack, i)
+                add_pack(
+                    [length_to_bin],
+                    n_sequences_to_bin,
+                    tmp_strategies_per_length,
+                    strategies_per_length,
+                    max_sequences_per_pack,
+                    i,
+                )
                 n_sequences_to_bin = 0
     # merge all strategies
     for key in tmp_strategies_per_length:
@@ -76,17 +88,28 @@ def pack_using_spfhp(histogram, max_sequence_length, max_sequences_per_pack):
     n_strategies = len(strategy_set)
     old_number_of_samples = histogram.sum()
     new_number_of_samples = strategy_repeat_count.sum()
-    sequences = sum([count*len(pack) for count, pack in
-                     zip(strategy_repeat_count, strategy_set)])
+    sequences = sum(
+        [count * len(pack) for count, pack in zip(strategy_repeat_count, strategy_set)]
+    )
     total_tokens = max_sequence_length * new_number_of_samples
-    empty_tokens = sum([count*(max_sequence_length-sum(pack)) for count, pack
-                        in zip(strategy_repeat_count, strategy_set)])
+    empty_tokens = sum(
+        [
+            count * (max_sequence_length - sum(pack))
+            for count, pack in zip(strategy_repeat_count, strategy_set)
+        ]
+    )
     efficiency = 100 - empty_tokens / total_tokens * 100
-    speedup_upper_bound = 1.0 / (1 - (histogram*(1 - sequence_lengths / max_sequence_length)).sum() / old_number_of_samples)
+    speedup_upper_bound = 1.0 / (
+        1
+        - (histogram * (1 - sequence_lengths / max_sequence_length)).sum()
+        / old_number_of_samples
+    )
 
-    print(f"Packing efficiency (fraction of real tokens): {efficiency:3.4f}\n",
-          f"Speed-up theoretical limit: {speedup_upper_bound:3.4f}\n",
-          f"Achieved speed-up over un-packed dataset: {old_number_of_samples/new_number_of_samples:3.5f}\n",
-          f"Runtime: Packed {old_number_of_samples} sequences in {duration:3.3f} seconds.")
+    print(
+        f"Packing efficiency (fraction of real tokens): {efficiency:3.4f}\n",
+        f"Speed-up theoretical limit: {speedup_upper_bound:3.4f}\n",
+        f"Achieved speed-up over un-packed dataset: {old_number_of_samples/new_number_of_samples:3.5f}\n",
+        f"Runtime: Packed {old_number_of_samples} sequences in {duration:3.3f} seconds.",
+    )
 
     return strategy_set, np.array(strategy_repeat_count)

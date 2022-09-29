@@ -6,11 +6,13 @@ using namespace poplar;
 
 class DummyVertex : public SupervisorVertex {
   poplar::InOut<unsigned> iterations;
+
 public:
   __attribute__((target("supervisor"))) bool compute() {
     for (unsigned i{}; i < iterations; ++i) {
       // Simulate some computation
-      for (volatile int i{}; i < 100; ++i);
+      for (volatile int i{}; i < 100; ++i)
+        ;
     }
     // Increase the number of iterations the next execution will have to do
     iterations += 1;
@@ -32,15 +34,14 @@ using namespace poplar::program;
 poplar::Device getIpuHwDevice(std::size_t numIpus) {
   auto dm = poplar::DeviceManager::createDeviceManager();
   auto hwDevices = dm.getDevices(poplar::TargetType::IPU, numIpus);
-  auto it = std::find_if(hwDevices.begin(), hwDevices.end(), [](poplar::Device &device) {
-     return device.attach();
-  });
+  auto it =
+      std::find_if(hwDevices.begin(), hwDevices.end(),
+                   [](poplar::Device &device) { return device.attach(); });
   if (it != hwDevices.end()) {
     return std::move(*it);
   }
   throw std::runtime_error("No IPU hardware available.");
 }
-
 
 int main(int argc, char **argv) {
   const unsigned NUM_IPUS = 1;
@@ -67,7 +68,7 @@ int main(int argc, char **argv) {
 
   // Compile and execute the model
   OptionFlags engineOpts{
-    {"profiler.programs.filter", "operation"},
+      {"profiler.programs.filter", "operation"},
   };
   Engine engine(graph, loop, engineOpts);
   engine.load(device);
@@ -84,4 +85,3 @@ int main(int argc, char **argv) {
   return 0;
 }
 #endif
-

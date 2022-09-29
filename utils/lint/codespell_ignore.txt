@@ -1,0 +1,7 @@
+hist
+rouge
+crate
+confectionary
+patten
+inout
+trun

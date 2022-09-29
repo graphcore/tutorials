@@ -1,3 +1,4 @@
+<!-- Copyright (c) 2022 Graphcore Ltd. All rights reserved. -->
 # `lightweight_profiling` tests
 
 This directory contains tests for `lightweight` profiling.

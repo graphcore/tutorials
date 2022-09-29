@@ -1,10 +1,10 @@
 # Copyright (c) 2019 Graphcore Ltd. All rights reserved.
 
-'''
+"""
 Code Example showing how to use recomputing in PopART
 on a simple model consisting of seven dense layers.
-See https://arxiv.org/abs/1604.06174
-'''
+See <https://arxiv.org/abs/1604.06174>
+"""
 
 import numpy as np
 import popart
@@ -30,15 +30,13 @@ def create_model(num_features, num_classes, batch_size, force_recompute=False):
 
     # Init
     def init_weights(input_size, output_size):
-        return np.random.normal(0, 1,
-                                [input_size, output_size]).astype(np.float32)
+        return np.random.normal(0, 1, [input_size, output_size]).astype(np.float32)
 
     def init_biases(size):
         return np.random.normal(0, 1, [size]).astype(np.float32)
 
     def dense(x, input_size, hidden_size, recompute=False, suffix=""):
-        W = builder.addInitializedInputTensor(
-            init_weights(input_size, hidden_size))
+        W = builder.addInitializedInputTensor(init_weights(input_size, hidden_size))
         b = builder.addInitializedInputTensor(init_biases(hidden_size))
         x = builder.aiOnnx.gemm([x, W, b], debugContext="gemm_" + suffix)
         if recompute:
@@ -66,14 +64,14 @@ def create_model(num_features, num_classes, batch_size, force_recompute=False):
     out = dense(x, 128, num_classes, force_recompute, "7")
 
     # Outputs
-    output_probs = builder.aiOnnx.softmax([out],
-                                          axis=1,
-                                          debugContext="softmax_output")
+    output_probs = builder.aiOnnx.softmax([out], axis=1, debugContext="softmax_output")
 
     builder.addOutputTensor(output_probs)
 
     # Loss
-    loss = builder.aiGraphcore.nllloss([output_probs, labels], popart.ReductionType.Sum, debugContext="loss")
+    loss = builder.aiGraphcore.nllloss(
+        [output_probs, labels], popart.ReductionType.Sum, debugContext="loss"
+    )
 
     # Anchors
     art = popart.AnchorReturnType("ALL")
@@ -102,18 +100,19 @@ def main(args):
         num_features=input_columns * input_rows,
         num_classes=num_classes,
         batch_size=batch_size,
-        force_recompute=True if args.recomputing == 'ON' else False)
+        force_recompute=True if args.recomputing == "ON" else False,
+    )
 
     # Save model (optional)
     if args.export:
-        with open(args.export, 'wb') as model_path:
+        with open(args.export, "wb") as model_path:
             model_path.write(model_proto)
 
     # Session options
     num_ipus = 1
     opts = popart.SessionOptions()
 
-    if args.recomputing == 'AUTO':
+    if args.recomputing == "AUTO":
         opts.autoRecomputation = popart.RecomputationType.Standard
 
     # Create session
@@ -123,17 +122,18 @@ def main(args):
         loss=loss,
         optimizer=popart.ConstSGD(0.01),
         userOptions=opts,
-        deviceInfo=popart.DeviceManager().acquireAvailableDevice(num_ipus))
+        deviceInfo=popart.DeviceManager().acquireAvailableDevice(num_ipus),
+    )
 
     anchors = session.initAnchorArrays()
     session.prepareDevice()
 
     # Synthetic data input
-    data_in = np.random.uniform(low=0.0, high=1.0,
-                                size=input_shape).astype(np.float32)
+    data_in = np.random.uniform(low=0.0, high=1.0, size=input_shape).astype(np.float32)
 
-    labels_in = np.random.randint(low=0, high=num_classes,
-                                  size=labels_shape).astype(np.int32)
+    labels_in = np.random.randint(low=0, high=num_classes, size=labels_shape).astype(
+        np.int32
+    )
 
     # Run session
     inputs = {x0: data_in, labels: labels_in}
@@ -149,15 +149,12 @@ if __name__ == "__main__":
 
     # Arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument('--export', help='export model', metavar='FILE')
-    parser.add_argument('--test', action='store_true', help='test mode')
-    parser.add_argument('--recomputing',
-                        help='deactivate recompute',
-                        metavar='STATUS',
-                        default='ON')  # ON/AUTO/OFF see README
-    parser.add_argument('--show-logs',
-                        help='show execution logs',
-                        action='store_true')
+    parser.add_argument("--export", help="export model", metavar="FILE")
+    parser.add_argument("--test", action="store_true", help="test mode")
+    parser.add_argument(
+        "--recomputing", help="deactivate recompute", metavar="STATUS", default="ON"
+    )  # ON/AUTO/OFF see README
+    parser.add_argument("--show-logs", help="show execution logs", action="store_true")
     args = parser.parse_args()
 
     # (Optional) Logs

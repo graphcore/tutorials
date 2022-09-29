@@ -34,10 +34,11 @@ def acquireAvailableDevice(*args, **kwargs):
         sleep(10)
     raise RuntimeError("Timeout: failed to acquire any device")
 
+
 # Override PopART's device acquisition method with our own, better one
 popart.DeviceManager.acquireAvailableDevice = acquireAvailableDevice
 
-Session = namedtuple('Session', ['session', 'anchors'])
+Session = namedtuple("Session", ["session", "anchors"])
 
 ROWS = 28
 COLS = 28
@@ -51,10 +52,10 @@ def kaiming_init(shape, fan_in, a=5.0, b=3.0):
 
 def load_mnist():
     def _readfile(path):
-        with open(path, 'rb') as f:
-            magic_number, num_items = struct.unpack('>II', f.read(8))
+        with open(path, "rb") as f:
+            magic_number, num_items = struct.unpack(">II", f.read(8))
             if magic_number == 2051:
-                rows, cols = struct.unpack('>II', f.read(8))
+                rows, cols = struct.unpack(">II", f.read(8))
                 data = np.fromstring(f.read(), dtype=np.uint8)
                 data = data.reshape([num_items, 1, rows, cols])
                 data = data.astype(dtype=np.float32) / 255.0
@@ -66,10 +67,11 @@ def load_mnist():
                 data = np.fromstring(f.read(), dtype=np.uint8)
                 data = data.astype(dtype=np.int32)
             return data
-    train_data = _readfile('data/train-images-idx3-ubyte')
-    train_labels = _readfile('data/train-labels-idx1-ubyte')
-    test_data = _readfile('data/t10k-images-idx3-ubyte')
-    test_labels = _readfile('data/t10k-labels-idx1-ubyte')
+
+    train_data = _readfile("data/train-images-idx3-ubyte")
+    train_labels = _readfile("data/train-labels-idx1-ubyte")
+    test_data = _readfile("data/t10k-images-idx3-ubyte")
+    test_labels = _readfile("data/t10k-labels-idx1-ubyte")
 
     return train_data, train_labels, test_data, test_labels
 
@@ -86,12 +88,18 @@ def load_dummy(cl_opts: argparse.Namespace):
             Arrays with random values for data and labels
         """
         input_shape = [cl_opts.batches_per_step * cl_opts.batch_size, 1, ROWS, COLS]
-        data = np.zeros(input_shape, np.float32) if cl_opts.syn_data_type == "zeros" \
+        data = (
+            np.zeros(input_shape, np.float32)
+            if cl_opts.syn_data_type == "zeros"
             else np.random.normal(0, 1, input_shape).astype(np.float32)
+        )
 
         label_shape = [cl_opts.batches_per_step * cl_opts.batch_size]
-        label_data = np.zeros(label_shape, np.int32) if cl_opts.syn_data_type == "zeros" \
+        label_data = (
+            np.zeros(label_shape, np.int32)
+            if cl_opts.syn_data_type == "zeros"
             else np.random.uniform(0, 10, label_shape).astype(np.int32)
+        )
 
         return data, label_data
 
@@ -102,14 +110,14 @@ def load_dummy(cl_opts: argparse.Namespace):
 
 
 def create_model(batch_size):
-    """ Create an ONNX protobuf description of a simple model.
-        This function uses the popart library builder functions to create the
-        ONNX description directly. An alternative would be to load an
-        exported ONNX protobuf from a file.
+    """Create an ONNX protobuf description of a simple model.
+    This function uses the popart library builder functions to create the
+    ONNX description directly. An alternative would be to load an
+    exported ONNX protobuf from a file.
     """
     builder = popart.Builder()
 
-    input_shape = popart.TensorInfo('FLOAT', [batch_size, 1, ROWS, COLS])
+    input_shape = popart.TensorInfo("FLOAT", [batch_size, 1, ROWS, COLS])
     input_t = builder.addInputTensor(input_shape)
     x = input_t
 
@@ -118,36 +126,36 @@ def create_model(batch_size):
     init_weights = kaiming_init([20], 1 * 5 * 5, 1, 1)
     b1 = builder.addInitializedInputTensor(init_weights)
 
-    x = builder.aiOnnx.conv([x, W1, b1],
-                            dilations=[1, 1],
-                            kernel_shape=[5, 5],
-                            strides=[1, 1],
-                            pads=[0, 0, 0, 0])
+    x = builder.aiOnnx.conv(
+        [x, W1, b1],
+        dilations=[1, 1],
+        kernel_shape=[5, 5],
+        strides=[1, 1],
+        pads=[0, 0, 0, 0],
+    )
 
     x = builder.aiOnnx.relu([x])
-    (x,) = builder.aiOnnx.maxpool([x],
-                                  num_outputs=1,
-                                  kernel_shape=[2, 2],
-                                  pads=[0, 0, 0, 0],
-                                  strides=[2, 2])
+    (x,) = builder.aiOnnx.maxpool(
+        [x], num_outputs=1, kernel_shape=[2, 2], pads=[0, 0, 0, 0], strides=[2, 2]
+    )
 
     init_weights = kaiming_init([50, 20, 5, 5], 20 * 5 * 5)
     W2 = builder.addInitializedInputTensor(init_weights)
     init_weights = kaiming_init([50], 20 * 5 * 5, 1, 1)
     b2 = builder.addInitializedInputTensor(init_weights)
 
-    x = builder.aiOnnx.conv([x, W2, b2],
-                            dilations=[1, 1],
-                            kernel_shape=[5, 5],
-                            strides=[1, 1],
-                            pads=[0, 0, 0, 0])
+    x = builder.aiOnnx.conv(
+        [x, W2, b2],
+        dilations=[1, 1],
+        kernel_shape=[5, 5],
+        strides=[1, 1],
+        pads=[0, 0, 0, 0],
+    )
 
     x = builder.aiOnnx.relu([x])
-    (x,) = builder.aiOnnx.maxpool([x],
-                                  num_outputs=1,
-                                  kernel_shape=[2, 2],
-                                  pads=[0, 0, 0, 0],
-                                  strides=[2, 2])
+    (x,) = builder.aiOnnx.maxpool(
+        [x], num_outputs=1, kernel_shape=[2, 2], pads=[0, 0, 0, 0], strides=[2, 2]
+    )
 
     shape = builder.aiOnnx.constant(np.asarray([batch_size, 50 * 4 ** 2]))
     x = builder.aiOnnx.reshape([x, shape])
@@ -172,10 +180,12 @@ def create_model(batch_size):
     builder.addOutputTensor(output_t)
     probs = builder.aiOnnx.softmax([output_t])
 
-    label_shape = popart.TensorInfo('INT32', [batch_size])
+    label_shape = popart.TensorInfo("INT32", [batch_size])
     label = builder.addInputTensor(label_shape)
 
-    loss = builder.aiGraphcore.nllloss([probs, label], popart.ReductionType.Sum, debugContext='nllLossVal')
+    loss = builder.aiGraphcore.nllloss(
+        [probs, label], popart.ReductionType.Sum, debugContext="nllLossVal"
+    )
 
     proto = builder.getModelProto()
 
@@ -189,7 +199,8 @@ class DataSet:
         self.num_examples = len(data)
         self.batch_size = batch_size
         self.batches_per_step = min(
-            batches_per_step, self.num_examples // self.batch_size)
+            batches_per_step, self.num_examples // self.batch_size
+        )
         self.inputs_per_step = self.batch_size * self.batches_per_step
         self.steps_per_epoch = self.num_examples // self.inputs_per_step
 
@@ -197,8 +208,7 @@ class DataSet:
         input_begin = key * self.inputs_per_step
         input_end = input_begin + self.inputs_per_step
         data = self.data[input_begin:input_end]
-        data = data.reshape(
-            [self.batches_per_step, self.batch_size, 1, ROWS, COLS])
+        data = data.reshape([self.batches_per_step, self.batch_size, 1, ROWS, COLS])
         labels = self.labels[input_begin:input_end]
         labels = labels.reshape([self.batches_per_step, self.batch_size])
         return data, labels
@@ -214,7 +224,7 @@ def get_device(sim=True):
     # Select a device
     deviceManager = popart.DeviceManager()
     if sim:
-        options = {'compileIPUCode': True, 'numIPUs': 1, 'tilesPerIPU': 1216}
+        options = {"compileIPUCode": True, "numIPUs": 1, "tilesPerIPU": 1216}
         device = deviceManager.createIpuModelDevice(options)
     else:
         device = deviceManager.acquireAvailableDevice()
@@ -228,20 +238,20 @@ def init_session(proto, loss, dataFlow, userOpts, device, training=True):
         userOpts.instrumentWithHardwareCycleCounter = True
 
     if training:
-        session = popart.TrainingSession(fnModel=proto,
-                                         loss=loss,
-                                         deviceInfo=device,
-                                         optimizer=popart.ConstSGD(0.001),
-                                         dataFlow=dataFlow,
-                                         userOptions=userOpts)
+        session = popart.TrainingSession(
+            fnModel=proto,
+            loss=loss,
+            deviceInfo=device,
+            optimizer=popart.ConstSGD(0.001),
+            dataFlow=dataFlow,
+            userOptions=userOpts,
+        )
     else:
-        session = popart.InferenceSession(fnModel=proto,
-                                          deviceInfo=device,
-                                          dataFlow=dataFlow,
-                                          userOptions=userOpts)
+        session = popart.InferenceSession(
+            fnModel=proto, deviceInfo=device, dataFlow=dataFlow, userOptions=userOpts
+        )
 
-    print('Compiling the {} graph.'.format(
-        'training' if training else 'validation'))
+    print(f"Compiling the {'training' if training else 'validation'} graph.")
     session.prepareDevice()
 
     # Create buffers to receive results from the execution
@@ -252,38 +262,41 @@ def init_session(proto, loss, dataFlow, userOpts, device, training=True):
 
 def log_run_info(session, start_time, batch_size, batches_per_step):
     duration = time() - start_time
-    report_string = "{0:<8.3} sec/itr. {1:5f} images/sec.".format(
-        duration,
-        batch_size * batches_per_step / duration
-    )
-    print(report_string)
-    print(
-        "Hardware cycle count per 'run':",
-        session.session.getCycleCount()
-    )
-    print("Total time: {}".format(duration))
+    image_rate = batch_size * batches_per_step / duration
+    print(f"{duration:<8.3} sec/itr. {image_rate:5f} images/sec.")
+    print(f"Hardware cycle count per 'run': {session.session.getCycleCount()}")
+    print(f"Total time: {duration}")
 
 
 def train(opts):
     # Do not require the mnist data to be present if running with synthetic data
-    train_data, train_labels, test_data, test_labels = load_dummy(opts) \
-        if opts.syn_data_type in ["random_normal", "zeros"] else load_mnist()
+    train_data, train_labels, test_data, test_labels = (
+        load_dummy(opts)
+        if opts.syn_data_type in ["random_normal", "zeros"]
+        else load_mnist()
+    )
 
     if not opts.test_mode:
         max_value = len(test_data) // opts.batch_size
         if max_value < opts.batches_per_step:
-            print("(batches-per-step * batch-size) is larger than test set!\n"
-                  " Reduced batches-per-step to: {}\n".format(max_value))
+            print(
+                "(batches-per-step * batch-size) is larger than test set!\n"
+                f" Reduced batches-per-step to: {max_value}\n"
+            )
             opts.batches_per_step = max_value
-    training_set = DataSet(opts.batch_size, opts.batches_per_step, train_data, train_labels)
+    training_set = DataSet(
+        opts.batch_size, opts.batches_per_step, train_data, train_labels
+    )
     test_set = DataSet(opts.batch_size, opts.batches_per_step, test_data, test_labels)
 
-    print('Creating ONNX model.')
+    print("Creating ONNX model.")
     proto, data_in, labels_in, output, loss = create_model(opts.batch_size)
 
     # Describe how to run the model
-    anchor_desc = {output: popart.AnchorReturnType('ALL'),
-                   loss: popart.AnchorReturnType('ALL')}
+    anchor_desc = {
+        output: popart.AnchorReturnType("ALL"),
+        loss: popart.AnchorReturnType("ALL"),
+    }
     dataFlow = popart.DataFlow(opts.batches_per_step, anchor_desc)
 
     # Options
@@ -295,9 +308,7 @@ def train(opts):
 
     # If requested, setup synthetic data
     if opts.syn_data_type in ["random_normal", "zeros"]:
-        print(
-            "Running with Synthetic Data Type '{}'".format(opts.syn_data_type)
-        )
+        print(f"Running with Synthetic Data Type '{opts.syn_data_type}'")
         if opts.syn_data_type == "random_normal":
             userOpts.syntheticDataMode = popart.SyntheticDataMode.RandomNormal
         elif opts.syn_data_type == "zeros":
@@ -305,10 +316,10 @@ def train(opts):
 
     # A single device is shared between training and validation sessions
     with get_device(opts.simulation) as device:
-        training = init_session(proto, loss, dataFlow,
-                                userOpts, device, training=True)
-        validation = init_session(proto, loss, dataFlow,
-                                  userOpts, device, training=False)
+        training = init_session(proto, loss, dataFlow, userOpts, device, training=True)
+        validation = init_session(
+            proto, loss, dataFlow, userOpts, device, training=False
+        )
 
         # Make weight transfer file
         _, onnx_file_name = tempfile.mkstemp()
@@ -316,7 +327,7 @@ def train(opts):
         training.session.weightsFromHost()
         training.session.modelToHost(onnx_file_name)
         num_training_examples = len(training_set)
-        print('Running training loop.')
+        print("Running training loop.")
         for i in range(math.ceil(opts.epochs)):
             # Training
             if i > 0:
@@ -329,14 +340,16 @@ def train(opts):
                     print(f"Breaking at step {step} for partial epoch")
                     break
                 stepio = popart.PyStepIO(
-                    {data_in: data, labels_in: labels}, training.anchors)
+                    {data_in: data, labels_in: labels}, training.anchors
+                )
                 start = time()
-                training.session.run(stepio, 'Epoch ' + str(i) + ' training step' + str(step))
+                training.session.run(
+                    stepio, "Epoch " + str(i) + " training step" + str(step)
+                )
                 if opts.test_mode == "training":
-                    log_run_info(training,
-                                 start,
-                                 opts.batch_size,
-                                 opts.batches_per_step)
+                    log_run_info(
+                        training, start, opts.batch_size, opts.batches_per_step
+                    )
 
             training.session.modelToHost(onnx_file_name)
 
@@ -348,85 +361,91 @@ def train(opts):
                 # Evaluation
                 for step, (data, labels) in enumerate(test_set):
                     stepio = popart.PyStepIO(
-                        {data_in: data, labels_in: labels}, validation.anchors)
+                        {data_in: data, labels_in: labels}, validation.anchors
+                    )
 
                     start = time()
-                    validation.session.run(stepio, 'Epoch ' + str(i) + ' evaluation step ' + str(step))
+                    validation.session.run(
+                        stepio, "Epoch " + str(i) + " evaluation step " + str(step)
+                    )
                     if opts.test_mode == "inference":
-                        log_run_info(validation,
-                                     start,
-                                     opts.batch_size,
-                                     opts.batches_per_step)
+                        log_run_info(
+                            validation, start, opts.batch_size, opts.batches_per_step
+                        )
 
                     # Loss
                     aggregated_loss += np.mean(validation.anchors[loss])
                     # Accuracy
-                    results = np.argmax(validation.anchors[output].reshape(
-                        [test_set.inputs_per_step, 10]), 1)
-                    num_correct = np.sum(results == labels.reshape(
-                        [test_set.inputs_per_step]))
+                    results = np.argmax(
+                        validation.anchors[output].reshape(
+                            [test_set.inputs_per_step, 10]
+                        ),
+                        1,
+                    )
+                    num_correct = np.sum(
+                        results == labels.reshape([test_set.inputs_per_step])
+                    )
                     aggregated_accuracy += num_correct / test_set.inputs_per_step
 
                 # Log statistics
                 aggregated_loss /= len(test_set)
                 aggregated_accuracy /= len(test_set)
-                print(f'Epoch #{epoch}')
-                print(f'   Loss={aggregated_loss:.4f}')
-                print(f'   Accuracy={aggregated_accuracy*100:.2f}%')
+                print(f"Epoch #{epoch}")
+                print(f"   Loss={aggregated_loss:.4f}")
+                print(f"   Accuracy={aggregated_accuracy*100:.2f}%")
 
     # Remove weight transfer file
     os.remove(onnx_file_name)
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='MNIST training in Popart',
-                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="MNIST training in PopART",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+    parser.add_argument("--batch-size", type=int, default=32, help="Set the Batch size")
     parser.add_argument(
-        '--batch-size',
-        type=int,
-        default=32,
-        help='Set the Batch size')
-    parser.add_argument(
-        '--batches-per-step',
+        "--batches-per-step",
         type=int,
         default=100,
-        help='Number of minibatches to perform on the Device before returning to the Host.'
-             ' This will be capped so the Device returns each epoch.')
+        help="Number of minibatches to perform on the Device before returning to the Host."
+        " This will be capped so the Device returns each epoch.",
+    )
     parser.add_argument(
-        '--epochs',
-        type=float,
-        default=10,
-        help='Number of epochs to train for.')
+        "--epochs", type=float, default=10, help="Number of epochs to train for."
+    )
     parser.add_argument(
-        '--simulation',
-        action='store_true',
-        help='Run the example with an IPU_MODEL device.')
+        "--simulation",
+        action="store_true",
+        help="Run the example with an IPU_MODEL device.",
+    )
     parser.add_argument(
-        '--log-graph-trace',
-        action='store_true',
-        help='Turn on ir logging to display the graph\'s ops.')
+        "--log-graph-trace",
+        action="store_true",
+        help="Turn on ir logging to display the graph's ops.",
+    )
     parser.add_argument(
         "--test-mode",
-        choices=['training', 'inference'],
-        help="Output extra performance information, specify wit"
-        "h either 'training' or 'inference'",
+        choices=["training", "inference"],
+        help="Output extra performance information, specify with"
+        "either 'training' or 'inference'",
     )
     parser.add_argument(
         "--syn-data-type",
-        choices=['random_normal', 'zeros'],
+        choices=["random_normal", "zeros"],
         default="off",
         help="Specify to use synthetic data with either 'random"
-             "_normal' or 'zeros' (no host to IPU IO done in this mode)",
+        "_normal' or 'zeros' (no host to IPU IO done in this mode)",
     )
     parser.add_argument(
         "--validation-final-epoch",
-        action='store_true',
+        action="store_true",
         help="Only run validation after the final epoch.",
     )
     opts = parser.parse_args()
 
     # Set logging
-    popart.getLogger('ir').setLevel('TRACE' if opts.log_graph_trace else 'CRITICAL')
-    popart.getLogger('devicex').setLevel('CRITICAL')
+    popart.getLogger("ir").setLevel("TRACE" if opts.log_graph_trace else "CRITICAL")
+    popart.getLogger("devicex").setLevel("CRITICAL")
 
     train(opts)

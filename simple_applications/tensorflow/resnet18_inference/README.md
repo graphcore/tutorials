@@ -1,3 +1,4 @@
+<!-- Copyright (c) 2018 Graphcore Ltd. All rights reserved. -->
 
 # ResNet-18 Inference Demo
 

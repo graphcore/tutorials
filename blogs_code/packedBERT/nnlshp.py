@@ -30,7 +30,9 @@ def get_packing_strategies(start_length, minimum_increment, target_length, depth
             if new_gap == 0:
                 strategies.append([new])
             else:
-                options = get_packing_strategies(start_length + new, new, target_length, depth - 1)
+                options = get_packing_strategies(
+                    start_length + new, new, target_length, depth - 1
+                )
                 for option in options:
                     if len(option) > 0:
                         strategies.append([new] + option)
@@ -39,7 +41,9 @@ def get_packing_strategies(start_length, minimum_increment, target_length, depth
 
 def pack_using_nnlshp(histogram, max_sequence_length, max_sequences_per_pack):
     # List all unique ways of packing to the desired maximum sequence length
-    strategy_set = get_packing_strategies(0, 1, max_sequence_length, max_sequences_per_pack)
+    strategy_set = get_packing_strategies(
+        0, 1, max_sequence_length, max_sequences_per_pack
+    )
     # Get the packing matrix corresponding to this list of packing strategies
     A = get_packing_matrix(strategy_set, max_sequence_length)
     # Weights that penalize the residual on short sequences less.
@@ -48,7 +52,9 @@ def pack_using_nnlshp(histogram, max_sequence_length, max_sequences_per_pack):
     w0[:penalization_cutoff] = 0.09
     # Solve the packing problem
     start = time.time()
-    strategy_repeat_count, rnorm = optimize.nnls(np.expand_dims(w0, -1) * A, w0 * histogram)
+    strategy_repeat_count, rnorm = optimize.nnls(
+        np.expand_dims(w0, -1) * A, w0 * histogram
+    )
     # Round the floating point solution to nearest integer
     strategy_repeat_count = np.rint(strategy_repeat_count).astype(np.int64)
     # Compute the residuals, shape: [max_sequence_length]
@@ -58,7 +64,7 @@ def pack_using_nnlshp(histogram, max_sequence_length, max_sequences_per_pack):
     for l in unpacked_seqlen:
         strategy = sorted([l, max_sequence_length - l])  # the depth 1 strategy
         strategy_index = strategy_set.index(strategy)
-        strategy_repeat_count[strategy_index] += residual[l-1]
+        strategy_repeat_count[strategy_index] += residual[l - 1]
     # Re-compute the residual with the updated strategy_repeat_count
     # This should now be strictly < 0
     residual = histogram - A @ strategy_repeat_count
@@ -70,12 +76,20 @@ def pack_using_nnlshp(histogram, max_sequence_length, max_sequences_per_pack):
     sequence_lengths = np.arange(1, max_sequence_length + 1)
     old_number_of_samples = histogram.sum()
     new_number_of_samples = int(strategy_repeat_count.sum())
-    speedup_upper_bound = 1.0/(1 - (histogram*(1 - sequence_lengths / max_sequence_length)).sum()/old_number_of_samples)
+    speedup_upper_bound = 1.0 / (
+        1
+        - (histogram * (1 - sequence_lengths / max_sequence_length)).sum()
+        / old_number_of_samples
+    )
     num_padding_tokens_packed = (sequence_lengths * padding).sum()
-    efficiency = 1 - num_padding_tokens_packed/(new_number_of_samples*max_sequence_length)
-    print(f"Packing efficiency (fraction of real tokens): {efficiency:3.4f}\n",
-          f"Speed-up theoretical limit: {speedup_upper_bound:3.4f}\n",
-          f"Achieved speed-up over un-packed dataset: {old_number_of_samples/new_number_of_samples:3.5f}\n"
-          f"Runtime: Packed {old_number_of_samples} sequences in {duration:3.3f} seconds.")
+    efficiency = 1 - num_padding_tokens_packed / (
+        new_number_of_samples * max_sequence_length
+    )
+    print(
+        f"Packing efficiency (fraction of real tokens): {efficiency:3.4f}\n",
+        f"Speed-up theoretical limit: {speedup_upper_bound:3.4f}\n",
+        f"Achieved speed-up over un-packed dataset: {old_number_of_samples/new_number_of_samples:3.5f}\n"
+        f"Runtime: Packed {old_number_of_samples} sequences in {duration:3.3f} seconds.",
+    )
 
     return strategy_set, strategy_repeat_count

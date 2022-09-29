@@ -36,12 +36,12 @@ def get_test_accuracy(output):
     prefix = "Accuracy on test set:"
     pos_start = output.rfind(prefix)
     pos_end = pos_start + output[pos_start:].find("%")
-    return float(output[pos_start+len(prefix)+1:pos_end])
+    return float(output[pos_start + len(prefix) + 1 : pos_end])
 
 
 @pytest.mark.parametrize("use_multi", [True, False])
 def test_octconv_block(use_multi):
-    block = OctConvBlock(3, 6, (0., .5), use_multi=use_multi)
+    block = OctConvBlock(3, 6, (0.0, 0.5), use_multi=use_multi)
     block.eval()  # Switch the model to inference mode
 
     # N, C, H, W
@@ -83,7 +83,8 @@ def test_training_model(conv_mode):
     # have no effect. Its purpose is to show how the mode can be set explicitly.
 
     pop_model = poptorch.trainingModel(
-        model, poptorch.Options(), poptorch.optim.SGD(model.parameters(), lr=0.01))
+        model, poptorch.Options(), poptorch.optim.SGD(model.parameters(), lr=0.01)
+    )
     pop_out, pop_loss = pop_model(x, labels)
     torch.testing.assert_allclose(out, pop_out)
     torch.testing.assert_allclose(loss, pop_loss)
@@ -91,8 +92,10 @@ def test_training_model(conv_mode):
 
 @pytest.mark.parametrize("conv_mode", ["vanilla", "octave", "multi-octave"])
 def test_smoke(conv_mode, dataset_folder):
-    out = run_script("octconv_example.py",
-                     f"--conv-mode {conv_mode} --epochs 1 --data-dir {dataset_folder}")
+    out = run_script(
+        "octconv_example.py",
+        f"--conv-mode {conv_mode} --epochs 1 --data-dir {dataset_folder}",
+    )
 
     assert get_test_accuracy(out) > 15.0
 
@@ -100,5 +103,6 @@ def test_smoke(conv_mode, dataset_folder):
 @pytest.mark.parametrize("conv_mode", ["vanilla", "octave", "multi-octave"])
 def test_profiling(tmpdir, conv_mode):
     profile_dir = tmpdir.mkdir(f"profile_{conv_mode}")
-    run_script("octconv_example.py",
-               f"--conv-mode {conv_mode} --profile-dir {profile_dir}")
+    run_script(
+        "octconv_example.py", f"--conv-mode {conv_mode} --profile-dir {profile_dir}"
+    )

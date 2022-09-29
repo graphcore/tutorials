@@ -30,14 +30,12 @@ if "TF_POPLAR_FLAGS" in os.environ and not CACHING:
     os.environ["TF_POPLAR_FLAGS"] = ""
 else:
     os.environ["TF_POPLAR_FLAGS"] = "--executable_cache_path=tmp_tutorial"
-if "POPLAR_LOG_LEVEL" not in os.environ or \
-        os.environ["POPLAR_LOG_LEVEL"] != "INFO":
+if "POPLAR_LOG_LEVEL" not in os.environ or os.environ["POPLAR_LOG_LEVEL"] != "INFO":
     print("Setting POPLAR_LOG_LEVEL to INFO for graph compilation information.")
     os.environ["POPLAR_LOG_LEVEL"] = "INFO"
 
 # Consideration 6
-os.environ["XLA_FLAGS"] = "--xla_dump_to=tmp_xla_{} ".format(
-    np.random.randint(2, 101))
+os.environ["XLA_FLAGS"] = f"--xla_dump_to=tmp_xla_{np.random.randint(2, 101)} "
 os.environ["XLA_FLAGS"] += " --xla_dump_hlo_pass_re=forward-allocation "
 os.environ["XLA_FLAGS"] += " --xla_hlo_graph_sharding_color "
 os.environ["XLA_FLAGS"] += " --xla_dump_hlo_as_text "
@@ -48,9 +46,9 @@ cfg.auto_select_ipus = 1
 cfg.configure_ipu_system()
 
 with tf.device("cpu"):
-    pa = tf.constant([[1., 1.]], dtype=tf.float32, name="a")
-    pb = tf.constant([[0., 1.]], dtype=tf.float32, name="b")
-    pc = tf.constant([[1., 5.]], dtype=tf.float32, name="c")
+    pa = tf.constant([[1.0, 1.0]], dtype=tf.float32, name="a")
+    pb = tf.constant([[0.0, 1.0]], dtype=tf.float32, name="b")
+    pc = tf.constant([[1.0, 5.0]], dtype=tf.float32, name="c")
 
 if PLACEHOLDER:
     mult = tf.constant(0.5, dtype=tf.float32, name="multiplier")
@@ -78,9 +76,7 @@ with strategy.scope():
     else:
         mult = tf.constant(10, dtype=tf.float32, name="multiplier")
 
-    result0 = strategy.run(
-        basic_graph,
-        [pa, pb, pc, mult])
+    result0 = strategy.run(basic_graph, [pa, pb, pc, mult])
 
 # Consideration 1, 3, 5: Graphs, Weights, Constants
 m = np.random.uniform(0, 1)
@@ -93,26 +89,22 @@ with strategy.scope():
     print("\nPlaceholder test. ")
     print("No recompilation or executable switch should occur.\n")
     # Run the graph through the session feeding it an arbitrary dictionary
-    result1 = strategy.run(
-        basic_graph,
-        [pa, pb, pc, mult])
+    result1 = strategy.run(basic_graph, [pa, pb, pc, mult])
 
     # Consideration 2: Batch size
     if SAMEBATCH:
         bs = 1
     else:
         bs = np.random.randint(2, 101)
-    print("\nBatch Size Test with batch size %d." % bs)
+    print(f"\nBatch Size Test with batch size {bs}.")
     print("No recompilation or executable switch should occur.")
     print("Batch size should be the original value of 1.\n")
 
-    pa = tf.constant([[1., 1.]] * bs, dtype=tf.float32, name="a")
-    pb = tf.constant([[0., 1.]] * bs, dtype=tf.float32, name="b")
-    pc = tf.constant([[1., 5.]] * bs, dtype=tf.float32, name="c")
+    pa = tf.constant([[1.0, 1.0]] * bs, dtype=tf.float32, name="a")
+    pb = tf.constant([[0.0, 1.0]] * bs, dtype=tf.float32, name="b")
+    pc = tf.constant([[1.0, 5.0]] * bs, dtype=tf.float32, name="c")
 
-    result3 = strategy.run(
-        basic_graph,
-        [pa, pb, pc, mult])
+    result3 = strategy.run(basic_graph, [pa, pb, pc, mult])
 
     print("\nFirst two results should be different (different multiplier).\n")
     print("Caching/warm up test:\t", result0)

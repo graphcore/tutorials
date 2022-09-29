@@ -18,9 +18,11 @@ tf.disable_v2_behavior()
 
 # default data_format is 'channels_last'
 dataset = Dataset.from_tensor_slices(
-    (tf.random.uniform([2, 128, 128, 3], dtype=tf.float32),
-     tf.random.uniform([2], maxval=10, dtype=tf.int32))
+    (
+        tf.random.uniform([2, 128, 128, 3], dtype=tf.float32),
+        tf.random.uniform([2], maxval=10, dtype=tf.int32),
     )
+)
 dataset = dataset.batch(batch_size=2, drop_remainder=True)
 dataset = dataset.shuffle(1000)
 dataset = dataset.cache()
@@ -32,7 +34,7 @@ infeed_queue = ipu_infeed_queue.IPUInfeedQueue(dataset)
 outfeed_queue = ipu_outfeed_queue.IPUOutfeedQueue()
 
 
-# Create a pipelined model which is split accross four stages.
+# Create a pipelined model which is split across four stages.
 def stage1(x, labels):
     with variable_scope.variable_scope("stage1", use_resource=True):
         with variable_scope.variable_scope("conv", use_resource=True):
@@ -62,7 +64,8 @@ def stage4(x, labels):
             logits = layers.Dense(10)(x)
         with variable_scope.variable_scope("entropy", use_resource=True):
             cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(
-                labels=labels, logits=logits)
+                labels=labels, logits=logits
+            )
         with variable_scope.variable_scope("loss", use_resource=True):
             loss = tf.reduce_mean(cross_entropy)
         return loss
@@ -75,14 +78,15 @@ def optimizer_function(loss):
 
 def my_net():
     pipeline_op = pipelining_ops.pipeline(
-                        computational_stages=[stage1, stage2, stage3, stage4],
-                        gradient_accumulation_count=8,
-                        repeat_count=2,
-                        inputs=[],
-                        infeed_queue=infeed_queue,
-                        outfeed_queue=outfeed_queue,
-                        optimizer_function=optimizer_function,
-                        name="Pipeline")
+        computational_stages=[stage1, stage2, stage3, stage4],
+        gradient_accumulation_count=8,
+        repeat_count=2,
+        inputs=[],
+        infeed_queue=infeed_queue,
+        outfeed_queue=outfeed_queue,
+        optimizer_function=optimizer_function,
+        name="Pipeline",
+    )
     return pipeline_op
 
 

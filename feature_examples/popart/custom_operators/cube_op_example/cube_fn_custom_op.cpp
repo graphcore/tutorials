@@ -23,10 +23,10 @@
 #include <popart/popx/opxmanager.hpp>
 #include <popart/session.hpp>
 #include <popart/sgd.hpp>
+#include <popart/stepio.hpp>
 #include <popart/tensordata.hpp>
 #include <popart/tensorinfo.hpp>
 #include <popart/tensornames.hpp>
-#include <popart/stepio.hpp>
 
 #include <popops/ElementWise.hpp>
 
@@ -237,7 +237,7 @@ void printHelp() {
   std::cout << helpStream.str() << std::endl;
 }
 
-/// A quick parser for input arguments to avoid a dependecy on Boost to build
+/// A quick parser for input arguments to avoid a dependency on Boost to build
 /// the example. This checks program arguments for the input tensor (list of
 /// floats) and whether the --ipu flag has been provided (to run the example on
 /// IPU).
@@ -331,7 +331,8 @@ auto main(int argc, char **argv) -> int {
 
   // 2.2 Loss(es).
   // 2.2.1 l1 loss : 0.1 * |output|_1
-  auto loss = builder->aiGraphcoreOpset1().l1loss({outputs[0]}, 0.1f, popart::ReductionType::Sum, "l1LossVal");
+  auto loss = builder->aiGraphcoreOpset1().l1loss(
+      {outputs[0]}, 0.1f, popart::ReductionType::Sum, "l1LossVal");
 
   auto proto = builder->getModelProto();
 
@@ -372,7 +373,8 @@ auto main(int argc, char **argv) -> int {
 
   // 2) and the gradient of input tensor
   auto rawGradInputData = std::vector<float>(tensorLength, 0);
-  popart::NDArrayWrapper<float> gradInData(rawGradInputData.data(), {tensorLength});
+  popart::NDArrayWrapper<float> gradInData(rawGradInputData.data(),
+                                           {tensorLength});
   std::map<popart::TensorId, popart::IArray &> anchors = {
       {outputs[0], outData},
       {popart::reservedGradientPrefix() + input, gradInData},

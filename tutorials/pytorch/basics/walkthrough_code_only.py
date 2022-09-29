@@ -9,6 +9,9 @@ import torch.nn as nn
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
+# Set torch random seed for reproducibility
+torch.manual_seed(42)
+
 transform = torchvision.transforms.Compose(
     [
         torchvision.transforms.ToTensor(),
@@ -88,7 +91,7 @@ optimizer = poptorch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
 
 poptorch_model = poptorch.trainingModel(model, options=opts, optimizer=optimizer)
 
-epochs = 30
+epochs = 5
 for epoch in tqdm(range(epochs), desc="epochs"):
     total_loss = 0.0
     for data, labels in tqdm(train_dataloader, desc="batches", leave=False):
@@ -163,14 +166,14 @@ prediction_idx = int(output.argmax())
 
 poptorch_model.detachFromDevice()
 
-print(classes[prediction_idx])
+print("IPU predicted class:", classes[prediction_idx])
 
 model = ClassificationModel()
 model.load_state_dict(torch.load("classifier.pth"))
 model.eval()
 
 output = model(img_tensor)
-print(classes[int(output.argmax())])
+print("CPU predicted class:", classes[int(output.argmax())])
 
 opts = (
     poptorch.Options()
@@ -180,4 +183,4 @@ opts = (
     .useIpuModel(True)
 )
 
-# Generated:2022-07-26T09:43 Source:walkthrough.py SST:0.0.7
+# Generated:2022-09-27T15:26 Source:walkthrough.py SST:0.0.8

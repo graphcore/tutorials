@@ -1,31 +1,32 @@
 # Copyright (c) 2020 Graphcore Ltd. All rights reserved.
 from pathlib import Path
-import os
+
 import pytest
+from filelock import FileLock
 
 # NOTE: The imports below are dependent on 'pytest.ini' in the root of
 # the repository
-from tutorials_tests.testing_util import SubProcessChecker
-from tutorials_tests.xdist_util import lock
+import tutorials_tests.testing_util as testing_util
 
-build_dir = Path(__file__).parent.parent
+build_dir = Path(__file__).resolve().parents[1]
 
 
-class TestBuildAndRun(SubProcessChecker):
+@pytest.fixture(autouse=True)
+def setUp():
+    with FileLock(__file__ + ".lock"):
+        testing_util.run_command("make", build_dir, [])
 
-    @lock(os.path.join(build_dir, "tests/binary.lock"))
-    def setUp(self):
-        self.run_command("make", build_dir, [])
 
-    @pytest.mark.category1
-    def test_run_ipu_model(self):
-        self.run_command("./example --model",
-                         build_dir,
-                         ["Results match.", "Using IPU model"])
+@pytest.mark.category1
+def test_run_ipu_model():
+    testing_util.run_command(
+        "./example --model", build_dir, ["Results match.", "Using IPU model"]
+    )
 
-    @pytest.mark.ipus(1)
-    @pytest.mark.category1
-    def test_run_ipu(self):
-        self.run_command("./example",
-                         build_dir,
-                         ["Using HW device ID", "Results match."])
+
+@pytest.mark.ipus(1)
+@pytest.mark.category1
+def test_run_ipu():
+    testing_util.run_command(
+        "./example", build_dir, ["Using HW device ID", "Results match."]
+    )

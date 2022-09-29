@@ -51,7 +51,7 @@ class TestPopARTMNISTImageClassification:
     @pytest.mark.category2
     def test_mnist_train_replicated(self):
         """Generic test on default arguments in training over 2 IPUs
-           with replication"""
+        with replication"""
         cmd, args = self.generic_cmd.copy(), self.generic_arguments.copy()
         args["--num-ipus"] = 2
         args["--replication-factor"] = 2
@@ -66,7 +66,7 @@ class TestPopARTMNISTImageClassification:
     @pytest.mark.category2
     def test_mnist_train_sharded_pipelined(self):
         """Generic test on default arguments in training over 2 IPUs
-           and pipelined"""
+        and pipelined"""
         cmd, args = self.generic_cmd.copy(), self.generic_arguments.copy()
         args["--num-ipus"] = 2
         args["--pipeline"] = None
@@ -81,7 +81,7 @@ class TestPopARTMNISTImageClassification:
     @pytest.mark.category2
     def test_mnist_train_replicated_pipelined(self):
         """Generic test on default arguments in training over 2 IPUs
-           and pipelined"""
+        and pipelined"""
         cmd, args = self.generic_cmd.copy(), self.generic_arguments.copy()
         args["--num-ipus"] = 4
         args["--replication-factor"] = 2

@@ -6,8 +6,7 @@ import numpy as np
 import popart
 
 # Add benchmark module to path
-bench_path = Path(Path(__file__).absolute().parent.parent.parent,
-                  'utils')
+bench_path = Path(Path(__file__).absolute().parent.parent.parent, "utils")
 sys.path.append(str(bench_path))
 from benchmarks.popart.benchmark import Benchmark, parse_opts, run
 
@@ -20,14 +19,14 @@ def kaiming_init(shape, fan_in, a=5.0, b=3.0):
 
 
 def graph_builder(opts):
-    if opts.mode == 'infer':
+    if opts.mode == "infer":
         builder_fn = infer_builder
-    elif opts.mode == 'eval':
+    elif opts.mode == "eval":
         builder_fn = eval_builder
-    elif opts.mode == 'train':
+    elif opts.mode == "train":
         builder_fn = train_builder
     else:
-        raise ValueError("Unknown mode '{}'".format(opts.mode))
+        raise ValueError(f"Unknown mode '{opts.mode}'")
     defn = builder_fn(opts)
     defn[0] = defn[0].getModelProto()
     return defn
@@ -55,33 +54,36 @@ def infer_builder(opts):
         d3 = np.zeros([filter_number], dType)
         input = np.zeros(input_shape, dType)
     else:
-        d2 = kaiming_init([filter_number, channel_size, kernel_size, kernel_size],
-                          channel_size*input_height*input_width)
-        d3 = kaiming_init([filter_number], channel_size*input_height*input_width)
+        d2 = kaiming_init(
+            [filter_number, channel_size, kernel_size, kernel_size],
+            channel_size * input_height * input_width,
+        )
+        d3 = kaiming_init([filter_number], channel_size * input_height * input_width)
         input = np.random.uniform(-1, 1, input_shape).astype(dType)
 
     i1 = builder.addInputTensor(d1, "input_tensor")
     i2 = builder.addInitializedInputTensor(d2, "weights")
     i3 = builder.addInitializedInputTensor(d3, "bias")
-    out = builder.aiOnnx.conv([i1, i2, i3], strides=[stride, stride],
-                              pads = [padding, padding, padding, padding])
+    out = builder.aiOnnx.conv(
+        [i1, i2, i3],
+        strides=[stride, stride],
+        pads=[padding, padding, padding, padding],
+    )
     builder.addOutputTensor(out)
 
-    return [
-        builder,
-        {i1: input},
-        {out: popart.AnchorReturnType("ALL")},
-        None,
-        None
-    ]
+    return [builder, {i1: input}, {out: popart.AnchorReturnType("ALL")}, None, None]
 
 
 def eval_builder(opts):
     builder, data, outputs, __, __ = infer_builder(opts)
 
     probs = builder.aiOnnx.softmax([list(outputs)][0])
-    output_height = (opts.input_height + 2*opts.padding - opts.kernel_size)//opts.stride + 1
-    output_width = (opts.input_width + 2*opts.padding - opts.kernel_size)//opts.stride + 1
+    output_height = (
+        opts.input_height + 2 * opts.padding - opts.kernel_size
+    ) // opts.stride + 1
+    output_width = (
+        opts.input_width + 2 * opts.padding - opts.kernel_size
+    ) // opts.stride + 1
     output_shape = [opts.batch_size, opts.filter_number, output_height, output_width]
     label = builder.addInputTensor(popart.TensorInfo("FLOAT16", output_shape))
     # Sum of square error
@@ -98,77 +100,59 @@ def eval_builder(opts):
         {**data, label: label_data},
         {loss: popart.AnchorReturnType("ALL")},
         loss,
-        None
+        None,
     ]
 
 
 def train_builder(opts):
     builder, data, outputs, loss, __ = eval_builder(opts)
 
-    return [
-        builder,
-        data,
-        outputs,
-        loss,
-        popart.ConstSGD(0.01)
-    ]
+    return [builder, data, outputs, loss, popart.ConstSGD(0.01)]
 
 
 def add_args(parser):
-    parser.add_argument('--batch-size', type=int, default=1,
-                        help='Set batch size.')
-    parser.set_defaults(batches_per_step=1000, steps=5,
-                        mode='infer', auto_sharding=True)
-    parser.add_argument('--input-width', type=int, default=1920,
-                        help='Input width size')
-    parser.add_argument('--input-height', type=int, default=1080,
-                        help='Input height size')
-    parser.add_argument('--channel-size', type=int, default=4,
-                        help='Channel size')
-    parser.add_argument('--filter-number', type=int, default=64,
-                        help='Number of filters')
-    parser.add_argument('--kernel-size', type=int, default=4,
-                        help='Kernel size')
-    parser.add_argument('--padding', type=int, default=3,
-                        help='Number of padding')
-    parser.add_argument('--stride', type=int, default=2,
-                        help='Stride for convolution')
+    parser.add_argument("--batch-size", type=int, default=1, help="Set batch size.")
+    parser.set_defaults(
+        batches_per_step=1000, steps=5, mode="infer", auto_sharding=True
+    )
+    parser.add_argument(
+        "--input-width", type=int, default=1920, help="Input width size"
+    )
+    parser.add_argument(
+        "--input-height", type=int, default=1080, help="Input height size"
+    )
+    parser.add_argument("--channel-size", type=int, default=4, help="Channel size")
+    parser.add_argument(
+        "--filter-number", type=int, default=64, help="Number of filters"
+    )
+    parser.add_argument("--kernel-size", type=int, default=4, help="Kernel size")
+    parser.add_argument("--padding", type=int, default=3, help="Number of padding")
+    parser.add_argument("--stride", type=int, default=2, help="Stride for convolution")
     return parser
 
 
 def iteration_report(opts, time):
-    return "{:5f} items/sec.".format(opts.batch_size * opts.batches_per_step / time)
+    return f"{opts.batch_size * opts.batches_per_step / time:5f} items/sec."
 
 
-if __name__ == '__main__':
-    module = Benchmark(
-        graph_builder,
-        add_args,
-        iteration_report
-    )
+if __name__ == "__main__":
+    module = Benchmark(graph_builder, add_args, iteration_report)
 
     opts = parse_opts(module)
 
     # Log Benchmark Message
-    print("PopART Convolutional layer {} Synthetic benchmark.\n"
-          " Batch size {}.\n"
-          " Batches per Step {}.\n"
-          " Steps {}.\n"
-          " Input width {}.\n"
-          " Input height {}.\n"
-          " Channel {}.\n"
-          " Padding {}.\n"
-          " Stride {}.\n"
-          .format(
-              {"infer": "Inference", "eval": "Evaluation",
-                  "train": "Training"}[opts.mode],
-              opts.batch_size,
-              opts.batches_per_step,
-              opts.steps,
-              opts.input_width,
-              opts.input_height,
-              opts.channel_size,
-              opts.padding,
-              opts.stride))
+    mode_names = {"infer": "Inference", "eval": "Evaluation", "train": "Training"}
+    print(
+        f"PopART Convolutional layer {mode_names[opts.mode]} Synthetic benchmark.\n"
+        f" Batch size {opts.batch_size}.\n"
+        f" Batches per Step {opts.batches_per_step}.\n"
+        f" Steps {opts.steps}.\n"
+        f" Input width {opts.input_width}.\n"
+        f" Input height {opts.input_height}.\n"
+        f" Channel {opts.channel_size}.\n"
+        f" Padding {opts.padding}.\n"
+        f" Stride {opts.stride}.\n"
+    )
+
     np.random.seed(42)
     run(module, opts)

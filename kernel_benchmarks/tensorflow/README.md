@@ -1,3 +1,4 @@
+<!-- Copyright (c) 2019 Graphcore Ltd. All rights reserved. -->
 # Kernel benchmarks: Grouped convolution, GRU, LSTM and RNN layers with TensorFlow
 
 This README describes how to run benchmarks for models with a single type of layer and synthetic data in training and inference.
@@ -34,7 +35,7 @@ The structure of the repo is as follows:
 ## Quick start guide
 
 1. Prepare the environment. Install the Poplar SDK following the instructions
-   in the Getting Started guide for your IPU system. Make sure to source the `enable.sh` 
+   in the Getting Started guide for your IPU system. Make sure to source the `enable.sh`
    script for Poplar and activate a Python virtualenv with the tensorflow-1 wheel
    from the Poplar SDK installed.
 2. Run the training program. For example:
@@ -45,7 +46,7 @@ The structure of the repo is as follows:
    option.
 
    `python3 program.py --steps 5`
-   
+
    Use `--help` or `-h` to show all available options.
 
 
@@ -60,9 +61,9 @@ The following enables report generation, and specifies a directory to generate r
 export POPLAR_ENGINE_OPTIONS='{"autoReport.all":"true", "autoReport.directory":"."}'
 ```
 
-After running a benchmark, the resulting report can be opened using the PopVision Graph Analyser. 
+After running a benchmark, the resulting report can be opened using the PopVision Graph Analyser.
 See the Graph Analyser user guide for more information:
-[PopVision Graph Analyser User Guide](https://docs.graphcore.ai/projects/graph-analyser-userguide/en/latest/).
+[PopVision Graph Analyser User Guide](https://docs.graphcore.ai/projects/graph-analyser-userguide/en/3.11.2/).
 
 ### License
 

@@ -24,11 +24,14 @@ def test_instances_in_sync_after_training():
     script_dir = Path(os.path.realpath(__file__)).parent.parent
     cmd = [
         "poprun",
-        "--mpi-global-args", "--tag-output",
-        "--num-replicas", str(NUM_TOTAL_REPLICAS),
-        "--num-instances", str(NUM_INSTANCES),
+        "--mpi-global-args",
+        "--tag-output",
+        "--num-replicas",
+        str(NUM_TOTAL_REPLICAS),
+        "--num-instances",
+        str(NUM_INSTANCES),
         sys.executable,
-        str(script_dir / "popdist_training.py")
+        str(script_dir / "popdist_training.py"),
     ]
 
     with tempfile.TemporaryDirectory() as temp_dir:
@@ -43,6 +46,6 @@ def test_instances_in_sync_after_training():
 
         # The final parameters should be the same for all instances.
         for k, v in checkpoint_0.items():
-            if not (k.endswith('weight') or k.endswith('bias')):
+            if not (k.endswith("weight") or k.endswith("bias")):
                 continue
             torch.testing.assert_allclose(v.data, checkpoint_1[k].data)

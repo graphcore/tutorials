@@ -25,15 +25,18 @@
         "gelu",
         "Graphcore",
         "hyperparameters",
+        "IMDB",
         "imshow",
         "initializable",
         "inplace",
+        "ipus",
         "ipykernel",
         "ipynb",
         "Keras",
         "kwargs",
         "libpva",
         "libpvti",
+        "LSTM",
         "matmul",
         "matmuls",
         "matplotlib",
@@ -80,7 +83,8 @@
         "xticks"
     ],
     "flagWords": [
-        "cacheing"
+        "cacheing",
+        "existant"
     ],
     "ignoreWords": [],
     "import": []

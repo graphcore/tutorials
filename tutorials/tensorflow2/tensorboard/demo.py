@@ -1,7 +1,6 @@
-""" ​
-Copyright (c) 2022 Graphcore Ltd. All rights reserved. ​
 """
-
+Copyright (c) 2022 Graphcore Ltd. All rights reserved.
+"""
 """
 # Using TensorBoard in TensorFlow 2 on the IPU
 
@@ -27,16 +26,16 @@ on the MNIST dataset for character recognition. This problem is purposely
 selected for demonstration as it is rather straightforward and allows the focus
 of this tutorial to be on the use of TensorBoard.
 
-# Preliminary Setup
+## Preliminary Setup
 To run the code in this tutorial there are two basic requirements.
 
-  - A Poplar SDK environment enabled, with the Graphcore port of TensorFlow 2
-  installed (see the [Getting Started guide]
-  (https://docs.graphcore.ai/en/latest/getting-started.html) for your IPU
+- A Poplar SDK environment enabled, with the Graphcore port of TensorFlow 2
+  installed (see the [Getting Started
+  guide](https://docs.graphcore.ai/en/latest/getting-started.html) for your IPU
   system)
-  - Python packages installed with `python -m pip install -r requirements.txt`
+- Python packages installed with `python -m pip install -r requirements.txt`
 """
-# %pip install -r requirements
+# %pip install -q -r requirements.txt
 # sst_ignore_md
 # sst_ignore_code_only
 """
@@ -72,11 +71,11 @@ For more details about this process, or if you need troubleshooting, see our
 [guide on using IPUs from Jupyter
 notebooks](../../standard_tools/using_jupyter/README.md).
 
-# Introduction to TensorBoard and Data Logging
-## How does TensorBoard work?
+## Introduction to TensorBoard and Data Logging
+### How does TensorBoard work?
 TensorBoard itself runs independently of any TensorFlow processes, so starting
 and stopping TensorBoard does not affect any TensorFlow processes that may be
-running. The reason that TensorBoard and TensorFlow are independent in ths way
+running. The reason that TensorBoard and TensorFlow are independent in this way
 is due to the method of data transfer between them. Rather than a client/server
 model as one might first expect, there is no direct communication between the
 two packages.
@@ -155,14 +154,13 @@ import shutil
 
 
 def create_tensorboard_log_dir():
-    """Handles deletion and creation of the TensorBoard log directory.
-    """
+    """Handles deletion and creation of the TensorBoard log directory."""
     # Ensure we have the top level /tmp directory first.
     path = "/tmp"
     if not os.path.isdir(path):
         raise RuntimeError(
-            "Unable to locate %s directory. Are you running on a Unix-like OS?" %
-            path)
+            f"Unable to locate {path} directory. Are you running on a Unix-like OS?"
+        )
 
     # Delete the log directory, if it exists.
     path += "/tensorboard_example_logs"
@@ -170,15 +168,16 @@ def create_tensorboard_log_dir():
         try:
             shutil.rmtree(path)
         except OSError as e:
-            print("Unable to remove %s due to: %s" % (e.filename, e.strerror))
+            print(f"Unable to remove {e.filename} due to: {e.strerror}")
 
     # Create the log directory.
     try:
         os.mkdir(path)
     except OSError as e:
-        print("Unable to create %s due to: %s" % (e.filename, e.strerror))
+        print(f"Unable to create {e.filename} due to: {e.strerror}")
 
     return path
+
 
 """
 ## Logging Data with `tf.keras.callbacks.Callback`
@@ -204,6 +203,7 @@ class StaggeredCallback(tf.keras.callbacks.Callback):
       period (int): The number of iterations that should elapse before
       `StaggeredCallback.should_run` returns `True`.
     """
+
     def __init__(self, period):
         self._period = period
         self._n = 1
@@ -211,6 +211,7 @@ class StaggeredCallback(tf.keras.callbacks.Callback):
     def should_run(self):
         self._n += 1
         return (self._n - 1) % self._period == 0
+
 
 """
 Note that the above class (`StaggeredCallback`) will not actually perform any
@@ -244,6 +245,7 @@ class EvaluateCallback(StaggeredCallback):
       period (int): The number of epochs to elapse before evaluating.
       steps (int): The number of steps to perform evaluation in.
     """
+
     def __init__(self, path, model, pred_dataset, period, steps=128):
         super().__init__(period)
         self._model = model
@@ -259,7 +261,8 @@ class EvaluateCallback(StaggeredCallback):
 
         with self._writer.as_default():
             for k, v in res.items():
-                tf.summary.scalar("evaluation_%s" % k, v, step=self._n)
+                tf.summary.scalar(f"evaluation_{k}", v, step=self._n)
+
 
 """
 If we first turn our attention to `__init__`, you will see that
@@ -344,6 +347,7 @@ class FilterRenderCallback(StaggeredCallback):
       be extracted and rendered.
       period (int): The number of epochs to elapse before rendering filters.
     """
+
     def __init__(self, path, model, layer_names, period):
         super().__init__(period)
         self._model = model
@@ -359,13 +363,17 @@ class FilterRenderCallback(StaggeredCallback):
         # Instead of providing each filter as a separate image to summary_ops.image
         # we here collapse the leading dimensions to yield a (D, D, N) tensor,
         # where D is the filter size and N the total number of filters.
-        shape = (filters_norm.shape[0], filters_norm.shape[1],
-                 filters_norm.shape[2] * filters_norm.shape[3])
+        shape = (
+            filters_norm.shape[0],
+            filters_norm.shape[1],
+            filters_norm.shape[2] * filters_norm.shape[3],
+        )
         filters_collapsed = tf.reshape(filters_norm, shape)
 
         # Split into a list of N DxD filters.
-        filters_split = tf.experimental.numpy.dsplit(filters_collapsed,
-                                                     filters_collapsed.shape[-1])
+        filters_split = tf.experimental.numpy.dsplit(
+            filters_collapsed, filters_collapsed.shape[-1]
+        )
 
         # Find the width and height of the resulting image, not in pixels but
         # in the number of filters to display in each dimension.
@@ -377,7 +385,7 @@ class FilterRenderCallback(StaggeredCallback):
         for _ in range(WH):
             # Collect the filters for this row.
             row_images = [
-                tf.squeeze(t) for t in filters_split[filter_num:filter_num + WH]
+                tf.squeeze(t) for t in filters_split[filter_num : filter_num + WH]
             ]
 
             # Generate vertical padding to be used between filters.
@@ -414,6 +422,7 @@ class FilterRenderCallback(StaggeredCallback):
         for layer_name in self._layer_names:
             filters = self._model.get_layer(layer_name).get_weights()[0]
             self.tile_filters(filters, layer_name, epoch)
+
 
 """
 It can be seen that the `__init__` implementation of `FilterRenderCallback` is
@@ -457,7 +466,7 @@ instance of `tf.keras.callbacks.TensorBoard` and passing it in the callback
 list to a Keras model. We shall see in a later section, once we have started
 training our model the information generated by this callback.
 
-# Model Setup & Data Preparation
+## Model Setup & Data Preparation
 For the example we shall develop in this tutorial, we wish to obtain three
 MNIST datasets; training, validation and test datasets are extracted from
 `tf.keras.datasets.mnist`. Below we define a function `create_datasets` that
@@ -487,17 +496,22 @@ def create_datasets(train_validate_split=0.8, num_to_prefetch=16):
     Returns:
       tuple(tf.Dataset): Training, validation and testing datasets.
     """
+
     def prepare_ds(x, y):
         # Normalize.
         x = np.expand_dims(x, -1) / 255.0
 
         # Shuffle and batch.
-        ds = tf.data.Dataset.from_tensor_slices(
-            (x, y)).shuffle(10000).batch(32, drop_remainder=True)
+        ds = (
+            tf.data.Dataset.from_tensor_slices((x, y))
+            .shuffle(10000)
+            .batch(32, drop_remainder=True)
+        )
 
         # Cast and convert targets to one-hot representation.
-        ds = ds.map(lambda d, l:
-                    (tf.cast(d, tf.float32), tf.cast(tf.one_hot(l, 10), tf.int32)))
+        ds = ds.map(
+            lambda d, l: (tf.cast(d, tf.float32), tf.cast(tf.one_hot(l, 10), tf.int32))
+        )
 
         return ds
 
@@ -516,8 +530,9 @@ def create_datasets(train_validate_split=0.8, num_to_prefetch=16):
     return (
         training_ds.repeat().prefetch(num_to_prefetch),
         validation_ds.prefetch(num_to_prefetch),
-        test_ds.prefetch(num_to_prefetch)
+        test_ds.prefetch(num_to_prefetch),
     )
+
 
 """
 The datasets generated by `create_datasets` consist of $(28 \times 28)$
@@ -528,7 +543,7 @@ as a target, $[0, 1 \dots 9]$
 
 So, we see that we have a very straightforward classification problem.
 
-# Model Definition
+## Model Definition
 As MNIST classification is a reasonably trivial task, only a modest complexity
 model is required. The function that follows (`create_model`) will generate a
 `tf.keras.Sequential` instance with the following layers. Note that the IPU
@@ -551,45 +566,34 @@ documented here for reference.
 
 
 def create_model():
-    """Create a simple CNN to be split into two pipeline stages.
-    """
-    return tf.keras.Sequential([
-        # Input layers do not get assigned an IPU pipeline stage.
-        tf.keras.layers.Input((28, 28, 1)),
+    """Create a simple CNN to be split into two pipeline stages."""
+    return tf.keras.Sequential(
+        [
+            # Input layers do not get assigned an IPU pipeline stage.
+            tf.keras.layers.Input((28, 28, 1)),
+            # Pipeline stage 0.
+            tf.keras.layers.Conv2D(
+                32, kernel_size=(3, 3), activation="relu", name="conv_0"
+            ),
+            tf.keras.layers.MaxPooling2D(pool_size=(2, 2), name="pool_0"),
+            tf.keras.layers.Conv2D(
+                64, kernel_size=(3, 3), activation="relu", name="conv_1"
+            ),
+            tf.keras.layers.MaxPooling2D(pool_size=(2, 2), name="pool_1"),
+            # Pipeline stage 1.
+            tf.keras.layers.Conv2D(
+                32, kernel_size=(3, 3), activation="relu", name="conv_2"
+            ),
+            tf.keras.layers.MaxPooling2D(pool_size=(2, 2), name="pool_2"),
+            tf.keras.layers.Flatten(),
+            tf.keras.layers.Dropout(0.5),
+            tf.keras.layers.Dense(10, activation="softmax"),
+        ]
+    )
 
-        # Pipeline stage 0.
-        tf.keras.layers.Conv2D(32,
-                               kernel_size=(3, 3),
-                               activation="relu",
-                               name="conv_0"),
-
-        tf.keras.layers.MaxPooling2D(pool_size=(2, 2),
-                                     name="pool_0"),
-
-        tf.keras.layers.Conv2D(64,
-                               kernel_size=(3, 3),
-                               activation="relu",
-                               name="conv_1"),
-
-        tf.keras.layers.MaxPooling2D(pool_size=(2, 2),
-                                     name="pool_1"),
-
-        # Pipeline stage 1.
-        tf.keras.layers.Conv2D(32,
-                               kernel_size=(3, 3),
-                               activation="relu",
-                               name="conv_2"),
-
-        tf.keras.layers.MaxPooling2D(pool_size=(2, 2),
-                                     name="pool_2"),
-
-        tf.keras.layers.Flatten(),
-        tf.keras.layers.Dropout(0.5),
-        tf.keras.layers.Dense(10, activation="softmax"),
-    ])
 
 """
-# Model Training
+## Model Training
 We shall now proceed to build and train our model so that we have some data to
 view in TensorBoard. As a recap, we have so far implemented the following
 "ingredients" of our example TensorFlow program.
@@ -651,14 +655,16 @@ with strategy.scope():
     metrics = [
         "accuracy",
         tf.keras.metrics.AUC(),
-        tf.keras.metrics.TopKCategoricalAccuracy(3)
+        tf.keras.metrics.TopKCategoricalAccuracy(3),
     ]
 
     # Compile the model for training.
-    m.compile(loss=tf.keras.losses.CategoricalCrossentropy(),
-              optimizer=tf.keras.optimizers.RMSprop(),
-              metrics=metrics,
-              steps_per_execution=128)
+    m.compile(
+        loss=tf.keras.losses.CategoricalCrossentropy(),
+        optimizer=tf.keras.optimizers.RMSprop(),
+        metrics=metrics,
+        steps_per_execution=128,
+    )
 
     # Setup pipelining.
     m.set_pipelining_options(gradient_accumulation_steps_per_replica=16)
@@ -669,31 +675,33 @@ with strategy.scope():
 
     # Create callbacks for the training session.
     callbacks = [
-        FilterRenderCallback(log_path, m, ['conv_%d' % n for n in [0, 1, 2]], 2),
+        FilterRenderCallback(log_path, m, [f"conv_{n}" for n in [0, 1, 2]], 2),
         EvaluateCallback(log_path, m, test_dataset, 5),
-        tf.keras.callbacks.TensorBoard(log_path, histogram_freq=1)
+        tf.keras.callbacks.TensorBoard(log_path, histogram_freq=1),
     ]
 
     # Train.
-    m.fit(training_dataset,
-          epochs=50,
-          steps_per_epoch=128,
-          validation_data=validation_dataset,
-          validation_freq=2,
-          validation_steps=128,
-          callbacks=callbacks,
-          verbose=False)
+    m.fit(
+        training_dataset,
+        epochs=50,
+        steps_per_epoch=128,
+        validation_data=validation_dataset,
+        validation_freq=2,
+        validation_steps=128,
+        callbacks=callbacks,
+        verbose=False,
+    )
 
 """
 All of the above setup and training code is standard IPU TensorFlow operation
 and should be familiar to any user of
-[IPU TensorFlow](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/tensorflow/intro.html).
+[IPU TensorFlow](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/3.0.0/tensorflow/intro.html).
 However, special attention should be paid to the
 `set_asynchronous_callbacks(True)` call on our model `m`. This call allows the
 model to asynchronously trigger callbacks at the end of an epoch, versus
 queueing up callbacks to be executed at the end of the models execution.
 
-# Exploring TensorBoard
+## Exploring TensorBoard
 At this point, we should have a wealth of information available to explore in
 TensorBoard. So, go back to the previously empty TensorBoard dashboard we saw
 at the beginning of the tutorial and refresh the page. You will notice that the
@@ -704,7 +712,7 @@ top navigation bar has changed and appears as follows.
 We shall now look at the information available to us on each of the categories
 visible on the left of the navigation bar.
 
-## Scalars
+### Scalars
 The first and most immediately pertinent to training page we shall look at is
 that for scalar data. Scalar data when written with a `step` provided is
 plotted as a 2D graph (with `step` on the x axis). You should see a plot
@@ -754,7 +762,7 @@ $n$ epochs, where in our case $n=5$ for our `EvaluationCallback` instance.
 
 *If performance isn't a concern, perhaps the callback could be altered to compute a running mean over $n$ epochs? If not, take a moment to play with the smoothing coefficient in TensorBoard (slider to the left of the screen).*
 
-## Images
+### Images
 We shall now turn our attention to the Images page in TensorBoard. When using
 only the `tf.keras.callbacks.TensorBoard` callback, as will suffice in many
 scenarios, there will be no images written out, so this page will not be
@@ -780,7 +788,7 @@ the following additional images on this page.
 
 *Take a minute to play with the brightness and contrast settings on the left of the screen. Does it help you to identify any kind of structure in the weights?*
 
-## Graphs
+### Graphs
 The `tf.keras.callbacks.TensorBoard` callback provides a very useful data
 output; the model graph. On this page, you will see some computation modules.
 The Graphs page should look something like the following.
@@ -800,8 +808,8 @@ indicator in the lower right hand corner of the screen.
 
 *Perhaps it would be useful to take a few minutes to familiarise yourself with the Graphs page and it's controls.*
 
-## Distributions and Histograms
-### Distributions
+### Distributions and Histograms
+#### Distributions
 The Distributions page in TensorBoard is another useful source of information
 for inspecting your model. As with the model graph, the data displayed on the
 Distributions page is generated by the `tf.keras.callbacks.TensorBoard`
@@ -839,7 +847,7 @@ model, there should be plots for each remaining layer in our model.
   - conv_2
   - dense
 
-### Histograms
+#### Histograms
 The Histograms page provides an alternative view of the data presented in the
 Distributions page. It is the same data, just presented differently. For
 example, you should see two plots akin to the following, for our `conv_0`

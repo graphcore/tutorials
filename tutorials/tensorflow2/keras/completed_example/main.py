@@ -25,7 +25,9 @@ num_classes = 10
 input_shape = (28, 28, 1)
 
 args = parse_params()
-(train_dataset, test_dataset), (train_data_len, test_data_len) = load_data(args.batch_size)
+(train_dataset, test_dataset), (train_data_len, test_data_len) = load_data(
+    args.batch_size
+)
 
 if not args.use_ipu:
 
@@ -34,16 +36,22 @@ if not args.use_ipu:
     # Compile our model with Stochastic Gradient Descent as an optimizer
     # and Categorical Cross Entropy as a loss.
 
-    model.compile('sgd', 'categorical_crossentropy', metrics=["accuracy"],
-                  steps_per_execution=1)
+    model.compile(
+        "sgd", "categorical_crossentropy", metrics=["accuracy"], steps_per_execution=1
+    )
     model.summary()
 
-    print('Training')
+    print("Training")
     train_dataset = train_dataset.batch(args.batch_size)
     steps_per_epoch = train_data_len // args.batch_size
-    model.fit(train_dataset, epochs=3, batch_size=args.batch_size, steps_per_epoch=steps_per_epoch)
+    model.fit(
+        train_dataset,
+        epochs=3,
+        batch_size=args.batch_size,
+        steps_per_epoch=steps_per_epoch,
+    )
 
-    print('Evaluation')
+    print("Evaluation")
     test_dataset = test_dataset.batch(args.batch_size)
     model.evaluate(test_dataset)
 
@@ -76,32 +84,40 @@ else:
             steps_per_execution = train_data_len // args.batch_size
             # Make sure an integer number of gradient updates occur during
             # one execution of the IPU program
-            steps_per_execution -= steps_per_execution % args.gradient_accumulation_steps_per_replica
+            steps_per_execution -= (
+                steps_per_execution % args.gradient_accumulation_steps_per_replica
+            )
             steps_per_epoch = steps_per_execution
             evaluation_steps = test_data_len // args.batch_size
             # Make sure that there are no partial executions of the pipeline
             # (note that num_ipus==pipeline_length)
             evaluation_steps -= evaluation_steps % num_ipus
 
-
         # Compile our model as with the CPU example.
-        ipu_model.compile("sgd", "categorical_crossentropy",
-                          metrics=["accuracy"],
-                          steps_per_execution=steps_per_execution)
+        ipu_model.compile(
+            "sgd",
+            "categorical_crossentropy",
+            metrics=["accuracy"],
+            steps_per_execution=steps_per_execution,
+        )
         ipu_model.summary()
 
         train_dataset = train_dataset.batch(args.batch_size, drop_remainder=True)
 
         print("Training")
-        ipu_model.fit(train_dataset,
-                      epochs=3,
-                      batch_size=args.batch_size,
-                      steps_per_epoch=steps_per_epoch)
+        ipu_model.fit(
+            train_dataset,
+            epochs=3,
+            batch_size=args.batch_size,
+            steps_per_epoch=steps_per_epoch,
+        )
 
         print("Evaluation")
         test_dataset = test_dataset.batch(args.batch_size, drop_remainder=True)
 
-        result = ipu_model.evaluate(test_dataset, batch_size=args.batch_size, steps=evaluation_steps)
+        result = ipu_model.evaluate(
+            test_dataset, batch_size=args.batch_size, steps=evaluation_steps
+        )
         print(f"loss: {result[0]:.4f} - accuracy: {result[1]:.4f}")
 
 print("Program ran successfully")

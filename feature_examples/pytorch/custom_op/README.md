@@ -1,3 +1,4 @@
+<!-- Copyright (c) 2021 Graphcore Ltd. All rights reserved. -->
 # Using a custom operator in a PyTorch model
 
 This example shows how to use a custom operator in the PopTorch
@@ -13,7 +14,7 @@ model creation and training process. This is shown with a CNN using the LeakyReL
 operator as an activation function, on the FashionMNIST dataset.
 
 For more information on custom operators in PopTorch, please refer to the
-[Creating custom operators section of our PyTorch for the IPU User Guide](https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/overview.html#creating-custom-ops).
+[Creating custom operators section of our PyTorch for the IPU User Guide](https://docs.graphcore.ai/projects/poptorch-user-guide/en/3.0.0/overview.html#creating-custom-ops).
 
 ## File structure
 
@@ -29,7 +30,7 @@ In the [PopART custom Leaky ReLU operator example](../../popart/custom_operators
 
 1) Prepare the environment:
     - Ensure the Poplar SDK is installed (follow the instructions in the Getting
-    Started guide for your IPU system: https://docs.graphcore.ai/en/latest/getting-started.html).
+    Started guide for your IPU system: <https://docs.graphcore.ai/en/latest/getting-started.html>.
     - Install the requirements for the Python program with:
        ```
        python3 -m pip install -r requirements.txt

@@ -90,9 +90,8 @@ int main(int argc, char **argv) {
     // Attempt to attach to a single IPU:
     auto devices = manager.getDevices(poplar::TargetType::IPU, 1);
     std::cout << "Trying to attach to IPU\n";
-    auto it = std::find_if(devices.begin(), devices.end(), [](Device &device) {
-       return device.attach();
-    });
+    auto it = std::find_if(devices.begin(), devices.end(),
+                           [](Device &device) { return device.attach(); });
 
     if (it == devices.end()) {
       std::cerr << "Error attaching to device\n";
@@ -176,7 +175,8 @@ int main(int argc, char **argv) {
   // retention of debug information is not enabled. Because we wish to print a
   // Profile Summary below, we need to tell the Engine at `prog` compile time to
   // retain this information via the `retainDebugInformation` option.
-  auto engine = Engine{graph, trainProg, {{"debug.retainDebugInformation", "true"}}};
+  auto engine =
+      Engine{graph, trainProg, {{"debug.retainDebugInformation", "true"}}};
   engine.load(device);
 
   // Connect up the data streams

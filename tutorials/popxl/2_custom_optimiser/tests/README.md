@@ -1,3 +1,4 @@
+<!-- Copyright (c) 2022 Graphcore Ltd. All rights reserved. -->
 # `tut2_custom_optimiser` tests
 
 To run the tests:

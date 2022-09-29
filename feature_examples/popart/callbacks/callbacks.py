@@ -104,7 +104,7 @@ def build_and_run_graph(data_size):
     )
 
     # Run the graph and return timings:
-    session.run(stepio, 'AddAndMulCallback')
+    session.run(stepio, "AddAndMulCallback")
     print(rtts)
     return rtts
 

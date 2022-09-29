@@ -1,3 +1,4 @@
+<!-- Copyright (c) 2020 Graphcore Ltd. All rights reserved. -->
 # Device Connection Type example
 
 This code example demonstrates how to control if and when an IPU device is acquired using the `device_connection.type` configuration option.
@@ -55,5 +56,3 @@ These options can be used to change relative ordering of compilation versus IPU 
    The test runs for each mode and checks:
     * The resultant tensor is valid if returned (not expected for NEVER).
     * The regular stderr trace for evidence that compilation and device attachment occur in the expected order.
-
-

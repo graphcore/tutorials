@@ -3,16 +3,17 @@
 from tensorflow.python.ipu import ipu_outfeed_queue
 
 
-class MaybeOutfeedQueue():
-    """ A wrapper for an IPUOutfeedQueue.
+class MaybeOutfeedQueue:
+    """A wrapper for an IPUOutfeedQueue.
 
     This class allows key-value pairs to be selectively added to a dictionary that
     can then be enqueued. If a filter is supplied then one of the filter elements
     must be contained within the key.
     Not tested with replication (behaviour unknown).
     """
+
     def __init__(self, outfeed_mode=None, filters=None):
-        """ Construct a MaybeOutfeedQueue.
+        """Construct a MaybeOutfeedQueue.
 
         Args:
             outfeed_mode: The outfeed_mode for the wrapped IPUOutfeedQueue.
@@ -27,9 +28,8 @@ class MaybeOutfeedQueue():
         else:
             self._filters = None
 
-
     def maybe_outfeed(self, key, value):
-        """ Potentially add the key,value pair to the internal dictionary.
+        """Potentially add the key,value pair to the internal dictionary.
 
         If no filters were supplied or if one of the filter strings is
         contained within the key (assumed to be a string) then
@@ -41,9 +41,8 @@ class MaybeOutfeedQueue():
         else:
             self._vals[key] = value
 
-
     def maybe_enqueue(self):
-        """ Potentially enqueue the internal dictionary on the wrapped IPUOutfeedQueue.
+        """Potentially enqueue the internal dictionary on the wrapped IPUOutfeedQueue.
 
         If the dictionary of key,value pairs contains at least one item then
         enqueue the dictionary on the wrapped IPUOutfeedQueue and return the
@@ -54,9 +53,8 @@ class MaybeOutfeedQueue():
         else:
             return None
 
-
     def maybe_dequeue(self):
-        """ Potentially return the dequeue op for the wrapped IPUOutfeedQueue.
+        """Potentially return the dequeue op for the wrapped IPUOutfeedQueue.
 
         If the wrapped IPUOutfeedQueue has been enqueued, return the
         dequeue op. Otherwise return None.
@@ -67,6 +65,5 @@ class MaybeOutfeedQueue():
             return None
 
     def dequeue(self):
-        """ Return the dequeue op for the wrapped IPUOutfeedQueue.
-        """
+        """Return the dequeue op for the wrapped IPUOutfeedQueue."""
         return self._queue.dequeue()

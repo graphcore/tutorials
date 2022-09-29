@@ -11,10 +11,12 @@ tf.compat.v1.disable_v2_behavior()
 
 
 def device_connection_type(value):
-    dcts = {"ALWAYS": config.DeviceConnectionType.ALWAYS,
-            "ON_DEMAND": config.DeviceConnectionType.ON_DEMAND,
-            "PRE_COMPILE": config.DeviceConnectionType.PRE_COMPILE,
-            "NEVER": config.DeviceConnectionType.NEVER}
+    dcts = {
+        "ALWAYS": config.DeviceConnectionType.ALWAYS,
+        "ON_DEMAND": config.DeviceConnectionType.ON_DEMAND,
+        "PRE_COMPILE": config.DeviceConnectionType.PRE_COMPILE,
+        "NEVER": config.DeviceConnectionType.NEVER,
+    }
     return dcts.get(value)
 
 
@@ -27,10 +29,12 @@ def my_graph(pa, pb, pc):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--connection_type",
-                        choices=['ALWAYS', 'ON_DEMAND', 'PRE_COMPILE', 'NEVER'],
-                        help="Specify connection type")
-    parser.set_defaults(connection_type='ALWAYS')
+    parser.add_argument(
+        "--connection_type",
+        choices=["ALWAYS", "ON_DEMAND", "PRE_COMPILE", "NEVER"],
+        help="Specify connection type",
+    )
+    parser.set_defaults(connection_type="ALWAYS")
     opts = parser.parse_args()
 
     with tf.device("cpu"):
@@ -43,7 +47,7 @@ def main():
         out = ipu_compiler.compile(my_graph, [pa, pb, pc])
 
     # Define the feed_dict input data.
-    fd = {pa: [1., 1.], pb: [0., 1.], pc: [1., 5.]}
+    fd = {pa: [1.0, 1.0], pb: [0.0, 1.0], pc: [1.0, 5.0]}
 
     # Connection type from options.
     connection_type = device_connection_type(opts.connection_type)
@@ -65,16 +69,17 @@ def main():
             result = sess.run(out, fd)
             print(result)
         except tf.errors.InvalidArgumentError as invalid_arg_exception:
-            if (connection_type == config.DeviceConnectionType.NEVER) and \
-               ("configured for compilation only" in invalid_arg_exception.message):
+            if (connection_type == config.DeviceConnectionType.NEVER) and (
+                "configured for compilation only" in invalid_arg_exception.message
+            ):
                 print("Compiled")
                 pass
             else:
-                print("ERROR: {}".format(invalid_arg_exception.message))
+                print(f"ERROR: {invalid_arg_exception.message}")
         except:
             general_exception = sys.exc_info()[0]
-            print("ERROR: {}".format(general_exception))
+            print(f"ERROR: {general_exception}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -6,8 +6,7 @@ import numpy as np
 
 import tensorflow as tf
 from tensorflow.python import ipu
-from tensorflow.python.ipu import horovod as hvd
-from tensorflow.python.ipu.horovod import popdist_strategy
+from tensorflow.python.ipu.distributed import popdist_strategy
 
 # Note that this is the per replica batch size. The batch size for each
 # training step will be `BATCH_SIZE * popdist.getNumTotalReplicas()`
@@ -17,33 +16,28 @@ NUM_EPOCHS = 100
 
 
 def initialize_model():
-    return tf.keras.models.Sequential([
-        tf.keras.layers.Conv2D(
-            32, 3, activation='relu'),
-        tf.keras.layers.Conv2D(
-            32, 3, activation='relu'),
-        tf.keras.layers.MaxPool2D((2, 2)),
-        tf.keras.layers.Dropout(0.25),
+    return tf.keras.models.Sequential(
+        [
+            tf.keras.layers.Conv2D(32, 3, activation="relu"),
+            tf.keras.layers.Conv2D(32, 3, activation="relu"),
+            tf.keras.layers.MaxPool2D((2, 2)),
+            tf.keras.layers.Dropout(0.25),
+            tf.keras.layers.Conv2D(64, 3, activation="relu"),
+            tf.keras.layers.Conv2D(64, 3, activation="relu"),
+            tf.keras.layers.MaxPool2D((2, 2)),
+            tf.keras.layers.Dropout(0.25),
+            tf.keras.layers.Flatten(),
+            tf.keras.layers.Dense(512, activation="relu"),
+            tf.keras.layers.Dropout(0.5),
+            tf.keras.layers.Dense(10),
+        ]
+    )
 
-        tf.keras.layers.Conv2D(
-            64, 3, activation='relu'),
-        tf.keras.layers.Conv2D(
-            64, 3, activation='relu'),
-        tf.keras.layers.MaxPool2D((2, 2)),
-        tf.keras.layers.Dropout(0.25),
-
-        tf.keras.layers.Flatten(),
-        tf.keras.layers.Dense(512, activation='relu'),
-        tf.keras.layers.Dropout(0.5),
-        tf.keras.layers.Dense(10)
-    ])
 
 # Initialize IPU configuration.
 config = ipu.config.IPUConfig()
-popdist.tensorflow.set_ipu_config(config, ipus_per_replica=1)
+popdist.tensorflow.set_ipu_config(config)
 config.configure_ipu_system()
-
-hvd.init()
 
 # Create distribution strategy.
 strategy = popdist_strategy.PopDistStrategy()
@@ -56,7 +50,8 @@ train_y = train_y.astype(np.int32)
 # Create dataset and shard it across the instances.
 dataset = tf.data.Dataset.from_tensor_slices((train_x, train_y))
 dataset = dataset.shard(
-    num_shards=popdist.getNumInstances(), index=popdist.getInstanceIndex())
+    num_shards=popdist.getNumInstances(), index=popdist.getInstanceIndex()
+)
 
 # Perform shuffling and batching after sharding.
 dataset = dataset.shuffle(buffer_size=len(dataset))
@@ -81,7 +76,9 @@ if popdist.getInstanceIndex() == 0:
     samples_discarded = samples_per_shard % BATCH_SIZE
     print(f"\tSamples discarded:\t{samples_discarded}")
 
-    print(f"Data distribution within each instance ({popdist.getNumLocalReplicas()} local replica(s)):")
+    print(
+        f"Data distribution within each instance ({popdist.getNumLocalReplicas()} local replica(s)):"
+    )
     batches_per_replica = batches_per_shard // popdist.getNumLocalReplicas()
     print(f"\tBatches per replica:\t{batches_per_replica}")
     batches_discarded = batches_per_shard % popdist.getNumLocalReplicas()
@@ -94,8 +91,12 @@ with strategy.scope():
     optimizer = tf.keras.optimizers.SGD(learning_rate=LEARNING_RATE)
     loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
 
-    model.compile(optimizer=optimizer, loss=loss_fn, metrics=['accuracy'],
-                  steps_per_execution=steps_per_execution)
+    model.compile(
+        optimizer=optimizer,
+        loss=loss_fn,
+        metrics=["accuracy"],
+        steps_per_execution=steps_per_execution,
+    )
     history = model.fit(dataset, epochs=NUM_EPOCHS)
 
     if popdist.getInstanceIndex() == 0:

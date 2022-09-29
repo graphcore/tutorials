@@ -26,8 +26,14 @@ import numpy as np
 import tensorflow.compat.v1 as tf
 from tensorflow.keras import Sequential
 from tensorflow.keras.datasets import cifar10
-from tensorflow.keras.layers import (Activation, Conv2D, Dense, Dropout,
-                                     Flatten, MaxPooling2D)
+from tensorflow.keras.layers import (
+    Activation,
+    Conv2D,
+    Dense,
+    Dropout,
+    Flatten,
+    MaxPooling2D,
+)
 from tensorflow.python import ipu
 from tensorflow.python.ipu.ipu_session_run_hooks import IPULoggingTensorHook
 
@@ -70,12 +76,11 @@ def model_fn(features, labels, mode, params):
     if mode == tf.estimator.ModeKeys.EVAL:
         predictions = tf.argmax(input=logits, axis=-1)
         eval_metric_ops = {
-            "accuracy": tf.metrics.accuracy(labels=labels,
-                                            predictions=predictions),
+            "accuracy": tf.metrics.accuracy(labels=labels, predictions=predictions),
         }
-        return tf.estimator.EstimatorSpec(mode,
-                                          loss=loss,
-                                          eval_metric_ops=eval_metric_ops)
+        return tf.estimator.EstimatorSpec(
+            mode, loss=loss, eval_metric_ops=eval_metric_ops
+        )
     elif mode == tf.estimator.ModeKeys.TRAIN:
         # In a single device loop, the IPU executes n batches without returning
         # to the host in between. Each batch flows through the model_fn
@@ -89,7 +94,7 @@ def model_fn(features, labels, mode, params):
             # between logs, use LoggingMode.ALL.
             # Here, we average the ALL values.
             logging_mode=IPULoggingTensorHook.LoggingMode.ALL,
-            formatter=lambda dct: ' '.join(
+            formatter=lambda dct: " ".join(
                 {f" {name} = {np.mean(val):.3f}" for name, val in dct.items()}
             ),
             # The frequency of logging does not have to align with the frequency
@@ -107,10 +112,9 @@ def model_fn(features, labels, mode, params):
         # control flow, similar to 'tf.print'
         train_op = tf.group([train_op, log_loss])
         # Add the logging hook to the spec's training_hooks
-        return tf.estimator.EstimatorSpec(mode=mode,
-                                          loss=loss,
-                                          train_op=train_op,
-                                          training_hooks=[loss_logging_hook])
+        return tf.estimator.EstimatorSpec(
+            mode=mode, loss=loss, train_op=train_op, training_hooks=[loss_logging_hook]
+        )
     else:
         raise NotImplementedError(mode)
 
@@ -120,8 +124,7 @@ def create_ipu_estimator(args):
     cfg.auto_select_ipus = 1
 
     ipu_run_config = ipu.ipu_run_config.IPURunConfig(
-        iterations_per_loop=args.batches_per_step,
-        ipu_options=cfg
+        iterations_per_loop=args.batches_per_step, ipu_options=cfg
     )
 
     run_config = ipu.ipu_run_config.RunConfig(
@@ -130,14 +133,13 @@ def create_ipu_estimator(args):
         log_step_count_steps=None,
         save_summary_steps=args.summary_interval,
         model_dir=args.model_dir,
-        tf_random_seed=SEED
+        tf_random_seed=SEED,
     )
 
     return ipu.ipu_estimator.IPUEstimator(
         config=run_config,
         model_fn=model_fn,
-        params={"learning_rate": args.learning_rate,
-                "log_interval": args.log_interval},
+        params={"learning_rate": args.learning_rate, "log_interval": args.log_interval},
     )
 
 
@@ -145,12 +147,15 @@ def train(ipu_estimator, args, x_train, y_train):
     """
     Train a model on IPU and save checkpoints to the given `args.model_dir`.
     """
+
     def input_fn():
         # If using Dataset.from_tensor_slices, the data will be embedded
         # into the graph as constants, which makes the training graph very
         # large and impractical. So use Dataset.from_generator here instead.
 
-        def generator(): return zip(x_train, y_train)
+        def generator():
+            return zip(x_train, y_train)
+
         types = (x_train.dtype, y_train.dtype)
         shapes = (x_train.shape[1:], y_train.shape[1:])
 
@@ -170,11 +175,10 @@ def train(ipu_estimator, args, x_train, y_train):
     num_train_examples = int(args.epochs * len(x_train))
     steps = num_train_examples // args.batch_size
     # IPUEstimator requires no remainder; batches_per_step must divide steps
-    steps += (args.batches_per_step - steps % args.batches_per_step)
+    steps += args.batches_per_step - steps % args.batches_per_step
 
     t0 = time.time()
-    ipu_estimator.train(input_fn=input_fn,
-                        steps=steps)
+    ipu_estimator.train(input_fn=input_fn, steps=steps)
     t1 = time.time()
 
     duration_seconds = t1 - t0
@@ -200,76 +204,74 @@ def test(ipu_estimator, args, x_test, y_test):
     print(f"Evaluating on {steps * args.batch_size} examples")
 
     t0 = time.time()
-    metrics = ipu_estimator.evaluate(input_fn=input_fn,
-                                     steps=steps)
+    metrics = ipu_estimator.evaluate(input_fn=input_fn, steps=steps)
     t1 = time.time()
 
     test_loss = metrics["loss"]
     test_accuracy = metrics["accuracy"]
     duration_seconds = t1 - t0
-    print("Test loss: {:g}".format(test_loss))
-    print("Test accuracy: {:.2f}%".format(100 * test_accuracy))
+    print(f"Test loss: {test_loss:g}")
+    print(f"Test accuracy: {100 * test_accuracy:.2f}%")
     print(f"Took {duration_seconds:.2f} seconds to compile and run")
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument(
-        "--batch-size",
-        type=int,
-        default=32,
-        help="The batch size.")
+    parser.add_argument("--batch-size", type=int, default=32, help="The batch size.")
 
     parser.add_argument(
         "--batches-per-step",
         type=int,
         default=100,
-        help="The number of batches per execution loop on IPU.")
+        help="The number of batches per execution loop on IPU.",
+    )
 
     parser.add_argument(
-        "--epochs",
-        type=float,
-        default=100,
-        help="Total number of epochs to train for.")
+        "--epochs", type=float, default=100, help="Total number of epochs to train for."
+    )
 
     parser.add_argument(
         "--learning-rate",
         type=float,
         default=0.01,
-        help="The learning rate used with stochastic gradient descent.")
+        help="The learning rate used with stochastic gradient descent.",
+    )
 
     parser.add_argument(
         "--test-only",
         action="store_true",
-        help="Skip training and test using latest checkpoint from model_dir.")
+        help="Skip training and test using latest checkpoint from model_dir.",
+    )
 
     parser.add_argument(
         "--train-only",
         action="store_true",
-        help="Run training only and skip the testing."
+        help="Run training only and skip the testing.",
     )
 
     parser.add_argument(
         "--log-interval",
         type=float,
         default=3,
-        help="Interval at which to log progress (seconds)")
+        help="Interval at which to log progress (seconds)",
+    )
 
     parser.add_argument(
         "--summary-interval",
         type=int,
         default=1,
-        help="Interval at which to write summaries.")
+        help="Interval at which to write summaries.",
+    )
 
     parser.add_argument(
-        "--model-dir",
-        help="Directory where checkpoints and summaries are stored.")
+        "--model-dir", help="Directory where checkpoints and summaries are stored."
+    )
 
     parser.add_argument(
         "--generated-data",
         action="store_true",
-        help="Run the model with randomly generated data."
+        help="Run the model with randomly generated data.",
     )
 
     return parser.parse_args()

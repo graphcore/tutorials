@@ -1,3 +1,4 @@
+<!-- Copyright (c) 2022 Graphcore Ltd. All rights reserved. -->
 # Tutorial: Lightweight profiling
 
 By default, the Poplar profiler adds fine-grained instrumentation that may cause excessive overhead. The new _lightweight_ profiling solves this by reducing the level of detail or only focusing on the parts of the model of your choice.
@@ -14,7 +15,7 @@ Before starting this tutorial, if you need to practice how to write, compile, an
 The detailed execution profiling (controlled by the Poplar Engine option `autoReport.outputExecutionReport`) has some limitations that can become prohibitive in certain scenarios. This detailed profiling measures the cycle length of every program and records the control flow of the execution. With these two pieces of information, the host can reconstruct the execution trace once the program finishes. This has some drawbacks:
 - It can consume a significant portion of the memory to keep one cycle counter per program per tile.
 - The post-processing of the measurements on the host can be time consuming. This imposes a limit on the length of the execution to be profiled.
-- It may be difficult to focus on high-level operations given the fine-grained instrumentation. 
+- It may be difficult to focus on high-level operations given the fine-grained instrumentation.
 
 There is also a strict limitation: only the measurement of the last execution of a given program is preserved. Typically, this is good enough but it would generate inaccurate profiles if the execution time of a compute set depended on the input data.
 
@@ -30,7 +31,7 @@ Note that the examples in this tutorial are targeting Poplar and, therefore, the
 We encourage the reader to execute the programs in the following examples and to analyse their output. Please note that this code is meant to be executed on real IPUs because the instrumentation needs to access IPU registers to measure cycles. For instructions on how to compile Poplar programs and a brief practical introduction to programming in Poplar please refer to [these Poplar tutorials](../../poplar) (when compiling, remember to also link in the _libpva_ library using `-lpva`).
 
 ## Example 1: Usage of the Block program
-The main option to request the lightweight profiler to focus on a certain area of code is to use the `Block` program class. You can find it in [Poplar's public interface](https://docs.graphcore.ai/projects/poplar-api/en/latest/poplar/Program.html).
+The main option to request the lightweight profiler to focus on a certain area of code is to use the `Block` program class. You can find it in [Poplar's public interface](https://docs.graphcore.ai/projects/poplar-api/en/3.0.0/poplar/Program.html).
 ```cpp
 /** A program to scope another program.
  * This can be used together with the Poplar Engine option `profiler.blocks.filter` to
@@ -43,7 +44,7 @@ public:
 ```
 For this example, let us first create something that resembles a pipelined model. Our simplistic pipeline has two stages and each of them contains two operations that, to simplify, will be just a single compute set with a dummy vertex that simulates approximately 3600 cycles of work. Each stage will be placed on a different IPU and the pipeline will be executed five times.
 
-The following snippet of code creates the described structure. You can find the full source code in [example_1.cpp](./examples/example_1.cpp). 
+The following snippet of code creates the described structure. You can find the full source code in [example_1.cpp](./examples/example_1.cpp).
 
 ```cpp
 const auto tilesPerIpu = device.getTarget().getTilesPerIPU();
@@ -180,7 +181,7 @@ stage2: 7377 (2158983150 - 2158990527)
 
 By comparing the start and end points, we can see that the execution of each operation `op2` is contained in the execution of the corresponding stage.
 
-# Example 2: Implicit Blocks
+## Example 2: Implicit Blocks
 In the previous example we have seen how to add `Block` programs to your source code to instrument meaningful parts of your model. However, sometimes modifying the source code can be inconvenient or impossible. In those cases you can ask Poplar to add implicit blocks around areas of interest. You can do this with the Poplar Engine option `profile.programs.filter` that also accepts a regular expression. During compilation, Poplar will automatically wrap any program whose name matches the regular expression with an implicit `Block` program. You can get help from PopVision Graph Analyser to visualise the programs in your model and list their names. Note you can also use this option when using high-level frameworks, though this is not fully supported and you will have to use the PopVision Graph Analyser to determine the names of the relevant programs.
 
 For this example, we will profile a vertex whose execution time depends on the input data. Again, we use a dummy vertex with simplified logic for brevity. With this, we want to illustrate how  lightweight profiling overcomes another limitation of the detailed instrumentation: it is able to accurately measure the elapsed cycles of each individual vertex (compute set) execution.
@@ -255,7 +256,7 @@ Especially when instrumenting individual programs, it is important to bear in mi
 
 If you are interested in profiling input/output operations as well as the computation, the following example explains how to do it without the need of identifying the tiles that perform such operations.
 
-# Example 3: I/O
+## Example 3: I/O
 In this example we see how lightweight profiling can profile data movement between the host and the IPU, that is, StreamCopy programs.
 
 To do so, let us implement an operation that contains a single dummy vertex. Similarly to previous examples, this vertex will accept an integer as an input and simulate 3600 cycles of work. This operation is repeated in a loop and the input is streamed from the host to the IPU for each iteration. The full source code can be found in [example_3.cpp](./examples/example_3.cpp).
@@ -360,7 +361,7 @@ The execution of this code should print something like:
        StreamCopyEnd in tile  100:    83350 (1016693032 - 1016776382)
      StreamCopyBegin in tile  100:    77706 (1016776533 - 1016854239)
        StreamCopyMid in tile  100:     1491 (1016854275 - 1016855766)
-       StreamCopyEnd in tile  100:    79556 (1016855802 - 1016935358)   
+       StreamCopyEnd in tile  100:    79556 (1016855802 - 1016935358)
 ```
 
 The first two triplets of `StreamCopy` programs are those which instruct the IPU which program to start executing. They are always present at the beginning of a run and we can ignore them for this example.
@@ -469,4 +470,4 @@ We now get the 100 blocks for the operations as expected. Additionally we get 30
 In this tutorial we have seen how you can focus on the parts of your model you are interested in when profiling. You can easily profile high-level operations by wrapping them in `Block` programs or you can profile individual programs by specifying their names via Poplar Engine options. We have also seen how you can profile I/O operations at the same time, even if they happen in parallel with computation. We expect this lightweight approach will be adaptable enough to profile the interesting parts of models of any size and their executions of any length.
 
 ## Further reading
-To delve further into the examples in this tutorial, [this _libpva_ tutorial](../libpva) may be interesting if you would like to familiarise yourself on how to programmatically access a Poplar profile. Additionally, [the PopVision Graph Analyser user guide](https://docs.graphcore.ai/projects/graph-analyser-userguide/en/latest/) can take you on a visual tour of the capabilities and limitations of full profiling.
+To delve further into the examples in this tutorial, [this _libpva_ tutorial](../libpva) may be interesting if you would like to familiarise yourself on how to programmatically access a Poplar profile. Additionally, [the PopVision Graph Analyser user guide](https://docs.graphcore.ai/projects/graph-analyser-userguide/en/3.11.2/) can take you on a visual tour of the capabilities and limitations of full profiling.

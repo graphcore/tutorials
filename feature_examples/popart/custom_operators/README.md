@@ -1,13 +1,14 @@
+<!-- Copyright (c) 2019 Graphcore Ltd. All rights reserved. -->
 # Building custom operators using PopART
 
 This directory contains two example implementations of custom operators for PopART.
 
-Both examples create an operation definition with forward and backward parts, although only 
+Both examples create an operation definition with forward and backward parts, although only
 inference is demonstrated in the executables for simplicity.
 
 ## File structure
 
-* `cube_op_example/cube_fn_custom_op.cpp` The C++ implementation of the cube operation  
+* `cube_op_example/cube_fn_custom_op.cpp` The C++ implementation of the cube operation
 * `cube_op_example/Makefile` A pre-configured Makefile to build the cube operator example
 * `cube_op_example/tests/test_cube_op.py` A pytest script to test the operator
 * `leaky_relu_example/leaky_relu_custom_op.cpp` The C++ implementation of the leaky relu operation
@@ -20,7 +21,7 @@ inference is demonstrated in the executables for simplicity.
 ## Cube Op
 
 The cube operator takes a tensor as input, then performs an element-wise
-cube operation, returning the result. This contains a main function that builds and runs 
+cube operation, returning the result. This contains a main function that builds and runs
 a simple model using this operator in C++.
 
 ### Building the Cube operator example
@@ -31,7 +32,7 @@ a simple model using this operator in C++.
   scripts for Poplar and PopART.
 
 2) Build cube operator example
-	
+
 With your environment fully configured as above, all that remains is to build the example:
 
 	$ cd cube_op_example
@@ -47,7 +48,7 @@ Having built the cube operator application, it can be run as follows:
 	Options:
 	  --help	Display this message
 	  --ipu		Run the example on an available IPU (otherwise it runs on CPU)
-	
+
 	Example usages:
 	  $ cube_fn_custom_op 0.3 2.7 1.2 5
 	  $ cube_fn_custom_op --ipu 0.3 2.7 1.2 5
@@ -56,14 +57,14 @@ The input tensor is read from the command-line arguments and converted ready for
 use in the model.
 
 By default, the cube operator model runs on the CPU; however it can be pushed onto an IPU device
-by providing the `--ipu` flag. 
+by providing the `--ipu` flag.
 
 
 ## Leaky ReLU Op
 
-The leaky rectified linear unit (Leaky ReLU) takes a tensor as input, then returns `x` for any 
-element `x >= 0` and `x * alpha` for any element `x < 0`, where `alpha` is provided as a scalar 
-attribute to the operator. This contains a python script that demonstrates how to load the operator into the 
+The leaky rectified linear unit (Leaky ReLU) takes a tensor as input, then returns `x` for any
+element `x >= 0` and `x * alpha` for any element `x < 0`, where `alpha` is provided as a scalar
+attribute to the operator. This contains a python script that demonstrates how to load the operator into the
 python runtime, build and then execute a model that uses a custom operator with the python API.
 
 ### Building the Leaky ReLU operator example
@@ -74,7 +75,7 @@ python runtime, build and then execute a model that uses a custom operator with 
   scripts for Poplar and PopART.
 
 2) Build leaky rely operator example
-	
+
 With your environment fully configured as above, all that remains is to build the example:
 
 	$ cd leaky_relu_example

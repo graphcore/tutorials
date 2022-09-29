@@ -1,3 +1,4 @@
+<!-- Copyright (c) 2021 Graphcore Ltd. All rights reserved. -->
 # Tests
 
 To run the tests, create a Python 3 virtual environment with Poplar and

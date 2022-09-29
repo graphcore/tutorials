@@ -16,8 +16,8 @@ mnist = tf.keras.datasets.mnist
 (x_train, y_train), _ = mnist.load_data()
 
 # Cast and normalize the training data
-x_train = x_train.astype('float32') / 255
-y_train = y_train.astype('int32')
+x_train = x_train.astype("float32") / 255
+y_train = y_train.astype("int32")
 
 # Build iterator over the data
 dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train))
@@ -26,10 +26,13 @@ dataset_iterator = tf.data.make_initializable_iterator(dataset)
 
 
 def create_model():
-    model = tf.keras.Sequential([
-        tf.keras.layers.Flatten(),
-        tf.keras.layers.Dense(128, activation='relu'),
-        tf.keras.layers.Dense(10, activation='softmax')])
+    model = tf.keras.Sequential(
+        [
+            tf.keras.layers.Flatten(),
+            tf.keras.layers.Dense(128, activation="relu"),
+            tf.keras.layers.Dense(10, activation="softmax"),
+        ]
+    )
     return model
 
 
@@ -42,15 +45,17 @@ def training_loop_body(x, y):
     loss = tf.losses.sparse_softmax_cross_entropy(labels=y, logits=logits)
     train_op = tf.train.AdamOptimizer(learning_rate=0.01).minimize(loss=loss)
 
-    return([loss, train_op])
+    return [loss, train_op]
 
 
 # Get inputs from get_next() method of iterator
 (x, y) = dataset_iterator.get_next()
 
-with ipu.scopes.ipu_scope('/device:IPU:0'):
+with ipu.scopes.ipu_scope("/device:IPU:0"):
 
-    training_loop_body_on_ipu = ipu.ipu_compiler.compile(computation=training_loop_body, inputs=[x, y])
+    training_loop_body_on_ipu = ipu.ipu_compiler.compile(
+        computation=training_loop_body, inputs=[x, y]
+    )
 
 ipu_configuration = ipu.config.IPUConfig()
 ipu_configuration.auto_select_ipus = 1
@@ -78,10 +83,10 @@ with tf.Session() as sess:
             loss_running_total += loss[0]
 
         # Print average loss and time taken for epoch
-        print('\n', end='')
+        print("\n", end="")
         print("Loss:", loss_running_total / batches_per_epoch)
         print("Time:", time.time() - epoch_start_time)
 
 print("Program ran successfully")
 
-# Generated:2022-05-19T17:37 Source:mnist.py SST:0.0.7
+# Generated:2022-09-28T12:06 Source:mnist.py SST:0.0.8

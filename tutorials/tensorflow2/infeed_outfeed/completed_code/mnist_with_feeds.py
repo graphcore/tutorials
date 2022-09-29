@@ -1,4 +1,4 @@
-# Copyright (c) 2021 Graphcore Ltd. All Rights Reserved.
+# Copyright (c) 2021 Graphcore Ltd. All rights reserved.
 
 # Copyright 2020 The TensorFlow Authors. All Rights Reserved.
 #
@@ -40,8 +40,7 @@ def create_dataset():
     train_ds = tf.data.Dataset.from_tensor_slices((x_train, y_train))
     train_ds = train_ds.cache()
     train_ds = train_ds.shuffle(len(x_train)).batch(32, drop_remainder=True)
-    train_ds = train_ds.map(lambda d, l:
-                            (tf.cast(d, tf.float32), tf.cast(l, tf.int32)))
+    train_ds = train_ds.map(lambda d, l: (tf.cast(d, tf.float32), tf.cast(l, tf.int32)))
     train_ds = train_ds.prefetch(tf.data.experimental.AUTOTUNE)
 
     return train_ds.repeat()
@@ -49,11 +48,13 @@ def create_dataset():
 
 # Create a simple fully-connected network model using the standard Keras Sequential API
 def create_model():
-    m = keras.Sequential([
-        keras.layers.Flatten(),
-        keras.layers.Dense(128, activation='relu'),
-        keras.layers.Dense(10, activation='softmax')
-    ])
+    m = keras.Sequential(
+        [
+            keras.layers.Flatten(),
+            keras.layers.Dense(128, activation="relu"),
+            keras.layers.Dense(10, activation="softmax"),
+        ]
+    )
     return m
 
 
@@ -66,7 +67,9 @@ def training_loop(iterator, outfeed_queue, model, optimizer, steps_per_execution
         # Perform the training step.
         with tf.GradientTape() as tape:
             predictions = model(features, training=True)
-            prediction_loss = keras.losses.sparse_categorical_crossentropy(labels, predictions)
+            prediction_loss = keras.losses.sparse_categorical_crossentropy(
+                labels, predictions
+            )
             loss = tf.reduce_mean(prediction_loss)
 
         grads = tape.gradient(loss, model.trainable_variables)
@@ -74,6 +77,7 @@ def training_loop(iterator, outfeed_queue, model, optimizer, steps_per_execution
 
         # Store the loss in the outfeed queue.
         outfeed_queue.enqueue(loss)
+
 
 # Configure the IPU system
 cfg = config.IPUConfig()
@@ -101,7 +105,11 @@ with strategy.scope():
     for _ in range(0, step_count, steps_per_execution):
 
         # Run `steps_per_execution` at a time.
-        strategy.run(training_loop,
-                     args=[iterator, outfeed_queue, model, opt, steps_per_execution])
+        strategy.run(
+            training_loop,
+            args=[iterator, outfeed_queue, model, opt, steps_per_execution],
+        )
     result = outfeed_queue.dequeue()
-    print('Time taken using infeed/outfeed queues:', time.time() - start_time, "seconds")
+    print(
+        "Time taken using infeed/outfeed queues:", time.time() - start_time, "seconds"
+    )

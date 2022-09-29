@@ -1,3 +1,4 @@
+<!-- Copyright (c) 2021 Graphcore Ltd. All rights reserved. -->
 # Feature examples for TensorFlow 2
 
 This directory contains several examples showing how to use TensorFlow 2 on the IPU.

@@ -18,7 +18,6 @@ from pathlib import Path
 @pytest.mark.category1
 @pytest.mark.ipus(16)
 class TestPopDistTraining:
-
     @pytest.mark.parametrize("num_replicas", [2, 4])
     def test_instances_in_sync_after_training(self, num_replicas):
         with tempfile.TemporaryDirectory() as cachedir:
@@ -27,14 +26,19 @@ class TestPopDistTraining:
                     continue
                 scriptdir = Path(os.path.realpath(__file__)).parent.parent
                 cmd = [
-                    "poprun", "-vv",
+                    "poprun",
+                    "-vv",
                     # The CI runs as root, so let's allow that.
-                    "--mpi-global-args", "--tag-output",
-                    "--num-replicas", str(num_replicas),
-                    "--num-instances", str(num_instances),
-                    "--executable-cache-path", str(cachedir),
+                    "--mpi-global-args",
+                    "--tag-output",
+                    "--num-replicas",
+                    str(num_replicas),
+                    "--num-instances",
+                    str(num_instances),
+                    "--executable-cache-path",
+                    str(cachedir),
                     sys.executable,
-                    str(scriptdir / "popdist_training.py")
+                    str(scriptdir / "popdist_training.py"),
                 ]
 
                 with tempfile.TemporaryDirectory() as workdir:
@@ -42,8 +46,10 @@ class TestPopDistTraining:
                     testing_util.run_command_fail_explicitly(cmd, workdir)
 
                     # The checkpoint files from all the instances.
-                    instance_checkpoints = [os.path.join(
-                        workdir, f"instance_{i}") for i in range(num_instances)]
+                    instance_checkpoints = [
+                        os.path.join(workdir, f"instance_{i}")
+                        for i in range(num_instances)
+                    ]
 
                     # The final weights should be the same on all instances.
                     self._assert_all_variables_are_equal(instance_checkpoints)
@@ -55,14 +61,15 @@ class TestPopDistTraining:
         for var_name, var_shape in var_names_and_shapes:
             logging.info(f"Checking variable {var_name} with shape {var_shape}")
 
-            first_value = tf.train.load_variable(
-                instance_checkpoints[0], var_name)
+            first_value = tf.train.load_variable(instance_checkpoints[0], var_name)
 
             for other_checkpoint in instance_checkpoints[1:]:
                 other_value = tf.train.load_variable(other_checkpoint, var_name)
-                assert first_value.tolist() == other_value.tolist(), f"Variable {var_name} did not match."
+                assert (
+                    first_value.tolist() == other_value.tolist()
+                ), f"Variable {var_name} did not match."
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
     pytest.main()

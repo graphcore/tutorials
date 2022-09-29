@@ -12,7 +12,7 @@ from tensorflow.python.training import optimizer
 
 
 class OutfeedOptimizerMode(Enum):
-    """ Types used to control the mode of the OutfeedOptimizer.
+    """Types used to control the mode of the OutfeedOptimizer.
 
     These only make a difference to the observed behaviour when using gradient
     accumulation.
@@ -31,24 +31,30 @@ class OutfeedOptimizerMode(Enum):
         will be the accumulated gradients.
 
     """
+
     AFTER_COMPUTE = "after_compute"
     BEFORE_APPLY = "before_apply"
 
 
 class OutfeedOptimizer(optimizer.Optimizer):
-    """ Optimizer that outfeeds gradients from a wrapped optimizer using a
-        MaybeOutfeedQueue.
+    """Optimizer that outfeeds gradients from a wrapped optimizer using a
+    MaybeOutfeedQueue.
 
-        The gradients are placed in a dictionary by the MaybeOutfeedQueue;
-        each key is the name of the corresponding trainable variable with the
-        suffix '_grad'. The gradients are added to the dictionary in reverse
-        order - the first entry in the dictionary corresponds to the gradient
-        tensor for the last trainable variable.
+    The gradients are placed in a dictionary by the MaybeOutfeedQueue;
+    each key is the name of the corresponding trainable variable with the
+    suffix '_grad'. The gradients are added to the dictionary in reverse
+    order - the first entry in the dictionary corresponds to the gradient
+    tensor for the last trainable variable.
     """
-    def __init__(self, wrapped_optimizer, outfeed_queue,
-                 outfeed_optimizer_mode=OutfeedOptimizerMode.BEFORE_APPLY,
-                 name="OutfeedOptimizer"):
-        """ Construct an OutfeedOptimizer.
+
+    def __init__(
+        self,
+        wrapped_optimizer,
+        outfeed_queue,
+        outfeed_optimizer_mode=OutfeedOptimizerMode.BEFORE_APPLY,
+        name="OutfeedOptimizer",
+    ):
+        """Construct an OutfeedOptimizer.
 
         Args:
             wrapped_optimizer: A subclass of `tf.compat.v1.train.Optimizer`.
@@ -77,9 +83,8 @@ class OutfeedOptimizer(optimizer.Optimizer):
         self._outfeed = outfeed_queue
         self._outfeed_optimizer_mode = outfeed_optimizer_mode
 
-
     def compute_gradients(self, loss, var_list=None, **kwargs):
-        """ Compute gradients of "loss" for the variables in "var_list".
+        """Compute gradients of "loss" for the variables in "var_list".
 
         The gradients are computed by the wrapped optimizer.
 
@@ -105,9 +110,9 @@ class OutfeedOptimizer(optimizer.Optimizer):
         Returns:
             A list of (gradient, variable) pairs.
         """
-        grads_and_vars = self._wrapped_optimizer.compute_gradients(loss,
-                                                                   var_list=var_list,
-                                                                   **kwargs)
+        grads_and_vars = self._wrapped_optimizer.compute_gradients(
+            loss, var_list=var_list, **kwargs
+        )
         if self._outfeed_optimizer_mode == OutfeedOptimizerMode.AFTER_COMPUTE:
             enqueue = self._maybe_enqueue(grads_and_vars)
             if enqueue:
@@ -116,18 +121,17 @@ class OutfeedOptimizer(optimizer.Optimizer):
                 # This puts the enqueue op into the control flow by attaching
                 # it to an identity op on the first gradient.
                 with ops.control_dependencies([enqueue]):
-                    return [(array_ops.identity(x) if i == 0 else x,
-                             y)
-                            for i, (x, y) in enumerate(grads_and_vars)]
+                    return [
+                        (array_ops.identity(x) if i == 0 else x, y)
+                        for i, (x, y) in enumerate(grads_and_vars)
+                    ]
         return grads_and_vars
-
 
     def _maybe_enqueue(self, grads_and_vars):
         # reverse the order of the gradients
         for g, v in list(reversed(grads_and_vars)):
             self._outfeed.maybe_outfeed(v.name + "_grad", g)
         return self._outfeed.maybe_enqueue()
-
 
     def apply_gradients(self, grads_and_vars, global_step=None, name=None):
         """Apply gradients to variables.
@@ -164,27 +168,25 @@ class OutfeedOptimizer(optimizer.Optimizer):
             enqueue = self._maybe_enqueue(grads_and_vars)
             if enqueue:
                 with ops.control_dependencies([enqueue]):
-                    return self._wrapped_optimizer.apply_gradients(grads_and_vars,
-                                                                   global_step, name)
+                    return self._wrapped_optimizer.apply_gradients(
+                        grads_and_vars, global_step, name
+                    )
 
-        return self._wrapped_optimizer.apply_gradients(grads_and_vars,
-                                                       global_step, name)
-
+        return self._wrapped_optimizer.apply_gradients(
+            grads_and_vars, global_step, name
+        )
 
     # Override method from tensorflow.python.training.optimizer.Optimizer
     def get_name(self):
         return self._wrapped_optimizer.get_name()
 
-
     # Override method from tensorflow.python.training.optimizer.Optimizer
     def get_slot(self, var, name):
         return self._wrapped_optimizer.get_slot(var, name)
 
-
     # Override method from tensorflow.python.training.optimizer.Optimizer
     def get_slot_names(self):
         return self._wrapped_optimizer.get_slot_names()
-
 
     # Override method from tensorflow.python.training.optimizer.Optimizer
     def variables(self):

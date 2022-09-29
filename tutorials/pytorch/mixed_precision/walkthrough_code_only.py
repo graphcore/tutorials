@@ -54,17 +54,33 @@ partials_half = False
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--model-half', dest='model_half', action='store_true',
-                    help='Cast the model parameters to FP16')
-parser.add_argument('--data-half', dest='data_half', action='store_true',
-                    help='Cast the data to FP16')
-parser.add_argument('--optimizer-half', dest='optimizer_half',
-                    action='store_true',
-                    help='Cast the accumulation type of the optimiser to FP16')
-parser.add_argument('--stochastic-rounding', dest='stochastic_rounding',
-                    action='store_true', help='Use stochastic rounding')
-parser.add_argument('--partials-half', dest='partials_half',
-                    action='store_true', help='Set partials data type to FP16')
+parser.add_argument(
+    "--model-half",
+    dest="model_half",
+    action="store_true",
+    help="Cast the model parameters to FP16",
+)
+parser.add_argument(
+    "--data-half", dest="data_half", action="store_true", help="Cast the data to FP16"
+)
+parser.add_argument(
+    "--optimizer-half",
+    dest="optimizer_half",
+    action="store_true",
+    help="Cast the accumulation type of the optimiser to FP16",
+)
+parser.add_argument(
+    "--stochastic-rounding",
+    dest="stochastic_rounding",
+    action="store_true",
+    help="Use stochastic rounding",
+)
+parser.add_argument(
+    "--partials-half",
+    dest="partials_half",
+    action="store_true",
+    help="Set partials data type to FP16",
+)
 args = parser.parse_args()
 
 model_half = args.model_half
@@ -78,26 +94,28 @@ model = CustomModel()
 if model_half:
     model = model.half()
 
-transform_list = [transforms.Resize(128),
-                  transforms.ToTensor(),
-                  transforms.Normalize((0.5,), (0.5,))]
+transform_list = [
+    transforms.Resize(128),
+    transforms.ToTensor(),
+    transforms.Normalize((0.5,), (0.5,)),
+]
 if data_half:
     transform_list.append(transforms.ConvertImageDtype(torch.half))
 
 transform = transforms.Compose(transform_list)
 
 train_dataset = torchvision.datasets.FashionMNIST(
-    "~/.torch/datasets", transform=transform, download=True, train=True)
+    "~/.torch/datasets", transform=transform, download=True, train=True
+)
 test_dataset = torchvision.datasets.FashionMNIST(
-    "~/.torch/datasets", transform=transform, download=True, train=False)
+    "~/.torch/datasets", transform=transform, download=True, train=False
+)
 
-accum, loss_scaling = \
-    (torch.float16, 1024) if optimizer_half else (torch.float32, None)
+accum, loss_scaling = (torch.float16, 1024) if optimizer_half else (torch.float32, None)
 
-optimizer = poptorch.optim.AdamW(params=model.parameters(),
-                                 lr=0.001,
-                                 accum_type=accum,
-                                 loss_scaling=loss_scaling)
+optimizer = poptorch.optim.AdamW(
+    params=model.parameters(), lr=0.001, accum_type=accum, loss_scaling=loss_scaling
+)
 
 opts = poptorch.Options()
 
@@ -109,16 +127,12 @@ if partials_half:
 else:
     opts.Precision.setPartialsType(torch.float)
 
-train_dataloader = poptorch.DataLoader(opts,
-                                       train_dataset,
-                                       batch_size=12,
-                                       shuffle=True,
-                                       num_workers=40)
+train_dataloader = poptorch.DataLoader(
+    opts, train_dataset, batch_size=12, shuffle=True, num_workers=40
+)
 
 model.train()  # Switch the model to training mode
-poptorch_model = poptorch.trainingModel(model,
-                                        options=opts,
-                                        optimizer=optimizer)
+poptorch_model = poptorch.trainingModel(model, options=opts, optimizer=optimizer)
 
 epochs = 10
 for epoch in tqdm(range(epochs), desc="epochs"):
@@ -131,10 +145,7 @@ poptorch_model.detachFromDevice()
 
 model.eval()  # Switch the model to inference mode
 poptorch_model_inf = poptorch.inferenceModel(model, options=opts)
-test_dataloader = poptorch.DataLoader(opts,
-                                      test_dataset,
-                                      batch_size=32,
-                                      num_workers=40)
+test_dataloader = poptorch.DataLoader(opts, test_dataset, batch_size=32, num_workers=40)
 
 predictions, labels = [], []
 for data, label in test_dataloader:
@@ -143,35 +154,10 @@ for data, label in test_dataloader:
 
 poptorch_model_inf.detachFromDevice()
 
-print(f"""Eval accuracy on IPU: {100 *
+print(
+    f"""Eval accuracy on IPU: {100 *
                 (1 - torch.count_nonzero(torch.sub(torch.tensor(labels),
-                torch.tensor(predictions))) / len(labels)):.2f}%""")
+                torch.tensor(predictions))) / len(labels)):.2f}%"""
+)
 
-
-class Model(torch.nn.Module):
-    def forward(self, x, y):
-        return x + y
-
-
-native_model = Model()
-native_model.eval()  # Switch the model to inference mode
-float16_tensor = torch.tensor([1.0], dtype=torch.float16)
-float32_tensor = torch.tensor([1.0], dtype=torch.float32)
-
-assert native_model(float32_tensor, float16_tensor).dtype == torch.float32
-
-opts = poptorch.Options()
-
-poptorch_model = poptorch.inferenceModel(native_model, opts)
-assert poptorch_model(float32_tensor, float16_tensor).dtype == torch.float16
-
-opts = poptorch.Options()
-opts.Precision.halfFloatCasting(
-    poptorch.HalfFloatCastingBehavior.HalfUpcastToFloat)
-
-poptorch_model = poptorch.inferenceModel(native_model, opts)
-assert poptorch_model(float32_tensor, float16_tensor).dtype == torch.float32
-
-poptorch_model.detachFromDevice()
-
-# Generated:2022-05-19T17:41 Source:walkthrough.py SST:0.0.7
+# Generated:2022-09-27T15:33 Source:walkthrough.py SST:0.0.8

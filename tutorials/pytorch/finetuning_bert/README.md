@@ -1,3 +1,4 @@
+<!-- Copyright (c) 2021 Graphcore Ltd. All rights reserved. -->
 # Tutorial on BERT Fine-tuning on IPU
 
 This tutorial demonstrates how to fine-tune a pre-trained BERT model with

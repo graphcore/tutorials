@@ -9,7 +9,9 @@ import numpy as np
 import tensorflow as tf
 
 # default data_format is 'channels_last'
-dataset = Dataset.from_tensor_slices(np.random.uniform(size=(2, 128, 128, 3)).astype(np.float32))
+dataset = Dataset.from_tensor_slices(
+    np.random.uniform(size=(2, 128, 128, 3)).astype(np.float32)
+)
 dataset = dataset.batch(batch_size=2, drop_remainder=True)
 dataset = dataset.cache()
 dataset = dataset.repeat()
@@ -22,7 +24,7 @@ def my_model():
 
     x = layers.Conv2D(128, 1)(input_layer)
 
-    x = layers.Conv2D(128, 1, name='split')(x)
+    x = layers.Conv2D(128, 1, name="split")(x)
 
     x = layers.Conv2D(128, 1)(x)
 

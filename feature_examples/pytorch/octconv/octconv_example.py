@@ -19,15 +19,13 @@ def cifar10(data_dir, train=True):
     Get the normalized CIFAR-10 dataset
     """
     (mean, std) = ((0.4914, 0.4822, 0.4465), (0.2470, 0.2435, 0.2616))
-    transforms = torchvision.transforms.Compose([
-        torchvision.transforms.ToTensor(),
-        torchvision.transforms.Normalize(mean, std)
-    ])
+    transforms = torchvision.transforms.Compose(
+        [torchvision.transforms.ToTensor(), torchvision.transforms.Normalize(mean, std)]
+    )
 
-    dataset = torchvision.datasets.CIFAR10(data_dir,
-                                           train=train,
-                                           download=True,
-                                           transform=transforms)
+    dataset = torchvision.datasets.CIFAR10(
+        data_dir, train=train, download=True, transform=transforms
+    )
 
     return dataset
 
@@ -36,11 +34,7 @@ def createConvBlock(in_channels, out_channels):
     """
     Creates a conv --> batchnorm --> relu --> maxpool block
     """
-    conv = nn.Conv2d(in_channels,
-                     out_channels,
-                     kernel_size=3,
-                     padding=1,
-                     bias=False)
+    conv = nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1, bias=False)
     norm = nn.BatchNorm2d(out_channels)
     relu = nn.ReLU()
     pool = nn.MaxPool2d(2)
@@ -77,11 +71,9 @@ class OctConvBlock(nn.Module):
         (when both are present) have the same operations applied to them.
         """
         super().__init__()
-        self.octconv = octconv.OctConv2d(in_channels,
-                                         out_channels,
-                                         kernel_size=3,
-                                         padding=1,
-                                         alpha=alpha)
+        self.octconv = octconv.OctConv2d(
+            in_channels, out_channels, kernel_size=3, padding=1, alpha=alpha
+        )
 
         if use_multi:
             applyMultiConv(self.octconv)
@@ -90,7 +82,7 @@ class OctConvBlock(nn.Module):
         relu = nn.ReLU()
         pool = nn.MaxPool2d(2)
         self.high_seq = nn.Sequential(norm_high, relu, pool)
-        self.has_low = self.octconv.alpha_out > 0.
+        self.has_low = self.octconv.alpha_out > 0.0
 
         if self.has_low:
             norm_low = nn.BatchNorm2d(self.octconv.out_channels["low"])
@@ -123,8 +115,9 @@ class ClassificationModel(nn.Module):
         """
         super().__init__()
 
-        assert isinstance(expansion, int) and expansion > 0, \
-            f"Invalid expansion \"{expansion}\". Must be a positive integer."
+        assert (
+            isinstance(expansion, int) and expansion > 0
+        ), f'Invalid expansion "{expansion}". Must be a positive integer.'
 
         self.num_channels = 16 * expansion
 
@@ -135,8 +128,12 @@ class ClassificationModel(nn.Module):
         elif conv_mode == "multi-octave":
             self._makeOctave(alpha, use_multi=True)
         else:
-            raise AssertionError((f"Invalid conv_mode=\"{conv_mode}\"."
-                                  "Must be vanilla, octave, or multi-octave"))
+            raise AssertionError(
+                (
+                    f'Invalid conv_mode="{conv_mode}".'
+                    "Must be vanilla, octave, or multi-octave"
+                )
+            )
 
         self.fc = nn.Linear(self.num_channels * 4 * 4, 10)
         self.log_softmax = nn.LogSoftmax(dim=1)
@@ -146,15 +143,17 @@ class ClassificationModel(nn.Module):
         self.convlayers = nn.Sequential(
             createConvBlock(3, self.num_channels),
             createConvBlock(self.num_channels, self.num_channels * 2),
-            createConvBlock(self.num_channels * 2, self.num_channels))
+            createConvBlock(self.num_channels * 2, self.num_channels),
+        )
 
     def _makeOctave(self, alpha, use_multi):
         self.convlayers = nn.Sequential(
-            OctConvBlock(3, self.num_channels, (0., alpha), use_multi),
-            OctConvBlock(self.num_channels, self.num_channels * 2, alpha,
-                         use_multi),
-            OctConvBlock(self.num_channels * 2, self.num_channels, (alpha, 0.),
-                         use_multi))
+            OctConvBlock(3, self.num_channels, (0.0, alpha), use_multi),
+            OctConvBlock(self.num_channels, self.num_channels * 2, alpha, use_multi),
+            OctConvBlock(
+                self.num_channels * 2, self.num_channels, (alpha, 0.0), use_multi
+            ),
+        )
 
     def forward(self, x, labels=None):
         out = self.convlayers(x)
@@ -191,7 +190,7 @@ def setupOptions(args, train=True):
         engine_opts = {
             "autoReport.all": "true",
             "autoReport.directory": args.profile_dir,
-            "profiler.format": "v3"
+            "profiler.format": "v3",
         }
 
         os.environ["POPLAR_ENGINE_OPTIONS"] = json.dumps(engine_opts)
@@ -208,9 +207,8 @@ def accuracy(predictions, labels):
     """
     ind = torch.argmax(predictions, 1)
     # provide labels only for samples, where prediction is available (during the training, not every samples prediction is returned for efficiency reasons)
-    labels = labels[-predictions.size()[0]:]
-    accuracy = torch.sum(torch.eq(ind, labels)).item() / \
-        labels.size()[0] * 100.0
+    labels = labels[-predictions.size()[0] :]
+    accuracy = torch.sum(torch.eq(ind, labels)).item() / labels.size()[0] * 100.0
     return accuracy
 
 
@@ -236,13 +234,15 @@ def setupTraining(model, args):
     training_model = poptorch.trainingModel(model, opts, optimizer)
     dataset = cifar10(args.data_dir, train=True)
 
-    loader = poptorch.DataLoader(opts,
-                                 dataset,
-                                 batch_size=args.batch_size,
-                                 shuffle=True,
-                                 drop_last=True,
-                                 num_workers=8,
-                                 mode=poptorch.DataLoaderMode.Async)
+    loader = poptorch.DataLoader(
+        opts,
+        dataset,
+        batch_size=args.batch_size,
+        shuffle=True,
+        drop_last=True,
+        num_workers=8,
+        mode=poptorch.DataLoaderMode.Async,
+    )
 
     return training_model, loader
 
@@ -264,8 +264,7 @@ def train(model, loader, num_epochs):
                 mean_loss = torch.mean(losses).item()
                 acc = accuracy(predictions, labels)
 
-            bar.set_description("Loss:{:0.4f} | Accuracy:{:0.2f}%".format(
-                mean_loss, acc))
+            bar.set_description(f"Loss:{mean_loss:0.4f} | Accuracy:{acc:0.2f}%")
 
 
 def setupInference(model, args):
@@ -289,12 +288,14 @@ def setupInference(model, args):
     inference_model = poptorch.inferenceModel(model, opts)
     dataset = cifar10(args.data_dir, train=False)
 
-    loader = poptorch.DataLoader(opts,
-                                 dataset,
-                                 batch_size=args.test_batch_size,
-                                 shuffle=True,
-                                 drop_last=True,
-                                 num_workers=8)
+    loader = poptorch.DataLoader(
+        opts,
+        dataset,
+        batch_size=args.test_batch_size,
+        shuffle=True,
+        drop_last=True,
+        num_workers=8,
+    )
     loader = poptorch.AsynchronousDataAccessor(loader)
 
     return inference_model, loader
@@ -311,7 +312,7 @@ def test(inference_model, loader):
             output = inference_model(data)
             sum_acc += accuracy(output, labels)
 
-    print("Accuracy on test set: {:0.2f}%".format(sum_acc / num_batches))
+    print(f"Accuracy on test set: {sum_acc / num_batches:0.2f}%")
 
 
 def profile(model, args):
@@ -335,56 +336,60 @@ def parseArgs():
     """
     Parse command line arguments
     """
-    parser = argparse.ArgumentParser(
-        description="Octave Convolution in PopTorch")
-    parser.add_argument("--conv-mode",
-                        choices=["vanilla", "octave", "multi-octave"],
-                        default="vanilla",
-                        help="Convolution implementation used in the classification model (default: vanilla)")
+    parser = argparse.ArgumentParser(description="Octave Convolution in PopTorch")
+    parser.add_argument(
+        "--conv-mode",
+        choices=["vanilla", "octave", "multi-octave"],
+        default="vanilla",
+        help="Convolution implementation used in the classification model (default: vanilla)",
+    )
     parser.add_argument(
         "--alpha",
         type=float,
         default=0.5,
-        help="Ratio of low-frequency features used in octave convolutions (default: 0.5)")
-    parser.add_argument("--batch-size",
-                        type=int,
-                        default=8,
-                        help="batch size for training (default: 8)")
-    parser.add_argument("--batches-per-step",
-                        type=int,
-                        default=50,
-                        help="device iteration (default:50)")
-    parser.add_argument("--test-batch-size",
-                        type=int,
-                        default=80,
-                        help="batch size for testing (default: 80)")
-    parser.add_argument("--epochs",
-                        type=int,
-                        default=10,
-                        help="number of epochs to train (default: 10)")
-    parser.add_argument("--lr",
-                        type=float,
-                        default=0.05,
-                        help="learning rate (default: 0.05)")
+        help="Ratio of low-frequency features used in octave convolutions (default: 0.5)",
+    )
+    parser.add_argument(
+        "--batch-size", type=int, default=8, help="batch size for training (default: 8)"
+    )
+    parser.add_argument(
+        "--batches-per-step", type=int, default=50, help="device iteration (default:50)"
+    )
+    parser.add_argument(
+        "--test-batch-size",
+        type=int,
+        default=80,
+        help="batch size for testing (default: 80)",
+    )
+    parser.add_argument(
+        "--epochs", type=int, default=10, help="number of epochs to train (default: 10)"
+    )
+    parser.add_argument(
+        "--lr", type=float, default=0.05, help="learning rate (default: 0.05)"
+    )
     parser.add_argument(
         "--profile-dir",
         type=str,
-        help="Perform a single iteration of training for profiling and place in specified folder."
+        help="Perform a single iteration of training for profiling and place in specified folder.",
     )
     parser.add_argument(
         "--cache-dir",
         type=str,
-        help="Enable executable caching in the specified folder")
+        help="Enable executable caching in the specified folder",
+    )
     parser.add_argument(
         "--data-dir",
         type=str,
         default="~/.torch/datasets",
-        help="Location to use for loading the CIFAR-10 dataset from.")
+        help="Location to use for loading the CIFAR-10 dataset from.",
+    )
 
-    parser.add_argument("--expansion",
-                        type=int,
-                        default=1,
-                        help="Expansion factor for tuning model width.")
+    parser.add_argument(
+        "--expansion",
+        type=int,
+        default=1,
+        help="Expansion factor for tuning model width.",
+    )
 
     return parser.parse_args()
 
@@ -392,9 +397,9 @@ def parseArgs():
 if __name__ == "__main__":
     # Create the model from command line args
     args = parseArgs()
-    model = ClassificationModel(conv_mode=args.conv_mode,
-                                alpha=args.alpha,
-                                expansion=args.expansion)
+    model = ClassificationModel(
+        conv_mode=args.conv_mode, alpha=args.alpha, expansion=args.expansion
+    )
 
     if args.profile_dir:
         profile(model, args)

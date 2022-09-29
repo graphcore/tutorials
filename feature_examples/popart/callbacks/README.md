@@ -1,3 +1,4 @@
+<!-- Copyright (c) 2019 Graphcore Ltd. All rights reserved. -->
 # PopART callbacks example
 
 This example creates a simple computation graph and uses callbacks to feed data and

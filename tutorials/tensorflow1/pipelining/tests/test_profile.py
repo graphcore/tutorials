@@ -3,17 +3,17 @@
 from pathlib import Path
 import pytest
 
-from tutorials_tests.testing_util import SubProcessChecker
+import tutorials_tests.testing_util as testing_util
 
-working_path = Path(__file__).parent.parent
+working_path = Path(__file__).parents[1]
 
 
-class TestProfile(SubProcessChecker):
-
-    @pytest.mark.category2
-    @pytest.mark.ipus(2)
-    def test_run_complete_profile(self):
-        """ Check answers/step4_configurable_stages.py works via profiling script """
-        self.run_command("scripts/profile.sh answers/step4_configurable_stages.py",
-                         working_path,
-                         "Program ran successfully")
+@pytest.mark.category2
+@pytest.mark.ipus(2)
+def test_run_complete_profile():
+    """Check answers/step4_configurable_stages.py works via profiling script"""
+    testing_util.run_command(
+        "scripts/profile.sh answers/step4_configurable_stages.py",
+        working_path,
+        "Program ran successfully",
+    )

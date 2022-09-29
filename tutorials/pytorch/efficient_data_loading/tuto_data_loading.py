@@ -41,20 +41,27 @@ def print_parameters(args):
     if args.synthetic_data:
         print("SYNTHETIC DATA. The IPU Throughput will not include the cost of IO")
 
-    print(f"mini-batch size: {batch_size}\n",
-          f"replication factor: {args.replicas}\n",
-          f"device-iterations: {device_iterations}\n",
-          f"workers: {num_workers}\n",
-          f"--> Global batch size: {args.replicas*batch_size}")
+    print(
+        f"mini-batch size: {batch_size}\n",
+        f"replication factor: {args.replicas}\n",
+        f"device-iterations: {device_iterations}\n",
+        f"workers: {num_workers}\n",
+        f"--> Global batch size: {args.replicas*batch_size}",
+    )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--synthetic-data', dest='synthetic_data',
-                        action='store_true', help='Use IPU-generated synthetic data')
-    parser.add_argument('--replicas', type=int, default=1,
-                        help='IPU replication factor')
+    parser.add_argument(
+        "--synthetic-data",
+        dest="synthetic_data",
+        action="store_true",
+        help="Use IPU-generated synthetic data",
+    )
+    parser.add_argument(
+        "--replicas", type=int, default=1, help="IPU replication factor"
+    )
     args = parser.parse_args()
     replicas = args.replicas
 
@@ -71,11 +78,10 @@ if __name__ == '__main__':
 
     print_parameters(args)
 
-    # Setup a Poptorch training model
+    # Setup a PopTorch training model
     training_model = poptorch.trainingModel(
-        model,
-        opts,
-        poptorch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9))
+        model, opts, poptorch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
+    )
 
     # Create a dataset from random data
     features = torch.randn([10000, 1, 128, 128])
@@ -83,15 +89,17 @@ if __name__ == '__main__':
     dataset = torch.utils.data.TensorDataset(features, labels)
     print("Dataset size: ", len(dataset))
 
-    # Poptorch Dataloader
-    training_data = poptorch.DataLoader(opts,
-                                        dataset=dataset,
-                                        batch_size=batch_size,
-                                        shuffle=True,
-                                        drop_last=True,
-                                        num_workers=num_workers,
-                                        mode=poptorch.DataLoaderMode.Async,
-                                        async_options={"early_preload": True})
+    # PopTorch Dataloader
+    training_data = poptorch.DataLoader(
+        opts,
+        dataset=dataset,
+        batch_size=batch_size,
+        shuffle=True,
+        drop_last=True,
+        num_workers=num_workers,
+        mode=poptorch.DataLoaderMode.Async,
+        async_options={"early_preload": True},
+    )
 
     # Number of steps necessary to consume the whole dataset
     steps = len(training_data)
@@ -102,18 +110,26 @@ if __name__ == '__main__':
     for data, labels in training_data:
         pass
     t1 = time.time()
-    total_time = t1-t0
+    total_time = t1 - t0
     print("Total execution Time:", total_time, "s")
-    print("DataLoader throughput:",
-          (steps*device_iterations*batch_size*replicas)/total_time, "items/s")
+    print(
+        "DataLoader throughput:",
+        (steps * device_iterations * batch_size * replicas) / total_time,
+        "items/s",
+    )
 
     # IPU evaluation:
     # Warmup
     print("Compiling + Warmup ...")
     training_model.compile(data, labels)
 
-    print("Evaluating: ", steps, "steps of ",
-          device_iterations*batch_size*replicas, " items")
+    print(
+        "Evaluating: ",
+        steps,
+        "steps of ",
+        device_iterations * batch_size * replicas,
+        " items",
+    )
 
     if args.synthetic_data:
         # With synthetic data enabled, no data is copied from the host to the IPU, so we don't use
@@ -127,7 +143,10 @@ if __name__ == '__main__':
         for data, labels in training_data:
             training_model(data, labels)
         t1 = time.time()
-    total_time = t1-t0
+    total_time = t1 - t0
     print("Total execution Time:", total_time, "s")
-    print("IPU throughput:",
-          (steps*device_iterations*batch_size*replicas)/total_time, "items/s")
+    print(
+        "IPU throughput:",
+        (steps * device_iterations * batch_size * replicas) / total_time,
+        "items/s",
+    )

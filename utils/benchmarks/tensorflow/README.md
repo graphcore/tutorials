@@ -1,3 +1,4 @@
+<!-- Copyright (c) 2018 Graphcore Ltd. All rights reserved. -->
 # Graphcore
 ---
 ## TensorFlow Synthetic Benchmark Module
@@ -9,4 +10,3 @@ management overhead.
 ### File structure
 * `benchmark.py` Python module for running core graphs on device in a loop.
 * `README.md` This file.
-

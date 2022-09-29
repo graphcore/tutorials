@@ -1,3 +1,4 @@
+<!-- Copyright (c) 2022 Graphcore Ltd. All rights reserved. -->
 # Phased Execution
 
 This tutorial on phased execution in PopXL is available as a jupyter notebook.

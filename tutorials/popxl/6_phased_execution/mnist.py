@@ -15,7 +15,11 @@ import popxl.ops as ops
 from typing import Union
 from popxl_addons.named_tensors import NamedTensors
 from popxl_addons.variable_factory import NamedVariableFactories
-from popxl_addons import batch_serialise, batch_serialise_fwd_and_grad, batch_serial_buffer
+from popxl_addons import (
+    batch_serialise,
+    batch_serialise_fwd_and_grad,
+    batch_serial_buffer,
+)
 from popxl_addons.rts import (
     all_gather_replica_sharded_graph,
     replica_sharded_spec,
@@ -27,34 +31,46 @@ from popxl_addons.remote import (
     load_remote_graph,
     store_remote_graph,
 )
+
 np.random.seed(42)
 
 
 def get_mnist_data(test_batch_size: int, batch_size: int):
     training_data = torch.utils.data.DataLoader(
         torchvision.datasets.MNIST(
-            '~/.torch/datasets',
+            "~/.torch/datasets",
             train=True,
             download=True,
-            transform=torchvision.transforms.Compose([
-                torchvision.transforms.ToTensor(),
-                torchvision.transforms.Normalize((0.1307, ), (0.3081, )),  # mean and std computed on the training set.
-            ])),
+            transform=torchvision.transforms.Compose(
+                [
+                    torchvision.transforms.ToTensor(),
+                    torchvision.transforms.Normalize(
+                        (0.1307,), (0.3081,)
+                    ),  # mean and std computed on the training set.
+                ]
+            ),
+        ),
         batch_size=batch_size,
         shuffle=True,
-        drop_last=True)
+        drop_last=True,
+    )
 
-    validation_data = torch.utils.data.DataLoader(torchvision.datasets.MNIST('~/.torch/datasets',
-                                                                             train=False,
-                                                                             download=True,
-                                                                             transform=torchvision.transforms.Compose([
-                                                                                 torchvision.transforms.ToTensor(),
-                                                                                 torchvision.transforms.Normalize(
-                                                                                     (0.1307, ), (0.3081, )),
-                                                                             ])),
-                                                  batch_size=test_batch_size,
-                                                  shuffle=True,
-                                                  drop_last=True)
+    validation_data = torch.utils.data.DataLoader(
+        torchvision.datasets.MNIST(
+            "~/.torch/datasets",
+            train=False,
+            download=True,
+            transform=torchvision.transforms.Compose(
+                [
+                    torchvision.transforms.ToTensor(),
+                    torchvision.transforms.Normalize((0.1307,), (0.3081,)),
+                ]
+            ),
+        ),
+        batch_size=test_batch_size,
+        shuffle=True,
+        drop_last=True,
+    )
     return training_data, validation_data
 
 
@@ -74,8 +90,11 @@ class Linear(addons.Module):
 
     def build(self, x: popxl.Tensor) -> popxl.Tensor:
         # add a state variable to the module
-        w = self.add_variable_input("weight", partial(np.random.normal, 0, 0.02, (x.shape[-1], self.out_features)),
-                                    x.dtype)
+        w = self.add_variable_input(
+            "weight",
+            partial(np.random.normal, 0, 0.02, (x.shape[-1], self.out_features)),
+            x.dtype,
+        )
         y = x @ w
         if self.bias:
             # add a state variable to the module
@@ -95,7 +114,10 @@ class OutputLayerWithBwd(addons.Module):
 
         fwd_facts, fwd_graph = self.linear.create_graph(x.spec)
         bwd_facts, bwd_graph = addons.transforms.autodiff_with_accumulation(
-            fwd_graph, tensors_to_accumulate_grads=fwd_graph.args.tensors, grads_required=[fwd_graph.graph.inputs[0]])
+            fwd_graph,
+            tensors_to_accumulate_grads=fwd_graph.args.tensors,
+            grads_required=[fwd_graph.graph.inputs[0]],
+        )
 
         # outline forward
         vars = self.add_variable_inputs("fwd", fwd_facts)
@@ -106,7 +128,9 @@ class OutputLayerWithBwd(addons.Module):
 
         # outline backward
         bwd_vars = self.add_variable_inputs("bwd", bwd_facts)
-        dx, = bwd_graph.bind(bwd_vars).call(dx, args=bwd_graph.grad_graph_info.inputs_dict(fwd_info))
+        (dx,) = bwd_graph.bind(bwd_vars).call(
+            dx, args=bwd_graph.grad_graph_info.inputs_dict(fwd_info)
+        )
 
         return dx, loss
 
@@ -129,50 +153,57 @@ class Net(addons.Module):
         return x
 
 
-'''
+"""
 Adam optimizer.
 Defines adam update step for a single variable
-'''
+"""
 
 
 class Adam(addons.Module):
     # we need to specify in_sequence because a lot of operations are in place and their order
     # shouldn't be rearranged
     @popxl.in_sequence()
-    def build(self,
-              var: popxl.TensorByRef,
-              grad: popxl.Tensor,
-              *,
-              lr: Union[float, popxl.Tensor],
-              beta1: Union[float, popxl.Tensor] = 0.9,
-              beta2: Union[float, popxl.Tensor] = 0.999,
-              eps: Union[float, popxl.Tensor] = 1e-5,
-              weight_decay: Union[float, popxl.Tensor] = 0.0,
-              first_order_dtype: popxl.dtype = popxl.float16,
-              bias_correction: bool = True):
+    def build(
+        self,
+        var: popxl.TensorByRef,
+        grad: popxl.Tensor,
+        *,
+        lr: Union[float, popxl.Tensor],
+        beta1: Union[float, popxl.Tensor] = 0.9,
+        beta2: Union[float, popxl.Tensor] = 0.999,
+        eps: Union[float, popxl.Tensor] = 1e-5,
+        weight_decay: Union[float, popxl.Tensor] = 0.0,
+        first_order_dtype: popxl.dtype = popxl.float16,
+        bias_correction: bool = True,
+    ):
 
         # gradient estimators for the variable var - same shape as the variable
 
         # Sharded inputs must be added with add_replica_sharded_variable_input
         if var.meta_shape:
-            first_order = self.add_replica_sharded_variable_input("first_order",
-                                                                  partial(np.zeros, var.meta_shape),
-                                                                  first_order_dtype,
-                                                                  by_ref=True)
-            second_order = self.add_replica_sharded_variable_input("second_order",
-                                                                   partial(np.zeros, var.meta_shape),
-                                                                   popxl.float32,
-                                                                   by_ref=True)
+            first_order = self.add_replica_sharded_variable_input(
+                "first_order",
+                partial(np.zeros, var.meta_shape),
+                first_order_dtype,
+                by_ref=True,
+            )
+            second_order = self.add_replica_sharded_variable_input(
+                "second_order",
+                partial(np.zeros, var.meta_shape),
+                popxl.float32,
+                by_ref=True,
+            )
 
         else:
-            first_order = self.add_variable_input("first_order",
-                                                  partial(np.zeros, var.shape),
-                                                  first_order_dtype,
-                                                  by_ref=True)
-            second_order = self.add_variable_input("second_order",
-                                                   partial(np.zeros, var.shape),
-                                                   popxl.float32,
-                                                   by_ref=True)
+            first_order = self.add_variable_input(
+                "first_order",
+                partial(np.zeros, var.shape),
+                first_order_dtype,
+                by_ref=True,
+            )
+            second_order = self.add_variable_input(
+                "second_order", partial(np.zeros, var.shape), popxl.float32, by_ref=True
+            )
 
         ops.var_updates.accumulate_moving_average_(first_order, grad, f=beta1)
         ops.var_updates.accumulate_moving_average_square_(second_order, grad, f=beta2)
@@ -180,36 +211,50 @@ class Adam(addons.Module):
         # adam is a biased estimator: provide the step to correct bias
         step = None
         if bias_correction:
-            step = self.add_variable_input("step", partial(np.zeros, ()), popxl.float32, by_ref=True)
+            step = self.add_variable_input(
+                "step", partial(np.zeros, ()), popxl.float32, by_ref=True
+            )
 
         # calculate the weight increment with adam heuristic
-        updater = ops.var_updates.adam_updater(first_order,
-                                               second_order,
-                                               weight=var,
-                                               weight_decay=weight_decay,
-                                               time_step=step,
-                                               beta1=beta1,
-                                               beta2=beta2,
-                                               epsilon=eps)
+        updater = ops.var_updates.adam_updater(
+            first_order,
+            second_order,
+            weight=var,
+            weight_decay=weight_decay,
+            time_step=step,
+            beta1=beta1,
+            beta2=beta2,
+            epsilon=eps,
+        )
 
         # in place weight update: w += (-lr)*dw
         ops.scaled_add_(var, updater, b=-lr)
 
 
-'''
+"""
 Groups together the forward, backward and optimizers graphs of a layer for easy access and handling.
-'''
+"""
 
 
 class Graphs:
-    def __init__(self, opts, layer: addons.Module, optimizer: addons.Module, entries: int, require_dx_0: bool, *args,
-                 **kwargs):
+    def __init__(
+        self,
+        opts,
+        layer: addons.Module,
+        optimizer: addons.Module,
+        entries: int,
+        require_dx_0: bool,
+        *args,
+        **kwargs,
+    ):
         # Create Graphs for computing forward, gradient and optimizer
         fwd_facts, self.fwd = layer.create_graph(*args, **kwargs)
-        required_grads = (self.fwd.graph.inputs[0], ) if require_dx_0 else ()
-        grad_facts, self.bwd = addons.autodiff_with_accumulation(self.fwd,
-                                                                 tensors_to_accumulate_grads=self.fwd.args.tensors,
-                                                                 grads_required=required_grads)
+        required_grads = (self.fwd.graph.inputs[0],) if require_dx_0 else ()
+        grad_facts, self.bwd = addons.autodiff_with_accumulation(
+            self.fwd,
+            tensors_to_accumulate_grads=self.fwd.args.tensors,
+            grads_required=required_grads,
+        )
 
         optim_facts = self._setup_optim(optimizer, self.fwd.args, opts)
         self._set_factories(fwd_facts, optim_facts, grad_facts)
@@ -219,7 +264,14 @@ class Graphs:
     def empty(cls):
         return super().__new__(cls)
 
-    def from_fwd_and_bwd(opts, fwd_and_bwd: addons.Module, optimizer: addons.Module, entries: int, *args, **kwargs):
+    def from_fwd_and_bwd(
+        opts,
+        fwd_and_bwd: addons.Module,
+        optimizer: addons.Module,
+        entries: int,
+        *args,
+        **kwargs,
+    ):
         graphs = Graphs.empty()
         graphs.bwd = None
         facts, graphs.fwd = fwd_and_bwd.create_graph(*args, **kwargs)
@@ -236,28 +288,41 @@ class Graphs:
                 replica_sharded_spec(var, threshold=opts.sharded_threshold),
                 replica_sharded_spec(var, threshold=opts.sharded_threshold),
                 lr=opts.lr,
-                bias_correction=False)
+                bias_correction=False,
+            )
         return optim_facts
 
     def _set_factories(self, fwd_facts, optim_facts, grad_facts):
-        self.facts = NamedVariableFactories(fwd=fwd_facts, optim=NamedVariableFactories.from_dict(optim_facts))
+        self.facts = NamedVariableFactories(
+            fwd=fwd_facts, optim=NamedVariableFactories.from_dict(optim_facts)
+        )
         self.grad_facts = grad_facts
 
     def _setup_graphs(self, opts, entries: int):
         # Create remote buffers for fwd vars and optimiser state.
-        self.buffers = named_variable_buffers(self.facts, entries, sharded_threshold=opts.sharded_threshold)
+        self.buffers = named_variable_buffers(
+            self.facts, entries, sharded_threshold=opts.sharded_threshold
+        )
         # Create Graphs for loading/gathering/storing/reducing
-        self._fwd_load, self._fwd_load_names = load_remote_graph(self.buffers.fwd, entries)
-        self._optim_fwd_load, self._optim_fwd_load_names = load_remote_graph(self.buffers, entries)
+        self._fwd_load, self._fwd_load_names = load_remote_graph(
+            self.buffers.fwd, entries
+        )
+        self._optim_fwd_load, self._optim_fwd_load_names = load_remote_graph(
+            self.buffers, entries
+        )
         self._optim_fwd_store = store_remote_graph(self.buffers, entries)
 
-        self._fwd_all_gather, self._fwd_all_gather_names = all_gather_replica_sharded_graph(
-            NamedTensors.pack(self._fwd_load_names, self._fwd_load.graph.outputs))
+        (
+            self._fwd_all_gather,
+            self._fwd_all_gather_names,
+        ) = all_gather_replica_sharded_graph(
+            NamedTensors.pack(self._fwd_load_names, self._fwd_load.graph.outputs)
+        )
         grad_accums = self.bwd.args.copy() if self.bwd else self.fwd.args.bwd.copy()
         grad_accums.pop("mean_accum_counter")
-        self._grad_reduce, self._grad_reduce_names = reduce_replica_sharded_graph(grad_accums,
-                                                                                  'mean',
-                                                                                  threshold=opts.sharded_threshold)
+        self._grad_reduce, self._grad_reduce_names = reduce_replica_sharded_graph(
+            grad_accums, "mean", threshold=opts.sharded_threshold
+        )
 
     # load forward variables
     def fwd_load(self, i: Union[int, popxl.Tensor]):
@@ -265,7 +330,9 @@ class Graphs:
 
     # load forward variables and optimizer state
     def optim_fwd_load(self, i: Union[int, popxl.Tensor]):
-        return NamedTensors.pack(self._optim_fwd_load_names, self._optim_fwd_load.call(i))
+        return NamedTensors.pack(
+            self._optim_fwd_load_names, self._optim_fwd_load.call(i)
+        )
 
     # store forward variables and optimizer state
     def optim_fwd_store(self, args: NamedTensors, i: Union[int, popxl.Tensor]):
@@ -273,21 +340,32 @@ class Graphs:
 
     # gathers replica sharded forward variables
     def fwd_all_gather(self, args: NamedTensors):
-        return NamedTensors.pack(self._fwd_all_gather_names, self._fwd_all_gather.bind(args).call())
+        return NamedTensors.pack(
+            self._fwd_all_gather_names, self._fwd_all_gather.bind(args).call()
+        )
 
     # reduce scatter gradients
     def grad_reduce(self, args: NamedTensors):
-        return NamedTensors.pack(self._grad_reduce_names, self._grad_reduce.bind(args).call())
+        return NamedTensors.pack(
+            self._grad_reduce_names, self._grad_reduce.bind(args).call()
+        )
 
     # update forward variables
-    def optimizer_remote_step(self, i: int, vars_and_state: NamedTensors, grads: NamedTensors,
-                              accum_counter: popxl.Tensor):
+    def optimizer_remote_step(
+        self,
+        i: int,
+        vars_and_state: NamedTensors,
+        grads: NamedTensors,
+        accum_counter: popxl.Tensor,
+    ):
         _variables = vars_and_state.fwd.to_dict()
         _state = vars_and_state.optim
         _grads = grads.accum.to_dict()
         for name, graph in self.optim.items():
             state_clean_names = self._get_optimizer_state(name, _state)
-            self.optim[name].bind(state_clean_names).call(_variables[name], _grads[name])
+            self.optim[name].bind(state_clean_names).call(
+                _variables[name], _grads[name]
+            )
         ops.var_updates.accumulator_scale_(accum_counter, 0.0)
 
     def _get_optimizer_state(self, name: str, state: NamedTensors) -> NamedTensors:
@@ -297,28 +375,40 @@ class Graphs:
         return state
 
 
-def input_layer_batch_serialise(opts, layer_graphs: Graphs, x_buffer: popxl.RemoteBuffer, dx_buffer: popxl.RemoteBuffer,
-                                input_stream: popxl.HostToDeviceStream):
-    fwd_bs, bwd_bs = batch_serialise_fwd_and_grad(layer_graphs.fwd,
-                                                  layer_graphs.bwd,
-                                                  layer_graphs.fwd.args,
-                                                  opts.gradient_accumulation,
-                                                  load_handles={
-                                                      layer_graphs.fwd.graph.inputs[0]: input_stream,
-                                                      layer_graphs.bwd.graph.inputs[0]: (dx_buffer, 0),
-                                                  },
-                                                  store_streams={},
-                                                  store_buffers={
-                                                      layer_graphs.fwd.graph.outputs[0]: (x_buffer, 0),
-                                                  },
-                                                  rows=1,
-                                                  io_mode=opts.io_mode)
+def input_layer_batch_serialise(
+    opts,
+    layer_graphs: Graphs,
+    x_buffer: popxl.RemoteBuffer,
+    dx_buffer: popxl.RemoteBuffer,
+    input_stream: popxl.HostToDeviceStream,
+):
+    fwd_bs, bwd_bs = batch_serialise_fwd_and_grad(
+        layer_graphs.fwd,
+        layer_graphs.bwd,
+        layer_graphs.fwd.args,
+        opts.gradient_accumulation,
+        load_handles={
+            layer_graphs.fwd.graph.inputs[0]: input_stream,
+            layer_graphs.bwd.graph.inputs[0]: (dx_buffer, 0),
+        },
+        store_streams={},
+        store_buffers={
+            layer_graphs.fwd.graph.outputs[0]: (x_buffer, 0),
+        },
+        rows=1,
+        io_mode=opts.io_mode,
+    )
     layer_graphs.fwd = fwd_bs.graph
     layer_graphs.bwd = bwd_bs.graph
 
 
-def layer_batch_serialise(opts, layer_graphs: Graphs, x_buffer: popxl.RemoteBuffer, dx_buffer: popxl.RemoteBuffer,
-                          rows: int):
+def layer_batch_serialise(
+    opts,
+    layer_graphs: Graphs,
+    x_buffer: popxl.RemoteBuffer,
+    dx_buffer: popxl.RemoteBuffer,
+    rows: int,
+):
     fwd_bs, bwd_bs = batch_serialise_fwd_and_grad(
         layer_graphs.fwd,
         layer_graphs.bwd,
@@ -326,37 +416,49 @@ def layer_batch_serialise(opts, layer_graphs: Graphs, x_buffer: popxl.RemoteBuff
         opts.gradient_accumulation,
         load_handles={
             layer_graphs.fwd.graph.inputs[0]: (x_buffer, 0),
-            layer_graphs.bwd.graph.inputs[0]: (dx_buffer, 1)  # load dx from next layer row
+            layer_graphs.bwd.graph.inputs[0]: (
+                dx_buffer,
+                1,
+            ),  # load dx from next layer row
         },
         store_streams={},
         store_buffers={
-            layer_graphs.fwd.graph.outputs[0]: (x_buffer, 1),  # store x in next layer row
-            layer_graphs.bwd.graph.outputs[0]: (dx_buffer, 0)  # store dx in previous layer row
+            layer_graphs.fwd.graph.outputs[0]: (
+                x_buffer,
+                1,
+            ),  # store x in next layer row
+            layer_graphs.bwd.graph.outputs[0]: (
+                dx_buffer,
+                0,
+            ),  # store dx in previous layer row
         },
         rows=2,
-        io_mode=opts.io_mode)
+        io_mode=opts.io_mode,
+    )
     layer_graphs.fwd = fwd_bs.graph
     layer_graphs.bwd = bwd_bs.graph
 
 
 def output_layer_batch_serialise(
-        opts,
-        layer_graphs: Graphs,
-        x_buffer: popxl.RemoteBuffer,
-        dx_buffer: popxl.RemoteBuffer,
-        label_stream: popxl.h2d_stream,
-        output_stream: popxl.d2h_stream,
+    opts,
+    layer_graphs: Graphs,
+    x_buffer: popxl.RemoteBuffer,
+    dx_buffer: popxl.RemoteBuffer,
+    label_stream: popxl.h2d_stream,
+    output_stream: popxl.d2h_stream,
 ):
-    fwd_bs = batch_serialise(layer_graphs.fwd,
-                             opts.gradient_accumulation,
-                             load_handles={
-                                 layer_graphs.fwd.graph.inputs[0]: (x_buffer, 2),
-                                 layer_graphs.fwd.graph.inputs[1]: label_stream
-                             },
-                             store_streams={layer_graphs.fwd.graph.outputs[1]: output_stream},
-                             store_buffers={layer_graphs.fwd.graph.outputs[0]: (dx_buffer, 2)},
-                             rows=1,
-                             io_mode=opts.io_mode)
+    fwd_bs = batch_serialise(
+        layer_graphs.fwd,
+        opts.gradient_accumulation,
+        load_handles={
+            layer_graphs.fwd.graph.inputs[0]: (x_buffer, 2),
+            layer_graphs.fwd.graph.inputs[1]: label_stream,
+        },
+        store_streams={layer_graphs.fwd.graph.outputs[1]: output_stream},
+        store_buffers={layer_graphs.fwd.graph.outputs[0]: (dx_buffer, 2)},
+        rows=1,
+        io_mode=opts.io_mode,
+    )
     layer_graphs.fwd = fwd_bs.graph
 
 
@@ -364,12 +466,16 @@ def train(train_session, training_data, opts, input_streams, loss_stream):
     nr_batches = len(training_data)
     with train_session:
         for epoch in range(1, opts.epochs + 1):
-            print("Epoch {0}/{1}".format(epoch, opts.epochs))
+            print(f"Epoch {epoch}/{opts.epochs}")
             bar = tqdm(training_data, total=nr_batches)
             for data, labels in bar:
                 # reshape data accounting for replication and num hosts transfers
-                data = data.reshape(opts.gradient_accumulation, opts.data_parallel, opts.train_micro_batch_size,
-                                    28 * 28).squeeze()
+                data = data.reshape(
+                    opts.gradient_accumulation,
+                    opts.data_parallel,
+                    opts.train_micro_batch_size,
+                    28 * 28,
+                ).squeeze()
                 labels = labels.reshape(
                     opts.gradient_accumulation,
                     opts.data_parallel,
@@ -377,16 +483,21 @@ def train(train_session, training_data, opts, input_streams, loss_stream):
                 ).squeeze()
 
                 inputs: Mapping[popxl.HostToDeviceStream, np.ndarray] = dict(
-                    zip(input_streams, [data.squeeze().float(), labels.int()]))
+                    zip(input_streams, [data.squeeze().float(), labels.int()])
+                )
                 outputs = train_session.run(inputs)
-                losses_np = outputs[loss_stream]  # shape(ir.num_host_transfers, ir.replication_factor, )
+                losses_np = outputs[
+                    loss_stream
+                ]  # shape(ir.num_host_transfers, ir.replication_factor, )
                 avg_loss = np.mean(losses_np)
-                bar.set_description("Loss:{:0.4f}".format(avg_loss))
+                bar.set_description(f"Loss:{avg_loss:0.4f}")
 
 
 def evaluate_throughput(session, samples_per_step, epochs: int = 5):
     inputs = {
-        stream: np.ones(session._full_input_shape(stream.shape), stream.dtype.as_numpy())
+        stream: np.ones(
+            session._full_input_shape(stream.shape), stream.dtype.as_numpy()
+        )
         for stream in session.expected_inputs()
     }
 
@@ -400,22 +511,24 @@ def evaluate_throughput(session, samples_per_step, epochs: int = 5):
 
     duration = np.mean(durations)
 
-    result_str = \
-        f"Mean duration: {duration} s " \
+    result_str = (
+        f"Mean duration: {duration} s "
         f"Throughput: {samples_per_step/duration:6.1f} samples/s "
+    )
     print(result_str)
 
 
 def test(test_session, test_data, input_streams, out_stream):
     nr_batches = len(test_data)
     sum_acc = 0.0
-    with torch.no_grad(), test_session:
+    with test_session:
         for data, labels in tqdm(test_data, total=nr_batches):
             inputs: Mapping[popxl.HostToDeviceStream, np.ndarray] = dict(
-                zip(input_streams, [data.squeeze().float(), labels.int()]))
+                zip(input_streams, [data.squeeze().float(), labels.int()])
+            )
             output = test_session.run(inputs)
             sum_acc += accuracy(output[out_stream], labels)
-    print("Accuracy on test set: {:0.2f}%".format(sum_acc / len(test_data)))
+    print(f"Accuracy on test set: {sum_acc / len(test_data):0.2f}%")
 
 
 def train_program(opts):
@@ -425,32 +538,48 @@ def train_program(opts):
     ir = popxl.Ir()
     ir.replication_factor = opts.data_parallel
     num_inner_layers = 2
-    if opts.io_mode != 'compute':
+    if opts.io_mode != "compute":
         session_opts = ir._pb_ir.getSessionOptions()
         session_opts.numIOTiles = 32
 
     with ir.main_graph:
         # -----  Define input and output streams -----
-        img_spec = popxl.TensorSpec((opts.train_micro_batch_size, 28 * 28), popxl.float32)
+        img_spec = popxl.TensorSpec(
+            (opts.train_micro_batch_size, 28 * 28), popxl.float32
+        )
         inner_spec = popxl.TensorSpec((opts.train_micro_batch_size, 512), popxl.float32)
 
         img_stream = popxl.h2d_stream(img_spec.shape, popxl.float32, "image")
-        label_stream = popxl.h2d_stream((opts.train_micro_batch_size, ), popxl.int32, "labels")
+        label_stream = popxl.h2d_stream(
+            (opts.train_micro_batch_size,), popxl.int32, "labels"
+        )
         loss_stream = popxl.d2h_stream((), popxl.float32, "loss")
         optimizer = Adam(cache=True)
 
         # ----- Create graphs -----
         fc1 = Graphs(opts, Linear(512), optimizer, 1, False, img_spec)
-        inner_layer = Graphs(opts, Linear(512), optimizer, num_inner_layers, True, inner_spec)
-        fc4_fwd_bwd = Graphs.from_fwd_and_bwd(opts, OutputLayerWithBwd(10, gelu=False), optimizer, 1, inner_spec,
-                                              label_stream.spec)
+        inner_layer = Graphs(
+            opts, Linear(512), optimizer, num_inner_layers, True, inner_spec
+        )
+        fc4_fwd_bwd = Graphs.from_fwd_and_bwd(
+            opts,
+            OutputLayerWithBwd(10, gelu=False),
+            optimizer,
+            1,
+            inner_spec,
+            label_stream.spec,
+        )
 
-        x_buffer = batch_serial_buffer(fc1.fwd.graph.outputs[0],
-                                       steps=opts.gradient_accumulation,
-                                       rows=num_inner_layers + 1)
-        dx_buffer = batch_serial_buffer(fc1.bwd.graph.inputs[0],
-                                        steps=opts.gradient_accumulation,
-                                        rows=num_inner_layers + 1)
+        x_buffer = batch_serial_buffer(
+            fc1.fwd.graph.outputs[0],
+            steps=opts.gradient_accumulation,
+            rows=num_inner_layers + 1,
+        )
+        dx_buffer = batch_serial_buffer(
+            fc1.bwd.graph.inputs[0],
+            steps=opts.gradient_accumulation,
+            rows=num_inner_layers + 1,
+        )
 
         # ----- Transform graphs -----
 
@@ -459,14 +588,22 @@ def train_program(opts):
         layer_batch_serialise(
             opts, inner_layer, x_buffer, dx_buffer, num_inner_layers
         )  # use a buffer with two rows because the inner layer is duplicated two times. row 0 is for fc2 and row 1 for fc3
-        output_layer_batch_serialise(opts, fc4_fwd_bwd, x_buffer, dx_buffer, label_stream, loss_stream)
+        output_layer_batch_serialise(
+            opts, fc4_fwd_bwd, x_buffer, dx_buffer, label_stream, loss_stream
+        )
 
         # ----- Create Variables -----
         variables = NamedTensors()
         variables.insert("fc1", fc1.facts.init_remote(fc1.buffers, 0, "fc1"))
-        variables.insert("fc2", inner_layer.facts.init_remote(inner_layer.buffers, 0, "fc2"))
-        variables.insert("fc3", inner_layer.facts.init_remote(inner_layer.buffers, 1, "fc3"))
-        variables.insert("fc4", fc4_fwd_bwd.facts.init_remote(fc4_fwd_bwd.buffers, 0, "fc4"))
+        variables.insert(
+            "fc2", inner_layer.facts.init_remote(inner_layer.buffers, 0, "fc2")
+        )
+        variables.insert(
+            "fc3", inner_layer.facts.init_remote(inner_layer.buffers, 1, "fc3")
+        )
+        variables.insert(
+            "fc4", fc4_fwd_bwd.facts.init_remote(fc4_fwd_bwd.buffers, 0, "fc4")
+        )
 
         # ----- Construct Execution Scheme -----
 
@@ -507,8 +644,12 @@ def train_program(opts):
         with popxl.in_sequence(True):
 
             def forward_phase(graphs: Graphs, row_offset: int):
-                vars = graphs.fwd_load(row_offset)  # load forward remote variables, which are sharded
-                vars = graphs.fwd_all_gather(vars)  # gathered variables: graph must be bound to gathered vars
+                vars = graphs.fwd_load(
+                    row_offset
+                )  # load forward remote variables, which are sharded
+                vars = graphs.fwd_all_gather(
+                    vars
+                )  # gathered variables: graph must be bound to gathered vars
                 # calling the graph executes the GA loop for the phase: repeat ( load xs - execute - store )
                 graphs.fwd.bind(vars).call(row_offset)
 
@@ -522,11 +663,15 @@ def train_program(opts):
                 mean_accum_counter: popxl.Tensor
                 if is_joint_fwd_bwd:
                     vars = NamedTensors(
-                        fwd=graphs.fwd_all_gather(fwd_vars_and_state.fwd),  # gathered forward variables
-                        bwd=graphs.grad_facts.init_zero()  # gradient accumulators
+                        fwd=graphs.fwd_all_gather(
+                            fwd_vars_and_state.fwd
+                        ),  # gathered forward variables
+                        bwd=graphs.grad_facts.init_zero(),  # gradient accumulators
                     )
                     # calling the graph executes the GA loop for the phase: repeat ( load xs - execute fwd compute loss execute bwd - store )
-                    graphs.fwd.bind(vars).call(row_offset)  # the fwd graph includes everything
+                    graphs.fwd.bind(vars).call(
+                        row_offset
+                    )  # the fwd graph includes everything
                     reduced_grads = graphs.grad_reduce(vars.bwd)
                     mean_accum_counter = vars.bwd.mean_accum_counter
                 else:
@@ -534,12 +679,18 @@ def train_program(opts):
                     grad_accums = graphs.grad_facts.init_zero()  # gradient accumulators
                     vars.update(grad_accums.copy())
                     # calling the graph executes the GA loop for the phase: repeat ( load xs - execute bwd - store )
-                    graphs.bwd.bind(vars).call(row_offset)  # just call the batch serialised bwd
+                    graphs.bwd.bind(vars).call(
+                        row_offset
+                    )  # just call the batch serialised bwd
                     reduced_grads = graphs.grad_reduce(grad_accums)
                     mean_accum_counter = vars.mean_accum_counter
                 # optimizer
-                graphs.optimizer_remote_step(row_offset, fwd_vars_and_state, reduced_grads, mean_accum_counter)
-                graphs.optim_fwd_store(fwd_vars_and_state, row_offset)  # store updated vars
+                graphs.optimizer_remote_step(
+                    row_offset, fwd_vars_and_state, reduced_grads, mean_accum_counter
+                )
+                graphs.optim_fwd_store(
+                    fwd_vars_and_state, row_offset
+                )  # store updated vars
 
             # ----- Phase 1 (fwd): fc1 Fwd -----
             forward_phase(fc1, 0)
@@ -559,17 +710,24 @@ def train_program(opts):
     # we have a for loop, the number of host loads is equal to gradient_accumulation
     ir.num_host_transfers = opts.gradient_accumulation
     # weights we need to retrieve and copy to the test session. They need to be in the same names as the full model (fc1-fc2-fc3-fc4).
-    vars = NamedTensors(fc1=variables.fc1.fwd, fc2=variables.fc2.fwd, fc3=variables.fc3.fwd, fc4=variables.fc4.fwd)
+    vars = NamedTensors(
+        fc1=variables.fc1.fwd,
+        fc2=variables.fc2.fwd,
+        fc3=variables.fc3.fwd,
+        fc4=variables.fc4.fwd,
+    )
 
-    return popxl.Session(ir, 'ipu_hw'), [img_stream, label_stream], vars, loss_stream
+    return popxl.Session(ir, "ipu_hw"), [img_stream, label_stream], vars, loss_stream
 
 
 def test_program(opts):
-    ir = popxl.Ir(replication = 1)
+    ir = popxl.Ir(replication=1)
 
     with ir.main_graph:
         # Inputs
-        in_stream = popxl.h2d_stream((opts.test_batch_size, 28, 28), popxl.float32, "image")
+        in_stream = popxl.h2d_stream(
+            (opts.test_batch_size, 28, 28), popxl.float32, "image"
+        )
         in_t = ops.host_load(in_stream)
 
         # Create graphs
@@ -579,39 +737,69 @@ def test_program(opts):
         variables = facts.init()
 
         # Forward
-        outputs, = graph.bind(variables).call(in_t)
+        (outputs,) = graph.bind(variables).call(in_t)
         out_stream = popxl.d2h_stream(outputs.shape, outputs.dtype, "outputs")
         ops.host_store(out_stream, outputs)
 
     ir.num_host_transfers = 1
-    return popxl.Session(ir, 'ipu_hw'), [in_stream], variables, out_stream
+    return popxl.Session(ir, "ipu_hw"), [in_stream], variables, out_stream
 
 
 def main():
-    parser = argparse.ArgumentParser(description='MNIST training in popxl.addons')
-    parser.add_argument('--train-micro-batch-size', type=int, default=8, help='batch size for training (default: 8)')
-    parser.add_argument('--test-batch-size', type=int, default=80, help='batch size for testing (default: 80)')
-    parser.add_argument('--epochs', type=int, default=1, help='number of epochs to train (default: 1)')
-    parser.add_argument('--lr', type=float, default=1e-3, help='learning rate (default: 1e-3)')
-    parser.add_argument('--data-parallel', type=int, default=2, help='data parallelism (default: 2)')
-    parser.add_argument('--gradient-accumulation', type=int, default=4, help='gradient accumulation (default: 8)')
+    parser = argparse.ArgumentParser(description="MNIST training in popxl.addons")
     parser.add_argument(
-        '--io-mode',
+        "--train-micro-batch-size",
+        type=int,
+        default=8,
+        help="batch size for training (default: 8)",
+    )
+    parser.add_argument(
+        "--test-batch-size",
+        type=int,
+        default=80,
+        help="batch size for testing (default: 80)",
+    )
+    parser.add_argument(
+        "--epochs", type=int, default=1, help="number of epochs to train (default: 1)"
+    )
+    parser.add_argument(
+        "--lr", type=float, default=1e-3, help="learning rate (default: 1e-3)"
+    )
+    parser.add_argument(
+        "--data-parallel", type=int, default=2, help="data parallelism (default: 2)"
+    )
+    parser.add_argument(
+        "--gradient-accumulation",
+        type=int,
+        default=4,
+        help="gradient accumulation (default: 8)",
+    )
+    parser.add_argument(
+        "--io-mode",
         type=str,
-        default='io',
-        help='How to load/store the Tensors during the batch serialisation loop. Can be io, io_overlapped or compute.')
-    parser.add_argument('--sharded-threshold',
-                        type=int,
-                        default=512,
-                        help='if the size of a tensor exceeds sharded-threshold the tensor will be sharded')
+        default="io",
+        help="How to load/store the Tensors during the batch serialisation loop. Can be io, io_overlapped or compute.",
+    )
+    parser.add_argument(
+        "--sharded-threshold",
+        type=int,
+        default=512,
+        help="if the size of a tensor exceeds sharded-threshold the tensor will be sharded",
+    )
 
     opts = parser.parse_args()
 
-    train_global_batch_size = opts.train_micro_batch_size * opts.gradient_accumulation * opts.data_parallel
+    train_global_batch_size = (
+        opts.train_micro_batch_size * opts.gradient_accumulation * opts.data_parallel
+    )
 
-    training_data, test_data = get_mnist_data(opts.test_batch_size, train_global_batch_size)
+    training_data, test_data = get_mnist_data(
+        opts.test_batch_size, train_global_batch_size
+    )
 
-    train_session, train_input_streams, train_variables, loss_stream = train_program(opts)
+    train_session, train_input_streams, train_variables, loss_stream = train_program(
+        opts
+    )
     print("train session")
     train(train_session, training_data, opts, train_input_streams, loss_stream)
     # get weights data : dictionary { train_session variables : tensor data (numpy) }
@@ -631,7 +819,9 @@ def main():
     test_session.write_variables_data(test_vars_to_data)
 
     # throughput for training
-    samples_per_step = opts.train_micro_batch_size * opts.gradient_accumulation * opts.data_parallel
+    samples_per_step = (
+        opts.train_micro_batch_size * opts.gradient_accumulation * opts.data_parallel
+    )
     evaluate_throughput(train_session, samples_per_step)
 
     # run inference on validation dataset
@@ -642,5 +832,5 @@ def main():
     evaluate_throughput(test_session, samples_per_step)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

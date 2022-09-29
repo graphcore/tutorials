@@ -18,26 +18,48 @@ def parse_args():
     pipeline_schedule_options = [p.name for p in ipu.pipelining_ops.PipelineSchedule]
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--batch-size", type=int, default=32,
-                        help="The batch size.")
-    parser.add_argument("--repeat-count", type=int, default=100,
-                        help="The number of times the pipeline will be executed for each step.")
-    parser.add_argument("--epochs", type=float, default=50,
-                        help="Total number of epochs to train for.")
-    parser.add_argument("--learning-rate", type=float, default=0.01,
-                        help="The learning rate used with stochastic gradient descent.")
-    parser.add_argument('--gradient-accumulation-count', type=int, default=16,
-                        help="The number of times each pipeline stage will be executed.")
-    parser.add_argument('--pipeline-schedule', type=str, default="Grouped",
-                        choices=pipeline_schedule_options,
-                        help="Pipelining schedule. In the 'Grouped' schedule the forward passes"
-                        " are grouped together, and the backward passes are grouped together. "
-                        "With 'Interleaved' the forward and backward passes are interleaved. "
-                        "'Sequential' mimics a non-pipelined execution.")
-    parser.add_argument("--synthetic-data", action='store_true',
-                        help="Use synthetic data instead of real images.")
-    parser.add_argument('--run-single-step', action="store_true",
-                        help="Shorten the run for profiling: runs for a single step.")
+    parser.add_argument("--batch-size", type=int, default=32, help="The batch size.")
+    parser.add_argument(
+        "--repeat-count",
+        type=int,
+        default=100,
+        help="The number of times the pipeline will be executed for each step.",
+    )
+    parser.add_argument(
+        "--epochs", type=float, default=50, help="Total number of epochs to train for."
+    )
+    parser.add_argument(
+        "--learning-rate",
+        type=float,
+        default=0.01,
+        help="The learning rate used with stochastic gradient descent.",
+    )
+    parser.add_argument(
+        "--gradient-accumulation-count",
+        type=int,
+        default=16,
+        help="The number of times each pipeline stage will be executed.",
+    )
+    parser.add_argument(
+        "--pipeline-schedule",
+        type=str,
+        default="Grouped",
+        choices=pipeline_schedule_options,
+        help="Pipelining schedule. In the 'Grouped' schedule the forward passes"
+        " are grouped together, and the backward passes are grouped together. "
+        "With 'Interleaved' the forward and backward passes are interleaved. "
+        "'Sequential' mimics a non-pipelined execution.",
+    )
+    parser.add_argument(
+        "--synthetic-data",
+        action="store_true",
+        help="Use synthetic data instead of real images.",
+    )
+    parser.add_argument(
+        "--run-single-step",
+        action="store_true",
+        help="Shorten the run for profiling: runs for a single step.",
+    )
     args = parser.parse_args()
     return args
 
@@ -68,6 +90,7 @@ def create_dataset(args):
     dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)
     return n_examples, dataset
 
+
 # The following is a schematic representation of the model defined in this example,
 # which also shows how it is split across two IPUs:
 # ------------------------------------ Model Definition ------------------------------------
@@ -90,7 +113,8 @@ def stage2(lr, partial, labels):
     # Stage 2 of the pipeline. Will be placed on the second IPU
     logits = layers.Dense(10)(partial)
     cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(
-        labels=labels, logits=logits)
+        labels=labels, logits=logits
+    )
     loss = tf.reduce_mean(cross_entropy)
     return lr, loss
 
@@ -103,7 +127,7 @@ def optimizer_function(lr, loss):
 
 
 def model(lr):
-    # Defines a pipelined model which is split accross two stages
+    # Defines a pipelined model which is split across two stages
     with tf.variable_scope("FCModel", use_resource=True):
         pipeline_op = ipu.pipelining_ops.pipeline(
             computational_stages=[stage1, stage2],
@@ -113,10 +137,14 @@ def model(lr):
             infeed_queue=infeed_queue,
             outfeed_queue=outfeed_queue,
             optimizer_function=optimizer_function,
-            pipeline_schedule=next(p for p in ipu.pipelining_ops.PipelineSchedule
-                                   if args.pipeline_schedule == p.name),
+            pipeline_schedule=next(
+                p
+                for p in ipu.pipelining_ops.PipelineSchedule
+                if args.pipeline_schedule == p.name
+            ),
             outfeed_loss=True,
-            name="Pipeline")
+            name="Pipeline",
+        )
     return pipeline_op
 
 
@@ -139,13 +167,15 @@ if __name__ == "__main__":
     # at every step n = (BS * GAC * RPT) examples are used.
     # So in order to evaluate at least N total examples, do ceil(N / n) steps
     num_train_examples = int(args.epochs * n_examples)
-    examples_per_step = args.batch_size * args.gradient_accumulation_count * args.repeat_count
+    examples_per_step = (
+        args.batch_size * args.gradient_accumulation_count * args.repeat_count
+    )
     steps = ((num_train_examples - 1) // examples_per_step) + 1
 
     if args.run_single_step:
         steps = 1
 
-    with tf.device('cpu'):
+    with tf.device("cpu"):
         lr = tf.placeholder(np.float32, [])
 
     with ipu.scopes.ipu_scope("/device:IPU:0"):
@@ -161,7 +191,7 @@ if __name__ == "__main__":
     # For pipelined models either SNAKE or HOOF IPU selection orders are advised;
     # the latter works best when the first and last stage are on the same IPU.
     # For more information, see the API section of the Targeting the IPU from TensorFlow document:
-    # https://docs.graphcore.ai/projects/tensorflow1-user-guide/en/latest/tensorflow/api.html#tensorflow.python.ipu.config.SelectionOrder
+    # https://docs.graphcore.ai/projects/tensorflow1-user-guide/en/3.0.0/tensorflow/api.html#tensorflow.python.ipu.config.SelectionOrder
     cfg = ipu.config.IPUConfig()
     cfg.auto_select_ipus = 2
     cfg.selection_order = ipu.config.SelectionOrder.SNAKE
@@ -178,5 +208,4 @@ if __name__ == "__main__":
             # Read the outfeed for the training losses
             losses = sess.run(outfeed_op)
             epoch = float(examples_per_step * step / n_examples)
-            print("Epoch {:.1f}, Mean loss: {:.3f}".format(
-                epoch, np.mean(losses)))
+            print(f"Epoch {epoch:.1f}, Mean loss: {np.mean(losses):.3f}")

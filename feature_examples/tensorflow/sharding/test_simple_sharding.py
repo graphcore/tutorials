@@ -1,20 +1,22 @@
 # Copyright (c) 2020 Graphcore Ltd. All rights reserved.
 import os
 import sys
-import pytest
 
 import numpy as np
+import pytest
 
 # NOTE: The import below is dependent on 'pytest.ini' in the root of
 # the repository
-import tutorials_tests.testing_util as testing_util
+from tutorials_tests.testing_util import run_command_fail_explicitly
 from tutorials_tests.assert_util import assert_result_equals_tensor_value
 
 
 def run_simple_sharding():
-    py_version = "python{}".format(sys.version_info[0])
+    py_version = f"python{sys.version_info[0]}"
     cmd = [py_version, "simple_sharding.py"]
-    out = testing_util.run_command_fail_explicitly(cmd, os.path.dirname(__file__))
+    out = run_command_fail_explicitly(
+        cmd, os.path.dirname(__file__), suppress_warnings=True
+    )
     return out
 
 

@@ -22,7 +22,7 @@ We will do the following steps in order:
 In order to run this tutorial on the IPU you will need:
 
 - A Poplar SDK environment enabled (see the [Getting Started](https://docs.graphcore.ai/en/latest/getting-started.html) guide for your IPU system).
-- TensorFlow 2 set up for the IPU (see the [Setup Instructions](https://docs.graphcore.ai/projects/ipu-pod-getting-started/en/latest/installation.html#setting-up-tensorflow-for-the-ipu))
+- TensorFlow 2 set up for the IPU (see the [Setup Instructions](https://docs.graphcore.ai/projects/ipu-pod-getting-started/en/3.0.0/installation.html#setting-up-tensorflow-for-the-ipu))
 """
 """
 To run the Jupyter notebook version of this tutorial:
@@ -44,7 +44,7 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.python import ipu
 
-if tf.__version__[0] != '2':
+if tf.__version__[0] != "2":
     raise ImportError("TensorFlow 2 is required for this example")
 
 """
@@ -63,13 +63,18 @@ def create_dataset():
     (x_train, y_train), _ = mnist.load_data()
     x_train = x_train / 255.0
 
-    train_ds = tf.data.Dataset.from_tensor_slices(
-        (x_train, y_train)).shuffle(10000).batch(32, drop_remainder=True)
+    train_ds = (
+        tf.data.Dataset.from_tensor_slices((x_train, y_train))
+        .shuffle(10000)
+        .batch(32, drop_remainder=True)
+    )
     train_ds = train_ds.map(
-        lambda d, l: (tf.cast(d, tf.float32), tf.cast(l, tf.float32)))
+        lambda d, l: (tf.cast(d, tf.float32), tf.cast(l, tf.float32))
+    )
 
     # Create a looped version of the dataset
     return train_ds.repeat()
+
 
 """
 We normalise the dataset by dividing each element of `x_train` (pixel values)
@@ -93,11 +98,15 @@ Next, we define our model using the Keras Sequential API.
 
 
 def create_model():
-    model = keras.Sequential([
-        keras.layers.Flatten(),
-        keras.layers.Dense(128, activation='relu'),
-        keras.layers.Dense(10, activation='softmax')])
+    model = keras.Sequential(
+        [
+            keras.layers.Flatten(),
+            keras.layers.Dense(128, activation="relu"),
+            keras.layers.Dense(10, activation="softmax"),
+        ]
+    )
     return model
+
 
 """
 
@@ -115,12 +124,12 @@ cfg.configure_ipu_system()
 """
 This is all we need to get a small model up and running, though a full list of
 configuration options is available in the [API
-documentation](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/tensorflow/api.html#tensorflow.python.ipu.config.IPUConfig).
+documentation](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/3.0.0/tensorflow/api.html#tensorflow.python.ipu.config.IPUConfig).
 
 If you're interested in learning how to optimally use models that require
 multiple IPUs (for example due to their size), see the section on pipelining
 from our documentation on [model
-parallelism](https://docs.graphcore.ai/projects/tf-model-parallelism/en/latest/model.html).
+parallelism](https://docs.graphcore.ai/projects/tf-model-parallelism/en/3.0.0/model.html).
 
 > To see how this process can be implemented, head over to the pipelining
 section of our [TensorFlow 2 Keras
@@ -138,7 +147,7 @@ strategy = ipu.ipu_strategy.IPUStrategy()
 The `tf.distribute.Strategy` is an API to distribute training and inference
 across multiple devices. `IPUStrategy` is a subclass which targets a system
 with one or more IPUs attached. For a multi-system configuration, the
-[PopDistStrategy](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/tensorflow/api.html#tensorflow.python.ipu.horovod.popdist_strategy.PopDistStrategy)
+[PopDistStrategy](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/3.0.0/tensorflow/api.html#tensorflow.python.ipu.horovod.popdist_strategy.PopDistStrategy)
 should be used, in conjunction with our PopDist library.
 
 > To see an example of how to distribute training and inference over multiple
@@ -161,9 +170,11 @@ with strategy.scope():
     ds = create_dataset()
 
     # Train the model.
-    model.compile(loss = keras.losses.SparseCategoricalCrossentropy(),
-                  optimizer = keras.optimizers.SGD(),
-                  steps_per_execution=100)
+    model.compile(
+        loss=keras.losses.SparseCategoricalCrossentropy(),
+        optimizer=keras.optimizers.SGD(),
+        steps_per_execution=100,
+    )
     model.fit(ds, steps_per_epoch=2000, epochs=4)
 # sst_hide_output
 """
@@ -177,7 +188,7 @@ Another way to speed up the training of a model is through replication. This
 process involves copying the model on each of multiple IPUs, updating the
 parameters of the model on all IPUs after each forward and backward pass. To
 learn more about this process, head over to our documentation on [graph
-replication](https://docs.graphcore.ai/projects/memory-performance-optimisation/en/2.6.0/optimising-performance.html#graph-replication).
+replication](https://docs.graphcore.ai/projects/memory-performance-optimisation/en/3.0.0/optimising-performance.html#graph-replication).
 
 > To see how this process can be implemented, take a look at the Replication
 section of our [TensorFlow 2 Keras

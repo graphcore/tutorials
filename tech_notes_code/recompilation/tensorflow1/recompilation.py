@@ -14,6 +14,7 @@ import numpy as np
 from tensorflow.python import ipu
 from tensorflow.python.ipu.scopes import ipu_scope
 import tensorflow.compat.v1 as tf
+
 tf.disable_v2_behavior()
 
 # Consideration 0: Environment setup
@@ -30,14 +31,12 @@ if "TF_POPLAR_FLAGS" in os.environ and not CACHING:
     os.environ["TF_POPLAR_FLAGS"] = ""
 else:
     os.environ["TF_POPLAR_FLAGS"] = "--executable_cache_path=tmp_tutorial"
-if "POPLAR_LOG_LEVEL" not in os.environ or \
-        os.environ["POPLAR_LOG_LEVEL"] != "INFO":
+if "POPLAR_LOG_LEVEL" not in os.environ or os.environ["POPLAR_LOG_LEVEL"] != "INFO":
     print("Setting POPLAR_LOG_LEVEL to INFO for graph compilation information.")
     os.environ["POPLAR_LOG_LEVEL"] = "INFO"
 
 # Consideration 6
-os.environ["XLA_FLAGS"] = "--xla_dump_to=tmp_xla_{} ".format(
-    np.random.randint(2, 101))
+os.environ["XLA_FLAGS"] = f"--xla_dump_to=tmp_xla_{np.random.randint(2, 101)} "
 os.environ["XLA_FLAGS"] += " --xla_dump_hlo_pass_re=forward-allocation "
 os.environ["XLA_FLAGS"] += " --xla_hlo_graph_sharding_color "
 os.environ["XLA_FLAGS"] += " --xla_dump_hlo_as_text "
@@ -74,20 +73,24 @@ print("No compilation after first execution expected but executable load. \n")
 with tf.Session() as sess1, tf.Session() as sess2:
     # Run the graph through the session feeding it an arbitrary dictionary
     if PLACEHOLDER:
-        result0 = sess1.run(comp_graph,
-                            feed_dict={
-                                pa: [[1., 1.]],
-                                pb: [[0., 1.]],
-                                pc: [[1., 5.]],
-                                mult: 10.0
-                            })
+        result0 = sess1.run(
+            comp_graph,
+            feed_dict={
+                pa: [[1.0, 1.0]],
+                pb: [[0.0, 1.0]],
+                pc: [[1.0, 5.0]],
+                mult: 10.0,
+            },
+        )
     else:
-        result0 = sess1.run(comp_graph,
-                            feed_dict={
-                                pa: [[1., 1.]],
-                                pb: [[0., 1.]],
-                                pc: [[1., 5.]],
-                            })
+        result0 = sess1.run(
+            comp_graph,
+            feed_dict={
+                pa: [[1.0, 1.0]],
+                pb: [[0.0, 1.0]],
+                pc: [[1.0, 5.0]],
+            },
+        )
 
 # Consideration 1, 3, 5: Graphs, Weights, Constants
 m = np.random.uniform(0, 1)
@@ -101,45 +104,47 @@ with tf.Session() as sess1, tf.Session() as sess2:
     print("No recompilation but executable switch should occur.\n")
     # Run the graph through the session feeding it an arbitrary dictionary
     if PLACEHOLDER:
-        result1 = sess1.run(comp_graph,
-                            feed_dict={
-                                pa: [[1., 1.]],
-                                pb: [[0., 1.]],
-                                pc: [[1., 5.]],
-                                mult: m
-                            })
+        result1 = sess1.run(
+            comp_graph,
+            feed_dict={pa: [[1.0, 1.0]], pb: [[0.0, 1.0]], pc: [[1.0, 5.0]], mult: m},
+        )
     else:
-        result1 = sess1.run(comp_graph,
-                            feed_dict={
-                                pa: [[1., 1.]],
-                                pb: [[0., 1.]],
-                                pc: [[1., 5.]],
-                            })
-
+        result1 = sess1.run(
+            comp_graph,
+            feed_dict={
+                pa: [[1.0, 1.0]],
+                pb: [[0.0, 1.0]],
+                pc: [[1.0, 5.0]],
+            },
+        )
 
     # Consideration 2: Batch size
     if SAMEBATCH:
         bs = 1
     else:
         bs = np.random.randint(2, 101)
-    print("\nBatch Size Test with batch size %d." % bs)
+    print(f"\nBatch Size Test with batch size {bs}.")
     print("No recompilation or executable switch should occur.")
     print("Batch size should be the original 1.\n")
     if PLACEHOLDER:
-        result2 = sess2.run(comp_graph,
-                            feed_dict={
-                                pa: [[1., 1.]] * bs,
-                                pb: [[0., 1.]] * bs,
-                                pc: [[1., 5.]] * bs,
-                                mult: m
-                            })
+        result2 = sess2.run(
+            comp_graph,
+            feed_dict={
+                pa: [[1.0, 1.0]] * bs,
+                pb: [[0.0, 1.0]] * bs,
+                pc: [[1.0, 5.0]] * bs,
+                mult: m,
+            },
+        )
     else:
-        result3 = sess2.run(comp_graph,
-                            feed_dict={
-                                pa: [[1., 1.]] * bs,
-                                pb: [[0., 1.]] * bs,
-                                pc: [[1., 5.]] * bs,
-                            })
+        result3 = sess2.run(
+            comp_graph,
+            feed_dict={
+                pa: [[1.0, 1.0]] * bs,
+                pb: [[0.0, 1.0]] * bs,
+                pc: [[1.0, 5.0]] * bs,
+            },
+        )
 
     print("\nFirst two results should be different (different multiplier).\n")
     print("Caching/warm up test:\t", result0)

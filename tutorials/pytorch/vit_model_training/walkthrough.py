@@ -4,7 +4,7 @@ Copyright (c) 2022 Graphcore Ltd. All rights reserved.
 """
 # Training a Hugging Face model on the IPU using a local dataset
 
-This Pytorch tutorial will show you how to reuse a Hugging Face model and train it on the IPU using a local dataset.
+This PyTorch tutorial will show you how to reuse a Hugging Face model and train it on the IPU using a local dataset.
 Specifically, we will be fine-tuning a Vision Transformer (ViT) model to detect multiple diseases from chest X-rays. As an X-ray image can have multiple diseases we will be training a multi-label classification model.
 We will use [Graphcore's Optimum interface](https://github.com/huggingface/optimum-graphcore) to the [Hugging Face Transformers library](https://huggingface.co/docs/transformers/index) to run an existing model on the IPU.
 We will be using the [google/vit-base-patch16-224-in21k checkpoint](https://huggingface.co/google/vit-base-patch16-224-in21k) pretrained on ImageNet, fine-tuning it on the NIH Chest X-ray Dataset.
@@ -15,8 +15,8 @@ In this tutorial, you will learn how to:
 - Use the Graphcore model cards found on the [Graphcore organisation page on Hugging Face](https://huggingface.co/Graphcore) and reuse checkpoints and config files released by Graphcore.
 - Maximise IPU utilisation for your specific machine by overriding runtime parameters in the `IPUconfig` object made available in the model cards.
 
-If this is your first time using IPUs, read the [IPU Programmer's Guide](https://docs.graphcore.ai/projects/ipu-programmers-guide/en/latest/) to learn the basic concepts.
-To run your own PyTorch model on the IPU see the [Pytorch basics tutorial](../basics), or to see all existing Graphcore models available from Hugging Face go to the [Graphcore organisation page](https://huggingface.co/Graphcore).
+If this is your first time using IPUs, read the [IPU Programmer's Guide](https://docs.graphcore.ai/projects/ipu-programmers-guide/en/3.0.0/) to learn the basic concepts.
+To run your own PyTorch model on the IPU see the [PyTorch basics tutorial](../basics), or to see all existing Graphcore models available from Hugging Face go to the [Graphcore organisation page](https://huggingface.co/Graphcore).
 """
 """
 ## How to run this tutorial
@@ -37,7 +37,7 @@ Requirements:
  your IPU system)
 - Python packages installed with `python -m pip install -r requirements.txt`
 """
-# %pip install -r requirements.txt
+# %pip install -q -r requirements.txt
 # sst_ignore_md
 # sst_ignore_code_only
 """
@@ -101,7 +101,7 @@ import transformers
 import datasets
 
 # The `chest-xray-nihcc` directory is assumed to be in the pwd, but may be overridden by the environment variable `DATASET_DIR`
-dataset_rootdir = Path(os.environ.get("DATASET_DIR", "."))/"chest-xray-nihcc"
+dataset_rootdir = Path(os.environ.get("DATASET_DIR", ".")) / "chest-xray-nihcc"
 
 # sst_hide_output"
 """
@@ -115,7 +115,7 @@ It will be automatically removed in the Jupyter and Markdown export formats.
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--dataset-dir', default=dataset_rootdir)
+parser.add_argument("--dataset-dir", default=dataset_rootdir)
 
 args = parser.parse_args()
 
@@ -135,7 +135,7 @@ We defined the locations of the downloaded images and the file with the labels t
 images_dir = dataset_rootdir / "images"
 
 # Path to Data_Entry_2017_v2020.csv
-label_file = dataset_rootdir / 'Data_Entry_2017_v2020.csv'
+label_file = dataset_rootdir / "Data_Entry_2017_v2020.csv"
 
 """
 ### Preparing the labels
@@ -153,7 +153,7 @@ data = pd.read_csv(label_file)
 # into ["LabelA", "LabelB", "LabelC"], concatenates the
 # lists together and removes duplicate labels
 unique_labels = np.unique(
-    data['Finding Labels'].str.split("|").aggregate(np.concatenate)
+    data["Finding Labels"].str.split("|").aggregate(np.concatenate)
 ).tolist()
 
 print(f"Dataset contains the following labels:\n{unique_labels}")
@@ -169,14 +169,17 @@ def string_to_N_hot(string: str):
     label[true_index] = 1
     return label
 
+
 data["labels"] = data["Finding Labels"].apply(string_to_N_hot)
 """
 When loading data using the `datasets.load_dataset` function, labels can be provided either by having folders for each of the labels (see ["ImageFolder" documentation](https://huggingface.co/docs/datasets/v2.3.2/en/image_process#imagefolder)) or by having a `metadata.jsonl` file ((see ["ImageFolder with metadata" documentation](https://huggingface.co/docs/datasets/v2.3.2/en/image_process#imagefolder-with-metadata))). As the images in this dataset can have multiple labels, we have chosen to use a `metadata.jsonl` file.
 We write the image file names and their associated labels to the `metadata.jsonl` file.
 """
-metadata_file = images_dir/"metadata.jsonl"
+metadata_file = images_dir / "metadata.jsonl"
 if not metadata_file.is_file():
-    data[["Image Index", "labels"]].rename(columns={"Image Index": "file_name"}).to_json(images_dir / 'metadata.jsonl', orient='records', lines=True)
+    data[["Image Index", "labels"]].rename(
+        columns={"Image Index": "file_name"}
+    ).to_json(images_dir / "metadata.jsonl", orient="records", lines=True)
 """
 ### Create the dataset
 
@@ -218,16 +221,24 @@ class XRayTransform:
     """
     Transforms for pre-processing XRay data across a batch.
     """
+
     def __init__(self):
-        self.transforms = transforms.Compose([
-            transforms.Lambda(lambda pil_img: pil_img.convert("RGB")),
-            transforms.Resize(feature_extractor.size),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=feature_extractor.image_mean, std=feature_extractor.image_std),
-        ])
+        self.transforms = transforms.Compose(
+            [
+                transforms.Lambda(lambda pil_img: pil_img.convert("RGB")),
+                transforms.Resize(feature_extractor.size),
+                transforms.ToTensor(),
+                transforms.Normalize(
+                    mean=feature_extractor.image_mean, std=feature_extractor.image_std
+                ),
+                transforms.ConvertImageDtype(dtype=torch.float16),
+            ]
+        )
 
     def __call__(self, example_batch):
-        example_batch["pixel_values"] = [self.transforms(pil_img) for pil_img in example_batch["image"]]
+        example_batch["pixel_values"] = [
+            self.transforms(pil_img) for pil_img in example_batch["image"]
+        ]
         return example_batch
 
 
@@ -245,6 +256,7 @@ def batch_sampler(examples):
     labels = torch.tensor([example["labels"] for example in examples])
     return {"pixel_values": pixel_values, "labels": labels}
 
+
 """
 ### Visualising the dataset
 To examine the dataset we display the first 10 rows of the metadata.
@@ -258,11 +270,13 @@ fig = plt.figure(figsize=(20, 15))
 
 unique_labels = np.array(unique_labels)
 
-
-for i, data_dict in enumerate(dataset['validation']):
+convert_image_to_float = transforms.ConvertImageDtype(dtype=torch.float32)
+for i, data_dict in enumerate(dataset["validation"]):
     if i == 12:
         break
     image = data_dict["pixel_values"]
+    # Convert image to format supported by imshow
+    image = convert_image_to_float(image)
     label = data_dict["labels"]
     ax = plt.subplot(3, 4, i + 1)
     ax.set_title(", ".join(unique_labels[np.argwhere(label).flatten()]))
@@ -282,18 +296,15 @@ The `IPUTrainer` class takes the same arguments as the Hugging Face model along 
 Now we import the ViT model from Hugging Face.
 """
 model = transformers.AutoModelForImageClassification.from_pretrained(
-    model_name_or_path,
-    num_labels=len(unique_labels)
-    )
+    model_name_or_path, num_labels=len(unique_labels)
+)
 
 """
 To use this model on the IPU we need to load the IPU configuration, `IPUConfig`, which gives control to all the parameters specific to Graphcore IPUs.
 Existing IPU configs can be found at : https://huggingface.co/Graphcore
 We are going to use `Graphcore/vit-base-ipu`.
 """
-ipu_config = optimum_graphcore.IPUConfig.from_pretrained(
-    "Graphcore/vit-base-ipu"
-)
+ipu_config = optimum_graphcore.IPUConfig.from_pretrained("Graphcore/vit-base-ipu")
 
 """
 Let's set our training hyperparameters using `IPUTrainingArguments`.
@@ -301,7 +312,7 @@ This subclasses the Hugging Face `TrainingArguments` class, adding parameters sp
 """
 training_args = optimum_graphcore.IPUTrainingArguments(
     output_dir="./results",
-    overwrite_output_dir = True,
+    overwrite_output_dir=True,
     per_device_train_batch_size=1,
     per_device_eval_batch_size=1,
     dataloader_num_workers=8,
@@ -314,7 +325,7 @@ training_args = optimum_graphcore.IPUTrainingArguments(
     warmup_ratio=0.25,
     lr_scheduler_type="cosine",
     learning_rate=2e-4,
-    ignore_data_skip=True
+    ignore_data_skip=True,
 )
 """
 Performance of multi-label classification models can be assessed using the area under the  ROC (receiver operating characteristic) curve (AUC_ROC). The AUC_ROC represents the ability of the model to separate the different diseases. A score of 0.5 means that it is
@@ -330,9 +341,13 @@ metric_auc = datasets.load_metric("roc_auc", "multilabel")
 def compute_metrics(p):
     preds = np.argmax(p.predictions, axis=1)
 
-    pred_scores = softmax(p.predictions.astype('float32'), axis=1)
-    auc = metric_auc.compute(prediction_scores=pred_scores, references=p.label_ids, multi_class='ovo')['roc_auc']
+    pred_scores = softmax(p.predictions.astype("float32"), axis=1)
+    auc = metric_auc.compute(
+        prediction_scores=pred_scores, references=p.label_ids, multi_class="ovo"
+    )["roc_auc"]
     return {"roc_auc": auc}
+
+
 """
 To train the model, we define a trainer using the `IPUTrainer` class which takes care of compiling the model to run on IPUs, and of performing training and evaluation.
 The `IPUTrainer` class works just like the Hugging Face `Trainer` class, but takes the additional `ipu_config` argument.
@@ -345,7 +360,7 @@ trainer = optimum_graphcore.IPUTrainer(
     eval_dataset=dataset["validation"],
     compute_metrics=compute_metrics,
     tokenizer=feature_extractor,
-    data_collator=batch_sampler
+    data_collator=batch_sampler,
 )
 """
 ## Run the training
@@ -355,7 +370,9 @@ To accelerate training we will load the last checkpoint if it exists.
 """
 last_checkpoint = None
 if os.path.isdir(training_args.output_dir) and not training_args.overwrite_output_dir:
-    last_checkpoint = transformers.trainer_utils.get_last_checkpoint(training_args.output_dir)
+    last_checkpoint = transformers.trainer_utils.get_last_checkpoint(
+        training_args.output_dir
+    )
 """
 Now we are ready to train.
 """
@@ -363,7 +380,7 @@ Now we are ready to train.
 output = io.StringIO()
 
 with contextlib.redirect_stdout(output):
-    trainer.train(resume_from_checkpoint = last_checkpoint)
+    trainer.train(resume_from_checkpoint=last_checkpoint)
 
 # Visualise a fragment of the raw output
 print(output.getvalue()[:500])

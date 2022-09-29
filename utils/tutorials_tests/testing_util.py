@@ -1,16 +1,15 @@
 # Copyright (c) 2019 Graphcore Ltd. All rights reserved.
 
-from typing import Container, List, Dict, Union
-from pathlib import Path
-from statistics import mean
+import configparser
 import os
 import re
 import subprocess
 import sys
 import time
 import warnings
-import unittest
-
+from pathlib import Path
+from statistics import mean
+from typing import Container, Dict, List, Union
 
 """Library of utility functions common between frameworks"""
 
@@ -20,12 +19,10 @@ DEFAULT_PROCESS_TIMEOUT_SECONDS = 40 * 60
 
 class CalledProcessError(subprocess.CalledProcessError):
     """An error for subprocesses which captures stdout and stderr in the error message."""
+
     def __str__(self) -> str:
-        return "{original_message}\n{stdout}\n{stderr}".format(
-            original_message=super().__str__(),
-            stdout=self.stdout,
-            stderr=self.stderr
-        )
+        original_message = super().__str__()
+        return f"{original_message}\n" f"{self.stdout}\n" f"{self.stderr}"
 
 
 def parse_results_for_speed(output, iter_tolerance, speed_tolerance):
@@ -57,44 +54,50 @@ def parse_results_for_accuracy(output, expected_accuracies, acc_tolerance):
             accuracies.append(accuracy)
         elif re.search(r"Validation accuracy", line):
             accuracy_str = re.search(r"accuracy:\s(.*)", line).group(1)
-            accuracy = float(accuracy_str[:accuracy_str.rfind("%")])
+            accuracy = float(accuracy_str[: accuracy_str.rfind("%")])
             accuracies.append(accuracy)
 
     if len(accuracies) == 0:
         raise AssertionError("No results detected in this run")
     elif len(accuracies) != len(expected_accuracies):
-        raise AssertionError("Expected accuracies and parsed accuracies have"
-                             " different lengths")
+        raise AssertionError(
+            "Expected accuracies and parsed accuracies have" " different lengths"
+        )
 
     verify_model_accuracies(accuracies, expected_accuracies, acc_tolerance)
 
 
-def _verify_model_numbers(iter_tolerance, iterations,
-                          speed_tolerance, speed, line):
+def _verify_model_numbers(iter_tolerance, iterations, speed_tolerance, speed, line):
     iter_error = ""
     speed_error = ""
 
     # Verify iteration speed
     if iterations > iter_tolerance[1]:
-        iter_error = ("The time per iteration has regressed above"
-                      " the tolerance maximum: " +
-                      str(iter_tolerance[1]))
+        iter_error = (
+            "The time per iteration has regressed above"
+            " the tolerance maximum: " + str(iter_tolerance[1])
+        )
     elif iterations < iter_tolerance[0]:
-        iter_error = ("Time taken to compete an iteration was "
-                      "suspiciously fast. Please verify the model"
-                      " is operating correctly and tune tolerances"
-                      " accordingly.")
+        iter_error = (
+            "Time taken to compete an iteration was "
+            "suspiciously fast. Please verify the model"
+            " is operating correctly and tune tolerances"
+            " accordingly."
+        )
 
     # Verify item processing speed
     if speed < speed_tolerance[0]:
-        speed_error = ("The number of items processed per second"
-                       " has regressed below the tolerance: " +
-                       str(speed_tolerance[0]))
+        speed_error = (
+            "The number of items processed per second"
+            " has regressed below the tolerance: " + str(speed_tolerance[0])
+        )
     elif speed > speed_tolerance[1]:
-        speed_error = ("The number of items processed per second"
-                       " was suspiciously high. Please verify the"
-                       " model is behaving correctly and tune"
-                       " tolerances accordingly.")
+        speed_error = (
+            "The number of items processed per second"
+            " was suspiciously high. Please verify the"
+            " model is behaving correctly and tune"
+            " tolerances accordingly."
+        )
 
     if iter_error and speed_error:
         sys.stderr.write("\n".join([line, iter_error, speed_error]))
@@ -124,53 +127,41 @@ def verify_model_accuracies(accuracies, expected_accuracy, acc_tolerance):
 
     for iter_num in range(len(accuracies)):
         exp_acc = expected_accuracy[iter_num]
-        exp_acc_str = (
-            "{0} = {1} +- {2} = [{3:.{5}f}, {4:.{5}f}]".format(
-                "Expected accuracy (%)".ljust(22),
-                exp_acc,
-                acc_tolerance,
-                exp_acc - acc_tolerance,
-                exp_acc + acc_tolerance,
-                2
-            )
-        )
         acc = accuracies[iter_num]
-        acc_str = "{} = {:.{}f}".format(
-            "Accuracy (%)".ljust(22),
-            acc,
-            2
+        acc_str = (
+            f"{'Accuracy (%)':<22} = {acc:.2f}\n"
+            f"{'Expected accuracy (%)':<22} = {exp_acc} +- {acc_tolerance}"
+            f" = [{exp_acc - acc_tolerance:.2f}, {exp_acc + acc_tolerance:.2f}]"
         )
-        full_acc_str = "{}\n{}".format(acc_str, exp_acc_str)
         if acc < exp_acc - acc_tolerance:
             raise AssertionError(
-                "After iteration {}, the model is less accurate"
+                f"After iteration {iter_num + 1}, the model is less accurate"
                 " than expected.\n"
-                "{}".format(iter_num + 1, full_acc_str)
+                f"{acc_str}"
             )
         elif acc > exp_acc + acc_tolerance:
             raise AssertionError(
-                "After iteration {}, the model is producing an accuracy"
+                f"After iteration {iter_num + 1}, the model is producing an accuracy"
                 " that is suspiciously high and should be reviewed.\n"
-                "{}".format(iter_num + 1, full_acc_str)
+                f"{acc_str}"
             )
 
 
 def parse_results_for_ipus_used(output):
     """Finds the number of IPUs used in the model by looking for
-       string with format ' On 2 IPUs.' in output"""
+    string with format ' On 2 IPUs.' in output"""
     shards_regex = r" On ([\d.]+) IPUs."
     for line in output.split("\n"):
         matches = re.match(shards_regex, line)
         if matches:
             shards = matches.group(1)
             return int(shards)
-    raise AssertionError("Expecting line detailing IPU usage "
-                         "eg. ' On 2 IPUs.'")
+    raise AssertionError("Expecting line detailing IPU usage " "eg. ' On 2 IPUs.'")
 
 
 def assert_shards(output, expected_shards):
     """Verify the expected number of shards used were actually
-       used"""
+    used"""
     actual_shards = parse_results_for_ipus_used(output)
     assert actual_shards == expected_shards
 
@@ -250,22 +241,21 @@ def parse_results_with_regex(output, regex):
                 results[match_index] = [result]
 
     if results == []:
-        raise AssertionError("Regex {} not found in result".format(regex))
+        raise AssertionError(f"Regex {regex} not found in result")
 
     return results
 
 
 def get_total_epochs(output):
     """Finds the number of epochs model has run through by looking for
-       string with format 'Epoch #3' in the models raw output"""
+    string with format 'Epoch #3' in the models raw output"""
     epochs = None
     for line in output.split("\n"):
         epoch_match = re.search(r"Epoch #([\d.]+)", line)
         if epoch_match:
             epochs = int(epoch_match.group(1))
     if not epochs:
-        raise AssertionError("Epochs not found in output, eg. "
-                             "Epoch #3")
+        raise AssertionError("Epochs not found in output, eg. " "Epoch #3")
     return epochs
 
 
@@ -309,7 +299,13 @@ def assert_final_accuracy(output, minimum, maximum):
     assert accuracy <= maximum
 
 
-def run_python_script_helper(cwd: str, script: Union[str, List[str]], want_std_err: bool=False, env=None, **kwargs):
+def run_python_script_helper(
+    cwd: str,
+    script: Union[str, List[str]],
+    want_std_err: bool = False,
+    env=None,
+    **kwargs,
+):
     """A function that given a path and python script name, runs the script
       with kwargs as the command line arguments
 
@@ -317,7 +313,7 @@ def run_python_script_helper(cwd: str, script: Union[str, List[str]], want_std_e
         cwd: string representing the directory of the python script
         script: string representing the full name of the python script
                 can be a list of strings, which will be passed to the python
-                commandline. e.g. ['-c', 'print("Hello")']
+                command-line. e.g. ['-c', 'print("Hello")']
         want_std_err: optional - set True to include stderr trace in the output
         env : Optionally pass in the Environment variables to use
         kwargs: dictionary of string key and values that form the command
@@ -346,8 +342,9 @@ def run_python_script_helper(cwd: str, script: Union[str, List[str]], want_std_e
     return out
 
 
-def run_test_helper(subprocess_function, total_run_time=None,
-                    total_run_time_tolerance=0.1, **kwargs):
+def run_test_helper(
+    subprocess_function, total_run_time=None, total_run_time_tolerance=0.1, **kwargs
+):
     """Checks that a function executes within a given time tolerance
 
     Takes in test keyword parameters, runs the test and checks that the
@@ -460,126 +457,50 @@ def check_data_exists(data_path, expected_files_list):
     return False
 
 
-class SubProcessChecker(unittest.TestCase):
-    """
-    Utility Module for building tests that reliably check if a
-    sub-process ran successfully.
-
-    Commonly with an integration/system test you want to check
-    a command can be run successfully and gives some expected
-    output.
-
-    How to use:
-    Don't, use the :func:`run_command` function (check docstring of the function
-    for the other possible behaviours supported by this class). If you still
-    want to use unittest (you shouldn't) inherit explicitly from
-    ``unittest.TestCase``.
-
-    Warns:
-        DeprecationWarning: Upon instantiation.
-    """
-    def __init__(self, *args, **kwargs) -> None:
-        warnings.warn(
-            f"{type(self).__name__} is deprecated "
-            "use the `run_command` function instead", DeprecationWarning)
-        super().__init__(*args, **kwargs)
-
-    def _check_output(self, cmd, output: str, must_contain: List[str]):
-        """
-        Internal utility used by run_command(...) to check output
-        (Should not need to call this directly from test cases).
-        """
-        missing_matches = find_missing_patterns(output, must_contain)
-        assert not missing_matches, (
-            f"Not all strings were found in the output of command {cmd}, the"
-            f" following expected strings were missing: {missing_matches}"
-        )
-
-
-    def run_command(self, cmd, working_path, expected_strings, env=None, timeout=DEFAULT_PROCESS_TIMEOUT_SECONDS):
-        """
-        Please use :func:`run_command` instead.
-
-        Args:
-            cmd:
-                Command string. It will be split into args internally.
-            working_path:
-                The working directory in which to run the command.
-            expected_strings:
-                List of strings that must appear in the output at least once.
-            env:
-                Optionally pass in the Environment variables to use
-            timeout:
-                Optionally pass in the timeout for running the command
-
-        Returns:
-            Output of the command (combined stderr and stdout).
-        """
-        warnings.warn(
-            f"The object method `run_command` is deprecated "
-            "use the `run_command` module function instead", DeprecationWarning)
-        if env is None:
-            completed = subprocess.run(args=cmd.split(),
-                                       cwd=working_path,
-                                       shell=False,
-                                       stdout=subprocess.PIPE,
-                                       stderr=subprocess.STDOUT,
-                                       timeout=timeout)
-        else:
-            completed = subprocess.run(args=cmd.split(), cwd=working_path,
-                                       shell=False, stdout=subprocess.PIPE,
-                                       stderr=subprocess.STDOUT,
-                                       env=env,
-                                       timeout=timeout)
-        combined_output = str(completed.stdout, 'utf-8')
-        try:
-            completed.check_returncode()
-            return_code_ok = True
-        except subprocess.CalledProcessError:
-            return_code_ok = False
-
-        if not return_code_ok:
-            self.fail(f"The following command failed: {cmd}\nWorking path: {working_path}\nOutput of failed command:\n{combined_output}")
-
-        self._check_output(cmd, combined_output, expected_strings)
-        return combined_output
-
-
 def run_command(
     cmd: Union[str, List[str]],
     cwd: str,
     expected_strings: List[str] = [],
     **kwargs,
 ):
-    """ Run a command using subprocess, check it ran successfully, and
+    """Run a command using subprocess, check it ran successfully, and
     check its output for specific strings or regexps.
 
     Consider using :func:`run_command_fail_explicitly`
-
-    Note:
-        Function which mimics the interface of `SubProcessChecker.run_command`
-        without being a class.
-
     """
+
+    # Allow option of calling with space separated string, but split into
+    # List[str] to be consistent below
+    if isinstance(cmd, str) and " " in cmd:
+        cmd = cmd.split()
+
     output = run_command_fail_explicitly(cmd, cwd, **kwargs)
     missing_matches = find_missing_patterns(output, expected_strings)
     assert not missing_matches, (
-        f"Not all strings were found in the output of command {cmd}, the"
-        f" following expected strings were missing: {missing_matches}"
+        f"Not all strings were found in the output of command {cmd}, the "
+        f"following expected strings were missing: {missing_matches}. "
+        f"The following output was produced: {output}"
     )
     return output
 
 
 def run_command_fail_explicitly(
-    command: Union[str, List[str]], cwd: str, **kwargs
+    command: Union[str, List[str]],
+    cwd: str,
+    *,
+    suppress_warnings: bool = False,
+    **kwargs,
 ) -> str:
-    """ Runs a command returning the output or failing with useful information
+    """Runs a command returning the output or failing with useful information
 
     Args:
         command: The command to execute, can also be a space separated string.
         cwd: The directory in which the command should be
             launched. If called by a pytest test function or method, this
             probably should be a `tmp_path` fixture.
+        suppress_warnings: Do not include warnings in stdout, so it can be
+                           parsed more reliably. Will still be captured if
+                           command raises an exception.
         **kwargs: Additional keyword arguments are passed to
             `subprocess.check_output`.
 
@@ -589,9 +510,23 @@ def run_command_fail_explicitly(
     Raises:
         RuntimeError: If the subprocess command executes with a non-zero output.
     """
+
+    if suppress_warnings:
+        # Warn if parameters contradict
+        if "stderr" in kwargs and kwargs["stderr"] != subprocess.PIPE:
+            warnings.warn(
+                "`run_command_fail_explicitly` parameter `suppress_warnings` will"
+                " override other specified parameter `stderr`. Using"
+                " `stderr=subprocess.PIPE`",
+                stacklevel=2,
+            )
+
+        # PIPE rather None, so we can still access from exceptions below
+        kwargs["stderr"] = subprocess.PIPE
+
     DEFAULT_KWARGS = {
         "shell": isinstance(command, str) and " " in command,
-        "stderr": subprocess.PIPE,
+        "stderr": subprocess.STDOUT,
         "timeout": DEFAULT_PROCESS_TIMEOUT_SECONDS,
         "universal_newlines": True,
     }
@@ -618,7 +553,7 @@ def run_command_fail_explicitly(
 
 
 def find_missing_patterns(string: str, expected_patterns: List[str]) -> List[str]:
-    """ Finds patterns which are not in a string.
+    """Finds patterns which are not in a string.
 
     This function is used to search through the output of commands for
     specific expected patterns.
@@ -636,14 +571,11 @@ def find_missing_patterns(string: str, expected_patterns: List[str]) -> List[str
     # If a string is passed as an argument convert it to a list
     if isinstance(expected_patterns, str):
         expected_patterns = [expected_patterns]
-    # Build a list of regexes then apply them all.
-    # Each must have at least one result:
-    regexes = [re.compile(s) for s in expected_patterns]
-    missing_matches = []
-    for i, r in enumerate(regexes):
-        match = r.search(string)
-        if not match:
-            missing_matches.append(r)
+
+    missing_matches = [
+        expected for expected in expected_patterns if not re.search(expected, string)
+    ]
+
     return missing_matches
 
 
@@ -665,25 +597,46 @@ def add_args(cmd: List[str], args: Dict) -> List[str]:
     return cmd
 
 
-def get_file_list(root_path: Path, required_types: Container[str]) -> List[Path]:
+def get_file_list(
+    root_path: Path, required_types: Container[str], force_full_build: bool = False
+) -> List[Path]:
     """
     Get list of files, either by reading `diff_file_list.txt` (diff build mode),
     or by walking all sub-folders of `root_path` (full build mode).
     """
     diff_filename = root_path / "diff_file_list.txt"
-    if diff_filename.exists():
+    if diff_filename.exists() and not force_full_build:
         with open(diff_filename, "r", encoding="utf-8") as diff_file:
             print("Diff builder mode")
             file_list = [
                 root_path / file_name
                 for file_name in diff_file.read().splitlines()
-                if Path(file_name).suffix in required_types
+                if is_required_type(Path(file_name), required_types)
             ]
-
     else:
         print("Full build mode")
         file_list = [
-            path for path in root_path.rglob("*") if path.suffix in required_types
+            path
+            for path in root_path.rglob("*")
+            if is_required_type(path, required_types)
         ]
 
     return file_list
+
+
+def is_required_type(file_path: Path, required_types: Container[str]) -> bool:
+    """Is file of one of the required types and also not a special OS file to be
+    ignored."""
+    return file_path.suffix in required_types and not file_path.name.startswith("._")
+
+
+def read_git_submodule_paths():
+    try:
+        config = configparser.ConfigParser()
+        config.read(".gitmodules")
+        module_paths = [config[k]["path"] for k in config.sections()]
+        print(f"Git submodule paths: {module_paths}")
+        return module_paths
+    except:
+        print("No Git submodules found.")
+        return []

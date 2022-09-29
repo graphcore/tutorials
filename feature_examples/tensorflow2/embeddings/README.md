@@ -1,3 +1,4 @@
+<!-- Copyright (c) 2020 Graphcore Ltd. All rights reserved. -->
 # IMDB Sentiment Classification
 
 These examples train an IPU model with an embedding layer and an
@@ -8,7 +9,7 @@ for single IPU execution. Additionally, there are 2 IPU variants showing how to
 use pipelining with either a `keras.Model` or a `keras.Sequential` model on the IPU.
 
 These examples were derived from this Keras example:
-https://github.com/keras-team/keras/blob/1a3ee8441933fc007be6b2beb47af67998d50737/examples/imdb_lstm.py
+<https://github.com/keras-team/keras/blob/1a3ee8441933fc007be6b2beb47af67998d50737/examples/imdb_lstm.py>
 
 ## File structure
 
@@ -56,7 +57,7 @@ This example is licensed under the MIT license - see the LICENSE file at the top
 
 It includes derived work from:
 
-Keras, https://github.com/keras-team/keras/tree/1a3ee8441933fc007be6b2beb47af67998d50737
+Keras, <https://github.com/keras-team/keras/tree/1a3ee8441933fc007be6b2beb47af67998d50737>
 (Source file has been deleted from the master branch)
 
 All contributions by François Chollet:

@@ -33,12 +33,13 @@ def my_graph(pa, pb, pc):
     result = manual_sharding(pa, pb, pc)
     return result
 
+
 # Create the IPU section of the graph
 with scopes.ipu_scope("/device:IPU:0"):
     out = ipu_compiler.compile(my_graph, [pa, pb, pc])
 
 # Define the feed_dict input data
-fd = {pa: [1., 1.], pb: [0., 1.], pc: [1., 5.]}
+fd = {pa: [1.0, 1.0], pb: [0.0, 1.0], pc: [1.0, 5.0]}
 # Configure an IPU device that has NUM_SHARDS devices that we will
 # shard across.
 cfg = config.IPUConfig()

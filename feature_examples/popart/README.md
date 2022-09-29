@@ -1,3 +1,4 @@
+<!-- Copyright (c) 2021 Graphcore Ltd. All rights reserved. -->
 # PopART Feature Examples
 
 This directory contains a number of feature examples demonstrating how to use the Poplar Advanced Runtime (PopART). These include examples of how to use multiple IPUs and implement custom ops in Poplar, as well as other key features provided by PopART.

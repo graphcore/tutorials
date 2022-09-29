@@ -1,3 +1,4 @@
+<!-- Copyright (c) 2020 Graphcore Ltd. All rights reserved. -->
 # PopART Pipelining example
 
 This demo shows how to use pipelining in PopART on a very simple model
@@ -46,7 +47,7 @@ export POPLAR_ENGINE_OPTIONS='{"autoReport.all":"true", "autoReport.directory":"
 
 After running an application, the resulting report files can be opened using the PopVision Graph Analyser.
 See the Graph Analyser user guide for more information:
-[PopVision Graph Analyser User Guide](https://docs.graphcore.ai/projects/graph-analyser-userguide/en/latest/).
+[PopVision Graph Analyser User Guide](https://docs.graphcore.ai/projects/graph-analyser-userguide/en/3.11.2/).
 
 ## Running the tests
 

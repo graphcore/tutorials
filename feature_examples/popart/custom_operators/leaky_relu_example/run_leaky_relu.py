@@ -37,7 +37,7 @@ def build_and_run_graph(input_data, alpha, run_on_ipu):
         device = popart.DeviceManager().createIpuModelDevice({})
         print("Running on IPU Model")
 
-    print("alpha={}".format(alpha))
+    print(f"alpha={alpha}")
 
     session = popart.InferenceSession(proto, dataFlow, device)
 
@@ -45,7 +45,7 @@ def build_and_run_graph(input_data, alpha, run_on_ipu):
     result = session.initAnchorArrays()
 
     X = (np.array(input_data)).astype(np.float32)
-    print("X={}".format(X))
+    print(f"X={X}")
 
     stepio = popart.PyStepIO({input_tensor: X}, result)
     session.run(stepio, "LeakyReLU")

@@ -1,14 +1,15 @@
 # Copyright (c) 2020 Graphcore Ltd. All rights reserved.
-import pytest
 import os
 import re
 import sys
+from pathlib import Path
 
 import numpy as np
-import run_leaky_relu
+import pytest
 import tutorials_tests.testing_util as testing_util
 from filelock import FileLock
-from pathlib import Path
+
+import run_leaky_relu
 
 
 @pytest.fixture(autouse=True)

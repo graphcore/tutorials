@@ -1,3 +1,4 @@
+<!-- Copyright (c) 2021 Graphcore Ltd. All rights reserved. -->
 # Feature Examples for TensorFlow 1
 
 This directory contains a number of feature examples for how to use TensorFlow 1

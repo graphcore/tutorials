@@ -5,5 +5,5 @@
 #include <poplin/MatMul.hpp>
 
 extern "C" {
-  poplin::matmul::PlanningCache* getPlanningCache();
+poplin::matmul::PlanningCache *getPlanningCache();
 }

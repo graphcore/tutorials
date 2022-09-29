@@ -95,7 +95,8 @@ int main() {
   }
 
   // Connect to first available device
-  auto it = std::find_if(devices.begin(), devices.end(), [](Device &d){ return d.attach(); });
+  auto it = std::find_if(devices.begin(), devices.end(),
+                         [](Device &d) { return d.attach(); });
   if (it == devices.end()) {
     throw poplar::poplar_error("Could not attach to any device");
   }
@@ -131,8 +132,7 @@ int main() {
 
   // Connect output
   std::vector<float> hOut(t.numElements());
-  eng.connectStream("out", hOut.data(),
-                    std::next(hOut.data(), hOut.size()));
+  eng.connectStream("out", hOut.data(), std::next(hOut.data(), hOut.size()));
 
   // Run the program multiple times.
   // Replace input stream callback when value changes.

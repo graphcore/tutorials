@@ -15,16 +15,14 @@
 from pathlib import Path
 import pytest
 
-from tutorials_tests.testing_util import SubProcessChecker
+import tutorials_tests.testing_util as testing_util
 
-working_path = Path(__file__).parent.parent.joinpath("completed_code")
+working_path = Path(__file__).parents[1] / "completed_code"
 
 
-class TestWithoutFeeds(SubProcessChecker):
-
-    @pytest.mark.category2
-    @pytest.mark.ipus(1)
-    def test_without_feeds(self):
-        self.run_command("python3 mnist_without_feeds.py",
-                         working_path,
-                         "Time taken")
+@pytest.mark.category2
+@pytest.mark.ipus(1)
+def test_without_feeds():
+    testing_util.run_command(
+        "python3 mnist_without_feeds.py", working_path, "Time taken"
+    )

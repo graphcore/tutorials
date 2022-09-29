@@ -1,10 +1,10 @@
 # Copyright (c) 2019 Graphcore Ltd. All rights reserved.
 
 
-'''
+"""
 Code Example showing how to use pipelining in PopART on a very simple model
 consisting of two dense layers. Run one pipeline length and compute loss.
-'''
+"""
 
 import numpy as np
 import popart
@@ -18,21 +18,16 @@ import argparse
 #  b0 --|                          b1 --|
 
 
-def create_pipelined_model(
-        num_features,
-        num_classes,
-        batch_size):
+def create_pipelined_model(num_features, num_classes, batch_size):
 
     builder = popart.Builder()
 
     # Init
     def init_weights(input_size, output_size):
-        return np.random.normal(
-            0, 1, [input_size, output_size]).astype(np.float32)
+        return np.random.normal(0, 1, [input_size, output_size]).astype(np.float32)
 
     def init_biases(size):
-        return np.random.normal(
-            0, 1, [size]).astype(np.float32)
+        return np.random.normal(0, 1, [size]).astype(np.float32)
 
     # Labels
     labels_shape = [batch_size]
@@ -43,8 +38,7 @@ def create_pipelined_model(
     x0 = builder.addInputTensor(popart.TensorInfo("FLOAT", input_shape))
 
     #  Dense 1
-    W0 = builder.addInitializedInputTensor(
-        init_weights(num_features, 512))
+    W0 = builder.addInitializedInputTensor(init_weights(num_features, 512))
     b0 = builder.addInitializedInputTensor(init_biases(512))
 
     with builder.virtualGraph(0):
@@ -62,12 +56,15 @@ def create_pipelined_model(
     # Outputs
     with builder.virtualGraph(1):
         output_probs = builder.aiOnnx.softmax(
-            [x4], axis=1, debugContext="softmax_output")
+            [x4], axis=1, debugContext="softmax_output"
+        )
 
     builder.addOutputTensor(output_probs)
 
     # Loss
-    loss = builder.aiGraphcore.nllloss([output_probs, labels], popart.ReductionType.Sum, debugContext="loss")
+    loss = builder.aiGraphcore.nllloss(
+        [output_probs, labels], popart.ReductionType.Sum, debugContext="loss"
+    )
     builder.virtualGraph(loss, 1)
 
     # Anchors
@@ -96,11 +93,12 @@ def main(args):
     x0, labels, model_proto, anchor_map, loss = create_pipelined_model(
         num_features=input_columns * input_rows,
         num_classes=num_classes,
-        batch_size=batch_size)
+        batch_size=batch_size,
+    )
 
     # Save model (optional)
     if args.export:
-        with open(args.export, 'wb') as model_path:
+        with open(args.export, "wb") as model_path:
             model_path.write(model_proto)
 
     # Session options
@@ -117,7 +115,8 @@ def main(args):
         loss=loss,
         optimizer=popart.ConstSGD(0.01),
         userOptions=opts,
-        deviceInfo=popart.DeviceManager().acquireAvailableDevice(num_ipus))
+        deviceInfo=popart.DeviceManager().acquireAvailableDevice(num_ipus),
+    )
 
     anchors = session.initAnchorArrays()
     session.prepareDevice()
@@ -128,11 +127,11 @@ def main(args):
         input_shape.insert(0, pipeline_depth)
 
     # Synthetic data input
-    data_in = np.random.uniform(
-        low=0.0, high=1.0, size=input_shape).astype(np.float32)
+    data_in = np.random.uniform(low=0.0, high=1.0, size=input_shape).astype(np.float32)
 
-    labels_in = np.random.randint(
-        low=0, high=num_classes, size=labels_shape).astype(np.int32)
+    labels_in = np.random.randint(low=0, high=num_classes, size=labels_shape).astype(
+        np.int32
+    )
 
     # Run session
     inputs = {x0: data_in, labels: labels_in}
@@ -148,10 +147,11 @@ if __name__ == "__main__":
 
     # Arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument('--export', help='export model', metavar='FILE')
-    parser.add_argument('--no_pipelining', action='store_true',
-                        help='deactivate pipelining')
-    parser.add_argument('--test', action='store_true', help='test mode')
+    parser.add_argument("--export", help="export model", metavar="FILE")
+    parser.add_argument(
+        "--no_pipelining", action="store_true", help="deactivate pipelining"
+    )
+    parser.add_argument("--test", action="store_true", help="test mode")
     args = parser.parse_args()
 
     # Run

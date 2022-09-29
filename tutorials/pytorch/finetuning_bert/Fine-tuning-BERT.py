@@ -16,7 +16,7 @@
 #    (see the [Getting Started](https://docs.graphcore.ai/en/latest/getting-started.html) guide for your IPU system)
 # - Python packages installed with `python -m pip install -r requirements.txt`
 
-# %pip install -r requirements.txt
+# %pip install -q -r requirements.txt
 # To run this Jupyter notebook on a remote IPU machine:
 # 1. Enable a Poplar SDK environment (see the [Getting Started](https://docs.graphcore.ai/en/latest/getting-started.html) guide for your IPU system) and install required packages with `python -m pip install -r requirements.txt`
 # 2. In the same environment, install the Jupyter notebook server: `python -m pip install jupyter`
@@ -43,7 +43,11 @@
 from squad_preprocessing import postprocess_qa_predictions
 from datasets import load_metric
 from squad_preprocessing import PadCollate
-from squad_preprocessing import prepare_train_features, prepare_validation_features, tokenizer
+from squad_preprocessing import (
+    prepare_train_features,
+    prepare_validation_features,
+    tokenizer,
+)
 from squad_preprocessing import tokenizer
 import transformers
 import torch
@@ -64,6 +68,7 @@ import poptorch
 
 
 import warnings
+
 warnings.filterwarnings("ignore")
 
 
@@ -74,7 +79,7 @@ warnings.filterwarnings("ignore")
 #
 # > Stanford Question Answering Dataset (SQuAD) is a reading comprehension dataset, consisting of questions posed by crowdworkers on a set of Wikipedia articles, where the answer to every question is a segment of text, or span, from the corresponding reading passage, or the question might be unanswerable.
 #
-# From https://rajpurkar.github.io/SQuAD-explorer/
+# From <https://rajpurkar.github.io/SQuAD-explorer/>
 #
 # Basically you train a model to take a question and read a passage of text and predict the start and end positions of where that answer lies in the passage. The image below shows an example from the dataset:
 #
@@ -120,8 +125,10 @@ datasets["train"][10016]
 # In[7]:
 
 
-example = {"context": "Institutes of technology in Venezuela were developed in the 1950s",
-           "question": "When were Institutes of technology developed?"}
+example = {
+    "context": "Institutes of technology in Venezuela were developed in the 1950s",
+    "question": "When were Institutes of technology developed?",
+}
 tokenized_example = tokenizer(
     example["question"],
     example["context"],
@@ -186,7 +193,7 @@ validation_features = datasets["validation"].map(
 #
 # ### Parallelism through pipelining
 #
-# The model layers are split over 8 IPUs. We then use [*pipeline parallelism*](https://docs.graphcore.ai/projects/tf-model-parallelism/en/latest/pipelining.html) over the IPUs with gradient accumulation. We subdivide the compute batch into micro-batches that pass through the pipeline in the forward pass and then come back again in the backwards pass, accumulating gradients for the parameters as they go.
+# The model layers are split over 8 IPUs. We then use [*pipeline parallelism*](https://docs.graphcore.ai/projects/tf-model-parallelism/en/3.0.0/pipelining.html) over the IPUs with gradient accumulation. We subdivide the compute batch into micro-batches that pass through the pipeline in the forward pass and then come back again in the backwards pass, accumulating gradients for the parameters as they go.
 #
 # A complete pipeline step has a ramp-up phase the start and a ramp-down phase at the end. Increasing the gradient accumulation factor, increases the total batch size and also increases the pipeline efficiency, and therefore throughput, because the proportion of time in ramp-up/down phases will be reduced.
 #
@@ -208,7 +215,7 @@ validation_features = datasets["validation"].map(
 #
 # We can make more efficient use of the valuable In-Processor-Memory by saving only selected activation inputs and recomputing the rest. This lets us optimise on memory savings (by not storing all activations) vs FLOP expenditure (by not having to recompute all activations).
 # ![image-7.png](attachment:image-7.png)
-# Source: [TensorFlow Model Parallelism: Recomputation](https://docs.graphcore.ai/projects/tf-model-parallelism/en/latest/pipelining.html#recomputation)
+# Source: [TensorFlow Model Parallelism: Recomputation](https://docs.graphcore.ai/projects/tf-model-parallelism/en/3.0.0/pipelining.html#recomputation)
 #
 # Checkpoints are automatically placed between each pipeline stage. In addition to these automatic checkpoints, we are adding one at the end of every transformer layer, which leads to better performance.
 #
@@ -226,9 +233,11 @@ validation_features = datasets["validation"].map(
 # This function marks a PyTorch layer as a recomputation checkpoint
 def checkpoint_outputs(module: nn.Module):
     """Annotates the output of a module to be checkpointed instead of
-        recomputed"""
+    recomputed"""
+
     def recompute_outputs(module, inputs, outputs):
         return tuple(poptorch.recomputationCheckpoint(y) for y in outputs)
+
     module.register_forward_hook(recompute_outputs)
 
 
@@ -250,29 +259,37 @@ class PipelinedBertForQuestionAnswering(transformers.BertForQuestionAnswering):
         print("-------------------- Device Allocation --------------------")
         print("Embedding  --> IPU 0")
         self.bert.embeddings = poptorch.BeginBlock(
-            self.bert.embeddings, "Embedding", ipu_id=0)
+            self.bert.embeddings, "Embedding", ipu_id=0
+        )
 
         for index, layer in enumerate(self.bert.encoder.layer):
             ipu = layer_ipu[index]
             if index != self.config.num_hidden_layers - 1:
                 checkpoint_outputs(layer)
             self.bert.encoder.layer[index] = poptorch.BeginBlock(
-                layer, f"Encoder{index}", ipu_id=ipu)
+                layer, f"Encoder{index}", ipu_id=ipu
+            )
             print(f"Encoder {index:<2} --> IPU {ipu}")
 
         print(f"QA Outputs --> IPU {ipu}")
-        self.qa_outputs = poptorch.BeginBlock(
-            self.qa_outputs, "QA Outputs", ipu_id=ipu)
+        self.qa_outputs = poptorch.BeginBlock(self.qa_outputs, "QA Outputs", ipu_id=ipu)
         return self
 
     # Model training loop is entirely running on IPU so we add Loss computation here
-    def forward(self, input_ids, attention_mask, token_type_ids, start_positions=None, end_positions=None):
+    def forward(
+        self,
+        input_ids,
+        attention_mask,
+        token_type_ids,
+        start_positions=None,
+        end_positions=None,
+    ):
         inputs = {
             "input_ids": input_ids,
             "attention_mask": attention_mask,
             "token_type_ids": token_type_ids,
             "start_positions": start_positions,
-            "end_positions": end_positions
+            "end_positions": end_positions,
         }
         output = super().forward(**inputs)
         if self.training:
@@ -286,13 +303,15 @@ class PipelinedBertForQuestionAnswering(transformers.BertForQuestionAnswering):
 
 
 # BERT-Large configuration
-config = transformers.BertConfig(hidden_size=1024,
-                                 intermediate_size=1024*4,
-                                 num_hidden_layers=24,
-                                 num_attention_heads=16,
-                                 hidden_dropout_prob=0.15,
-                                 attention_probs_dropout_prob=0.1,
-                                 layer_norm_eps=1e-6)
+config = transformers.BertConfig(
+    hidden_size=1024,
+    intermediate_size=1024 * 4,
+    num_hidden_layers=24,
+    num_attention_heads=16,
+    hidden_dropout_prob=0.15,
+    attention_probs_dropout_prob=0.1,
+    layer_norm_eps=1e-6,
+)
 
 
 # Model is still on CPU at this point. We can use `from_pretrained` to load pretrained checkpoints from the HuggingFace Hub.
@@ -301,20 +320,23 @@ config = transformers.BertConfig(hidden_size=1024,
 
 
 model = PipelinedBertForQuestionAnswering.from_pretrained(
-    "Graphcore/bert-large-uncased", config=config)
+    "Graphcore/bert-large-uncased", config=config
+)
 
 
 # We can now set up our pipelined execution by specifying which layers to put on each IPU, and passing it to the `parallelize` method that we defined above.
 #
 # We also call the `.half()` method to cast all the model weights to half-precision (FP16). The `.train()` sets the PyTorch model to training mode.
 #
-# If you unfamiliar with training in half precision on IPU, then we have a tutorial on [Half and Mixed Precision in Poptorch](../mixed_precision).
+# If you unfamiliar with training in half precision on IPU, then we have a tutorial on [Half and Mixed Precision in PopTorch](../mixed_precision).
 
 # In[17]:
 
 
-ipu_config = {"layers_per_ipu": [2, 3, 3, 3, 3, 3, 3, 4],
-              "recompute_checkpoint_every_layer": True}
+ipu_config = {
+    "layers_per_ipu": [2, 3, 3, 3, 3, 3, 3, 4],
+    "recompute_checkpoint_every_layer": True,
+}
 
 model.parallelize(ipu_config).half().train()
 
@@ -332,11 +354,10 @@ model.parallelize(ipu_config).half().train()
 global_batch_size = 256
 micro_batch_size = 2
 replication_factor = 2
-gradient_accumulation = int(
-    global_batch_size / micro_batch_size / replication_factor)
+gradient_accumulation = int(global_batch_size / micro_batch_size / replication_factor)
 
 
-# `device_iterations` is the number of batches the device should run before returning to the user. Increasing `device_iterations` can be more efficient because the loop runs on the IPU directly, reducing overhead costs. Please see the [documentation](https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/batching.html?highlight=device%20iterations#poptorch-options-deviceiterations) for more information.
+# `device_iterations` is the number of batches the device should run before returning to the user. Increasing `device_iterations` can be more efficient because the loop runs on the IPU directly, reducing overhead costs. Please see the [documentation](https://docs.graphcore.ai/projects/poptorch-user-guide/en/3.0.0/batching.html?highlight=device%20iterations#poptorch-options-deviceiterations) for more information.
 
 # In[19]:
 
@@ -365,7 +386,8 @@ def ipu_training_options(gradient_accumulation, replication_factor, device_itera
 
     # Use Pipelined Execution
     opts.setExecutionStrategy(
-        poptorch.PipelinedExecution(poptorch.AutoStage.AutoIncrement))
+        poptorch.PipelinedExecution(poptorch.AutoStage.AutoIncrement)
+    )
 
     # Use Stochastic Rounding
     opts.Precision.enableStochasticRounding(True)
@@ -389,11 +411,16 @@ def ipu_training_options(gradient_accumulation, replication_factor, device_itera
         # Optimizer state lives on IPU
         .useOnChipStorage(True)
         # Optimizer state sharded between replicas with zero-redundancy
-        .useReplicatedTensorSharding(True))
+        .useReplicatedTensorSharding(True)
+    )
 
     # Available Transient Memory For matmuls and convolutions operations
-    opts.setAvailableMemoryProportion({f"IPU{i}": mp
-                                       for i, mp in enumerate([0.08, 0.28, 0.32, 0.32, 0.36, 0.38, 0.4, 0.1])})
+    opts.setAvailableMemoryProportion(
+        {
+            f"IPU{i}": mp
+            for i, mp in enumerate([0.08, 0.28, 0.32, 0.32, 0.36, 0.38, 0.4, 0.1])
+        }
+    )
 
     # Advanced performance options #
 
@@ -401,14 +428,16 @@ def ipu_training_options(gradient_accumulation, replication_factor, device_itera
     opts._Popart.set("disableGradAccumulationTensorStreams", True)
 
     # Copy inputs and outputs as they are needed
-    opts._Popart.set("subgraphCopyingStrategy", int(
-        popart.SubgraphCopyingStrategy.JustInTime))
+    opts._Popart.set(
+        "subgraphCopyingStrategy", int(popart.SubgraphCopyingStrategy.JustInTime)
+    )
 
     # Parallelize optimizer step update
-    opts._Popart.set("accumulateOuterFragmentSettings.schedule",
-                     int(popart.AccumulateOuterFragmentSchedule.OverlapMemoryOptimized))
     opts._Popart.set(
-        "accumulateOuterFragmentSettings.excludedVirtualGraphs", ["0"])
+        "accumulateOuterFragmentSettings.schedule",
+        int(popart.AccumulateOuterFragmentSchedule.OverlapMemoryOptimized),
+    )
+    opts._Popart.set("accumulateOuterFragmentSettings.excludedVirtualGraphs", ["0"])
 
     # Limit number of sub-graphs that are outlined (to preserve memory)
     opts._Popart.set("outlineThreshold", 10.0)
@@ -422,7 +451,8 @@ def ipu_training_options(gradient_accumulation, replication_factor, device_itera
 
 
 train_opts = ipu_training_options(
-    gradient_accumulation, replication_factor, device_iterations)
+    gradient_accumulation, replication_factor, device_iterations
+)
 
 
 # ## 4. Training Loop
@@ -442,27 +472,33 @@ sequence_length = 384
 #
 # For a compiled device like IPU that would require a recompilation of the execution graph for that one mini-batch. In order to not lose any training examples, we can pad the remainder mini-batch with zeros and set the target values to a special value which will set the loss to 0 in those cases so they don't affect training. This way we have consistent mini-batch sizes and we can train on all the data.
 #
-# More information can be found in the [`poptorch.DataLoader` documentation.](https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/batching.html#efficient-data-batching) and also in our [tutorial on efficient data loading.](../efficient_data_loading)
+# More information can be found in the [`poptorch.DataLoader` documentation.](https://docs.graphcore.ai/projects/poptorch-user-guide/en/3.0.0/batching.html#efficient-data-batching) and also in our [tutorial on efficient data loading.](../efficient_data_loading)
 
 # In[25]:
 
 
-train_dl = poptorch.DataLoader(train_opts,
-                               train_dataset,
-                               batch_size=micro_batch_size,
-                               shuffle=True,
-                               drop_last=False,
-                               collate_fn=PadCollate(samples_per_iteration,
-                                                     {"input_ids": 0,
-                                                      "attention_mask": 0,
-                                                      "token_type_ids": 0,
-                                                      "start_positions": sequence_length,
-                                                      "end_positions": sequence_length}))
+train_dl = poptorch.DataLoader(
+    train_opts,
+    train_dataset,
+    batch_size=micro_batch_size,
+    shuffle=True,
+    drop_last=False,
+    collate_fn=PadCollate(
+        samples_per_iteration,
+        {
+            "input_ids": 0,
+            "attention_mask": 0,
+            "token_type_ids": 0,
+            "start_positions": sequence_length,
+            "end_positions": sequence_length,
+        },
+    ),
+)
 
 
 # We will use poptorch's version of the `AdamW` optimizer, its interface is the same as `AdamW` from `torch.optim`, but with some extra options.
 #
-# Please see the [`poptorch.optim` documentation](https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/overview.html#optimizers) for more information.
+# Please see the [`poptorch.optim` documentation](https://docs.graphcore.ai/projects/poptorch-user-guide/en/3.0.0/overview.html#optimizers) for more information.
 
 # In[26]:
 
@@ -480,16 +516,18 @@ def get_optimizer(model):
 
     params = [
         {"params": regularized_params, "weight_decay": 0.01},
-        {"params": non_regularized_params, "weight_decay": 0}
+        {"params": non_regularized_params, "weight_decay": 0},
     ]
-    optimizer = poptorch.optim.AdamW(params,
-                                     lr=1e-4,
-                                     weight_decay=0,
-                                     eps=1e-6,
-                                     bias_correction=True,
-                                     loss_scaling=64,
-                                     first_order_momentum_accum_type=torch.float16,
-                                     accum_type=torch.float16)
+    optimizer = poptorch.optim.AdamW(
+        params,
+        lr=1e-4,
+        weight_decay=0,
+        eps=1e-6,
+        bias_correction=True,
+        loss_scaling=64,
+        first_order_momentum_accum_type=torch.float16,
+        accum_type=torch.float16,
+    )
     return optimizer
 
 
@@ -507,18 +545,21 @@ optimizer = get_optimizer(model)
 def trainer(model, opts, optimizer, train_dl, num_epochs):
     num_steps = num_epochs * len(train_dl)
     lr_scheduler = transformers.get_scheduler(
-        "cosine", optimizer, 0.1 * num_steps, num_steps)
+        "cosine", optimizer, 0.1 * num_steps, num_steps
+    )
 
     # Wrap the pytorch model with poptorch.trainingModel
     training_model = poptorch.trainingModel(model, train_opts, optimizer)
 
     # Compile model or load from executable cache
     batch = next(iter(train_dl))
-    outputs = training_model.compile(batch["input_ids"],
-                                     batch["attention_mask"],
-                                     batch["token_type_ids"],
-                                     batch["start_positions"],
-                                     batch["end_positions"])
+    outputs = training_model.compile(
+        batch["input_ids"],
+        batch["attention_mask"],
+        batch["token_type_ids"],
+        batch["start_positions"],
+        batch["end_positions"],
+    )
     # Training Loop
     for epoch in trange(num_epochs, desc="Epochs"):
         train_iter = tqdm(train_dl)
@@ -526,11 +567,13 @@ def trainer(model, opts, optimizer, train_dl, num_epochs):
             start_step = time.perf_counter()
 
             # This completes a forward+backward+weight update step
-            outputs = training_model(batch["input_ids"],
-                                     batch["attention_mask"],
-                                     batch["token_type_ids"],
-                                     batch["start_positions"],
-                                     batch["end_positions"])
+            outputs = training_model(
+                batch["input_ids"],
+                batch["attention_mask"],
+                batch["token_type_ids"],
+                batch["start_positions"],
+                batch["end_positions"],
+            )
 
             # Update the LR and update the poptorch optimizer
             lr_scheduler.step()
@@ -542,7 +585,8 @@ def trainer(model, opts, optimizer, train_dl, num_epochs):
                 f"Epoch: {epoch} - "
                 f"Step: {step} - "
                 f"Loss: {loss:3.3f} - "
-                f"Throughput: {step_throughput:3.3f} seq/s")
+                f"Throughput: {step_throughput:3.3f} seq/s"
+            )
 
     # Detach the model from the device once training is over so the device is free to be reused for validation
     training_model.detachFromDevice()
@@ -588,7 +632,8 @@ def ipu_validation_options(replication_factor, device_iterations):
     opts.deviceIterations(device_iterations)
 
     opts.setExecutionStrategy(
-        poptorch.PipelinedExecution(poptorch.AutoStage.AutoIncrement))
+        poptorch.PipelinedExecution(poptorch.AutoStage.AutoIncrement)
+    )
 
     # Stochastic rounding not needed for validation
     opts.Precision.enableStochasticRounding(False)
@@ -619,8 +664,7 @@ val_opts = ipu_validation_options(replication_factor, device_iterations)
 # In[35]:
 
 
-ipu_config = {"layers_per_ipu": [11, 13],
-              "recompute_checkpoint_every_layer": False}
+ipu_config = {"layers_per_ipu": [11, 13], "recompute_checkpoint_every_layer": False}
 
 
 # Let's load the model weights we previously trained from disk:
@@ -628,8 +672,7 @@ ipu_config = {"layers_per_ipu": [11, 13],
 # In[36]:
 
 
-model = PipelinedBertForQuestionAnswering.from_pretrained(
-    "checkpoints/squad_large_2x8")
+model = PipelinedBertForQuestionAnswering.from_pretrained("checkpoints/squad_large_2x8")
 
 
 # We cast the model weights to half precision (FP16) and set the model to evaluation mode:
@@ -643,16 +686,17 @@ model.parallelize(ipu_config).half().eval()
 # In[38]:
 
 
-val_dl = poptorch.DataLoader(val_opts,
-                             validation_features.remove_columns(
-                                 ['example_id', 'offset_mapping']),
-                             batch_size=micro_batch_size,
-                             shuffle=False,
-                             drop_last=False,
-                             collate_fn=PadCollate(samples_per_iteration,
-                                                   {"input_ids": 0,
-                                                    "attention_mask": 0,
-                                                    "token_type_ids": 0}))
+val_dl = poptorch.DataLoader(
+    val_opts,
+    validation_features.remove_columns(["example_id", "offset_mapping"]),
+    batch_size=micro_batch_size,
+    shuffle=False,
+    drop_last=False,
+    collate_fn=PadCollate(
+        samples_per_iteration,
+        {"input_ids": 0, "attention_mask": 0, "token_type_ids": 0},
+    ),
+)
 
 
 # In[39]:
@@ -666,15 +710,16 @@ def validator(model, opts, val_dl):
     val_iter = tqdm(val_dl, desc="Validation")
     for step, batch in enumerate(val_iter):
         start_step = time.perf_counter()
-        outputs = inference_model(batch["input_ids"],
-                                  batch["attention_mask"],
-                                  batch["token_type_ids"])
+        outputs = inference_model(
+            batch["input_ids"], batch["attention_mask"], batch["token_type_ids"]
+        )
         step_length = time.perf_counter() - start_step
         step_throughput = samples_per_iteration / step_length
         raw_predictions[0].append(outputs[0])
         raw_predictions[1].append(outputs[1])
         val_iter.set_description(
-            f"Step: {step} - throughput: {step_throughput:3.3f} samples/s")
+            f"Step: {step} - throughput: {step_throughput:3.3f} samples/s"
+        )
     inference_model.detachFromDevice()
 
     raw_predictions[0] = torch.vstack(raw_predictions[0]).float().numpy()
@@ -695,21 +740,22 @@ raw_predictions = validator(model, val_opts, val_dl)
 # In[41]:
 
 
-final_predictions = postprocess_qa_predictions(datasets["validation"],
-                                               validation_features,
-                                               raw_predictions)
+final_predictions = postprocess_qa_predictions(
+    datasets["validation"], validation_features, raw_predictions
+)
 
 
 # In[42]:
 
 
 metric = load_metric("squad")
-formatted_predictions = [{"id": k, "prediction_text": v}
-                         for k, v in final_predictions.items()]
-references = [{"id": ex["id"], "answers": ex["answers"]}
-              for ex in datasets["validation"]]
-metrics = metric.compute(
-    predictions=formatted_predictions, references=references)
+formatted_predictions = [
+    {"id": k, "prediction_text": v} for k, v in final_predictions.items()
+]
+references = [
+    {"id": ex["id"], "answers": ex["answers"]} for ex in datasets["validation"]
+]
+metrics = metric.compute(predictions=formatted_predictions, references=references)
 print(metrics)
 
 
@@ -728,8 +774,16 @@ print(metrics)
 
 
 # Define task
-question = "What speed-up can one expect from using sequence packing for training BERT on IPU?"
-answer_text = "We find that at sequence length 512 padding tokens represent in excess of 50% of the Wikipedia"               "dataset used for pretraining BERT (Bidirectional Encoder Representations from Transformers)."              "Therefore by removing all padding we achieve a 2x speed-up in terms of sequences/sec."              "To exploit this characteristic of the dataset,"              "we develop and contrast two deterministic packing algorithms."
+question = (
+    "What speed-up can one expect from using sequence packing for training BERT on IPU?"
+)
+answer_text = (
+    "We find that at sequence length 512 padding tokens represent in excess of 50% of the Wikipedia"
+    "dataset used for pretraining BERT (Bidirectional Encoder Representations from Transformers)."
+    "Therefore by removing all padding we achieve a 2x speed-up in terms of sequences/sec."
+    "To exploit this characteristic of the dataset,"
+    "we develop and contrast two deterministic packing algorithms."
+)
 
 
 # Let's get the model inputs ready and create our model. We'll import the weights from the pre-trained, fine-tuned BERT model from the previous sections:
@@ -747,7 +801,8 @@ token_types = torch.tensor(input_encoding["token_type_ids"]).unsqueeze(0)
 
 # Get model and load the fine-tuned weights
 model = transformers.BertForQuestionAnswering.from_pretrained(
-    "checkpoints/squad_large_2x8")
+    "checkpoints/squad_large_2x8"
+)
 
 
 # Optionally, instead of using the fine-tuned weights we saved in the previous section, you can download fine-tuned weights from the [Graphcore organisation on the HuggingFace Model Hub](https://huggingface.co/Graphcore).
@@ -768,9 +823,8 @@ outputs = model(input_tensor, attention_tensor, token_types)
 
 # Extract answer
 answer_start, answer_stop = outputs.start_logits.argmax(), outputs.end_logits.argmax()
-answer_ids = input_tensor.squeeze()[answer_start:answer_stop + 1]
-answer_tokens = tokenizer.convert_ids_to_tokens(
-    answer_ids, skip_special_tokens=True)
+answer_ids = input_tensor.squeeze()[answer_start : answer_stop + 1]
+answer_tokens = tokenizer.convert_ids_to_tokens(answer_ids, skip_special_tokens=True)
 answer = tokenizer.convert_tokens_to_string(answer_tokens)
 
 # Print results

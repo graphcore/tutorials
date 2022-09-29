@@ -1,3 +1,4 @@
+<!-- Copyright (c) 2021 Graphcore Ltd. All rights reserved. -->
 # Basic Model Demo for MNIST dataset
 
 This demo shows how to use one IPU for a simple Poplar model with MNIST dataset.
@@ -10,7 +11,7 @@ regression on the MNIST data set, using gradient descent.
 * `mnist.h` and `mnist.cpp` Helper files to iterate over the MNIST dataset.
 * `get_data.sh` A script to download the MNIST dataset.
 * `tests/` A folder containing tests for this model.
-* `README.rst` This file.
+* `README.md` This file.
 
 ## How to use this application
 1) Prepare the Poplar environment.

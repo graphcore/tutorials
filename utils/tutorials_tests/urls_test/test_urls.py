@@ -1,26 +1,16 @@
 # Copyright (c) 2021 Graphcore Ltd. All rights reserved.
 
-from typing import Iterable, List, Optional, Set, Tuple
-import re
+"""Test script to check hyperlinks work; external (http), internal (relative
+files) and page (references to section headings)."""
+
+from multiprocessing.dummy import Pool as ThreadPool
 from pathlib import Path
-from concurrent.futures import ThreadPoolExecutor
-import warnings
+from typing import Container, Iterable, List, Optional, Tuple
+
 import requests
 
-from tutorials_tests.testing_util import get_file_list
-
-LINK_PATTERN_MD = re.compile(r"]\(<?([^)>\s\*]+)[)>\s]")
-
-# TODO Doesn't find links targeting within same page
-LINK_PATTERN_RST = re.compile(r"[^`]`[^`]*<([^>]+)>`")
-
-DISALLOWED_CHAR = r"\s\]\"\\>`')}:,"
-LINK_PATTERN_RAW = re.compile(rf"(https?:[^{DISALLOWED_CHAR}]*[^{DISALLOWED_CHAR}\.])")
-
-# Match HTTP and HTTPS URL rather than file link or page link
-URL_PATTERN = re.compile(r"^https?:")
-
-LINK_PATTERN_PAGE = re.compile(r"^#")
+from ..testing_util import get_file_list
+from .link_parsers import get_parser
 
 # URLs which don't exist yet (e.g documentation for a future release) can be
 # added to the list of exceptions below.
@@ -29,38 +19,18 @@ LINK_PATTERN_PAGE = re.compile(r"^#")
 # is fixed.
 EXCEPTIONS: List[str] = []
 
+# URLs which are un-pegged but the repo doesn't currently have versions
+EXCEPTIONS_PEGGING = [
+    "https://docs.graphcore.ai/en/latest/getting-started.html",
+    "https://docs.graphcore.ai/en/latest/hardware.html",
+    "https://docs.graphcore.ai/en/latest/software.html",
+    "https://docs.graphcore.ai/projects/graphcore-glossary/en/latest/index.html",
+    "https://docs.pytest.org/en/latest/cache.html",
+]
 
-def get_all_links_from_file(file_path: Path) -> Set[str]:
-    """
-    Takes: a file path (markdown, rst, Jupyter notebook)
-    Returns: all links found in the file
-    """
-    print(f"Reading {file_path}")
-
-    with open(file_path, "r", encoding="latin-1") as file:
-        file_contents_lines = file.readlines()
-
-    join_char = "" if file_path.suffix == ".rst" else " "
-    file_contents = join_char.join([line.strip() for line in file_contents_lines])
-
-    compiled_re = LINK_PATTERN_RST if file_path.suffix == ".rst" else LINK_PATTERN_MD
-
-    all_links = set(compiled_re.findall(file_contents))
-    raw_links = set(LINK_PATTERN_RAW.findall(file_contents))
-
-    additional_raw = [
-        link for link in raw_links.difference(all_links)
-    ]
-    if additional_raw:
-        warnings.warn(f"Raw link(s) found in: {file_path} {additional_raw}")
-
-    return all_links | raw_links
-
-
-def check_url_works(url: str) -> Optional[Tuple[str, str, int]]:
-    """
-    Checks given `url` is responsive. If an error occurs return the error
-    response string and code. Returns `None` if good.
+def check_url_works(url: str, file_path: Path) -> Optional[Tuple[str, Path, str, int]]:
+    """Check given `url` is responsive. If an error occurs return the error
+    response string and code. Return `None` if good.
     """
     try:
         response = requests.head(url)
@@ -76,19 +46,31 @@ def check_url_works(url: str) -> Optional[Tuple[str, str, int]]:
     print(f"\t{url} -> {message} ({code})")
 
     if response.status_code == 302:
-        check_url_works(response.headers["Location"])
+        check_url_works(response.headers["Location"], file_path)
     else:
         # Allow any non 4xx status code, as other failures could be temporary
         # and break the CI tests.
         if response.status_code >= 400 and response.status_code < 500:
-            return url, message, code
+            return url, file_path, message, code
 
     return None
 
 
+def check_page_links(
+    file_path: Path, anchors: Container[str], links: Iterable[str]
+) -> List[str]:
+    """Check links with same file. Return list of failed links."""
+
+    # Links appear to be case insensitive, so `lower`
+    return [
+        f"{file_path}: {link} NON-EXISTENT"
+        for link in links
+        if link.lower() not in anchors
+    ]
+
+
 def check_file_links(file_path: Path, links: Iterable[str]) -> List[str]:
-    """
-    Checks given list of file links are all valid relative to given filename.
+    """Checks given list of file links are all valid relative to given filename.
     Returns list of failed links.
     """
     failed_paths = []
@@ -102,40 +84,90 @@ def check_file_links(file_path: Path, links: Iterable[str]) -> List[str]:
         if link_target.exists():
             print(f"\t{link_target} -> EXISTS")
         else:
-            print(f"\t{link_target} -> NON-EXISTANT")
-            failed_paths.append(f"{file_path}: {link_target} NON-EXISTANT")
+            print(f"\t{link_target} -> NON-EXISTENT")
+            failed_paths.append(f"{file_path}: {link_target} NON-EXISTENT")
 
     return failed_paths
 
 
-def test_all_links() -> None:
-    """
-    pytest to test links from markdown, RST and Notebooks are valid.
-    """
+def test_links_are_pegged() -> None:
+    """pytest to test links are pegged at a version"""
+
+    UNVERSIONED = ["tree/master", "en/latest"]
     root_path = Path(__file__).parents[3]
     text_types = (".md", ".rst", ".ipynb")
     file_list = get_file_list(root_path, text_types)
 
-    failed_urls = []
+    failed_urls: List[str] = []
 
-    executor = ThreadPoolExecutor()
-    for file in file_list:
-        links = get_all_links_from_file(file)
-        external_links = {link for link in links if URL_PATTERN.match(link)}
+    for file_path in file_list:
+        with open(file_path, "r") as file:
+            lines = file.read().splitlines()
 
-        # TODO Test links within same page are good
-        page_links = {link for link in links if LINK_PATTERN_PAGE.match(link)}
+        parser = get_parser(file_path)
+        links = parser.get_all_links(lines)
+        external_links = parser.select_external_links(links)
 
-        for url_result in executor.map(check_url_works, external_links):
+        for link in external_links:
+            if any(item in link for item in UNVERSIONED) and not any(
+                link.startswith(item) for item in EXCEPTIONS_PEGGING
+            ):
+                failed_urls.append(f"{file_path}: {link}")
+
+    no_failures = not failed_urls
+    assert (
+        no_failures
+    ), "The following links should be pegged to a version:\n" + "\n".join(failed_urls)
+
+
+def test_all_links(test_urls: bool = True, force_full_build: bool = False) -> None:
+    """pytest to test links from markdown, RST and Notebooks are valid."""
+    root_path = Path(__file__).parents[3]
+    text_types = (".md", ".rst", ".ipynb")
+    file_list = get_file_list(root_path, text_types, force_full_build)
+
+    # Get list of URLs to test (serially as its fast)
+    jobs: List[Tuple[str, Path]] = []
+    failed_urls: List[str] = []
+    for file_path in file_list:
+        print("Processing ", file_path)
+        with open(file_path, "r") as file:
+            lines = file.read().splitlines()
+
+        parser = get_parser(file_path)
+        links = parser.get_all_links(lines)
+        anchors = parser.generate_page_anchors(lines)
+
+        # List of internet/external links
+        external_links = parser.select_external_links(links)
+        jobs.extend((url, file_path) for url in external_links)
+
+        # Links within same file/page
+        page_links = parser.select_page_links(links)
+        failed_urls += check_page_links(file_path, anchors, page_links)
+
+        # File to local file links
+        file_links = links.difference(external_links).difference(page_links)
+        failed_urls += check_file_links(file_path, file_links)
+
+    # Test URLs (multi-threaded as its slow)
+    if test_urls:
+        with ThreadPool(processes=max([1, len(jobs)])) as thread_pool:
+            url_results = thread_pool.starmap(check_url_works, jobs)
+        for url_result in url_results:
             if url_result is not None:
-                url, message, code = url_result
+                url, filename, message, code = url_result
                 if url in EXCEPTIONS:
                     print(f"{url} found in exceptions: ignoring {message} ({code})")
                 else:
-                    failed_urls.append(f"{file}: {url} {message} ({code})")
-
-        file_links = links.difference(external_links).difference(page_links)
-        failed_urls += check_file_links(Path(file), file_links)
+                    failed_urls.append(f"{filename}: {url} {message} ({code})")
 
     no_failures = not failed_urls
     assert no_failures, "\n".join(failed_urls)
+
+
+def test_all_internal_links() -> None:
+    """Always needed as internal references can come from anywhere in the repo
+    not just the edited paths.
+    """
+    test_all_links(test_urls=False, force_full_build=True)

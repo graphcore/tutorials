@@ -1,3 +1,4 @@
+<!-- Copyright (c) 2020 Graphcore Ltd. All rights reserved. -->
 # PopART Recomputing example
 
 This example runs generated data through a seven layer DNN.
@@ -6,7 +7,7 @@ It shows how to use manual and automatic recomputation in popART.
 Manual recomputing allows the user to choose which ops to recompute.
 
 Automatic recomputing uses an heuristic technique.
-See https://arxiv.org/abs/1604.06174
+See <https://arxiv.org/abs/1604.06174>
 
 
 ## How to run the example
@@ -54,7 +55,7 @@ export POPLAR_ENGINE_OPTIONS='{"autoReport.all":"true", "autoReport.directory":"
 
 After running an application, the resulting report files can be opened using the PopVision Graph Analyser.
 See the Graph Analyser user guide for more information:
-[PopVision Graph Analyser User Guide](https://docs.graphcore.ai/projects/graph-analyser-userguide/en/latest/).
+[PopVision Graph Analyser User Guide](https://docs.graphcore.ai/projects/graph-analyser-userguide/en/3.11.2/).
 
 ## Run the tests
 

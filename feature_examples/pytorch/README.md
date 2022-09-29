@@ -1,3 +1,4 @@
+<!-- Copyright (c) 2021 Graphcore Ltd. All rights reserved. -->
 # Code Examples for PyTorch
 
 This directory contains code examples showing how to use PyTorch with Graphcore's IPUs. These include full models as well as examples of how to use pre-trained models.

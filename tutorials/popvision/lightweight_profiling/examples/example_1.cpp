@@ -8,7 +8,8 @@ class DummyVertex : public SupervisorVertex {
 public:
   __attribute__((target("supervisor"))) bool compute() {
     // Simulate some computation
-    for (volatile int i{}; i < 100; ++i);
+    for (volatile int i{}; i < 100; ++i)
+      ;
     return true;
   }
 };
@@ -27,9 +28,9 @@ using namespace poplar::program;
 poplar::Device getIpuHwDevice(std::size_t numIpus) {
   auto dm = poplar::DeviceManager::createDeviceManager();
   auto hwDevices = dm.getDevices(poplar::TargetType::IPU, numIpus);
-  auto it = std::find_if(hwDevices.begin(), hwDevices.end(), [](poplar::Device &device) {
-     return device.attach();
-  });
+  auto it =
+      std::find_if(hwDevices.begin(), hwDevices.end(),
+                   [](poplar::Device &device) { return device.attach(); });
   if (it != hwDevices.end()) {
     return std::move(*it);
   }
@@ -50,26 +51,20 @@ int main(int argc, char **argv) {
     ComputeSet op = graph.addComputeSet(name);
     VertexRef v = graph.addVertex(op, "DummyVertex");
     graph.setTileMapping(v, tilesPerIpu * ipu);
-    //return Execute(op);
+    // return Execute(op);
     return Block(Execute(op), name);
   };
 
   // Construct a fake pipeline with two stages and run it five times
-  const auto stage1 = Block(Sequence{
-      createOperation("op1", 0),
-      createOperation("op2", 0)
-   }, "stage1");
-  const auto stage2 = Block(Sequence{
-      createOperation("op1", 1),
-      createOperation("op2", 1)
-   }, "stage2");
+  const auto stage1 = Block(
+      Sequence{createOperation("op1", 0), createOperation("op2", 0)}, "stage1");
+  const auto stage2 = Block(
+      Sequence{createOperation("op1", 1), createOperation("op2", 1)}, "stage2");
 
   Repeat mainLoop{5, Sequence{stage1, stage2}};
 
   // Compile and execute the model
-  OptionFlags engineOpts{
-    {"profiler.blocks.filter", "stage.|op2"}
-  };
+  OptionFlags engineOpts{{"profiler.blocks.filter", "stage.|op2"}};
   Engine engine(graph, mainLoop, engineOpts);
   engine.load(device);
   engine.run();
@@ -81,12 +76,11 @@ int main(int argc, char **argv) {
     for (const auto &block : report.execution().blocks(tile)) {
       const auto from = block.cyclesFrom();
       const auto to = block.cyclesTo();
-      std::cout << std::setw(10) << block.program()->name()
-                << ": " << (to - from) << " (" << from << " - " << to << ")\n";
+      std::cout << std::setw(10) << block.program()->name() << ": "
+                << (to - from) << " (" << from << " - " << to << ")\n";
     }
   }
 
   return 0;
 }
 #endif
-

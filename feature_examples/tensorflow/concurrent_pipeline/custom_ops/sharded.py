@@ -18,15 +18,19 @@ def make_matmul_json_args(lhs, rhs, matmul_options: dict) -> str:
     # These attributes have to match those expected
     # by the reader function in utils.cpp:
     args = {
-      "batch_size": int(lhs.shape[0]),
-      "input_size": int(lhs.shape[1]),
-      "output_size": int(rhs.shape[1]),
-      "matmul_options": json.dumps(matmul_options)  # Poplar can parse this JSON string directly.
+        "batch_size": int(lhs.shape[0]),
+        "input_size": int(lhs.shape[1]),
+        "output_size": int(rhs.shape[1]),
+        "matmul_options": json.dumps(
+            matmul_options
+        ),  # Poplar can parse this JSON string directly.
     }
     return json.dumps(args)
 
 
-def make_gather_json_args(feature_count, feature_dim, index_count: int, grad_scale: float, slice_options: dict) -> str:
+def make_gather_json_args(
+    feature_count, feature_dim, index_count: int, grad_scale: float, slice_options: dict
+) -> str:
     """
     Utility function to create the attribute string expected by the
     sharded.embedding custom-op implementation.
@@ -41,11 +45,11 @@ def make_gather_json_args(feature_count, feature_dim, index_count: int, grad_sca
     # The following attributes have to match those expected by the
     # reader function in utils.cpp:
     args = {
-      "feature_count": int(feature_count),
-      "feature_dim": int(feature_dim),
-      "output_count": int(index_count),
-      "gradient_scale": int(grad_scale),
-      "slice_options": json.dumps(slice_options)
+        "feature_count": int(feature_count),
+        "feature_dim": int(feature_dim),
+        "output_count": int(index_count),
+        "gradient_scale": int(grad_scale),
+        "slice_options": json.dumps(slice_options),
     }
     return json.dumps(args)
 
@@ -73,17 +77,24 @@ def matmul(lhs, rhs, matmul_options: dict, name: str = "sharded.matmul"):
     base_path = os.path.realpath(os.path.dirname(__file__))
     lib_path = os.path.join(base_path, "libconcurrent_ops.so")
     return ipu.custom_ops.precompiled_user_op(
-        [lhs, rhs], lib_path,
+        [lhs, rhs],
+        lib_path,
         outs=outputs,
         name=name,
-        op_name='sharded_matmul',
+        op_name="sharded_matmul",
         attributes=json_args,
         gradient_attributes=json_args,
         inputs_with_gradients=[0, 1],
-        separate_gradients=False)[0]
+        separate_gradients=False,
+    )[0]
 
 
-def allocate_tied_embedding(tied_weights, indices, slice_options: dict, name: str = "sharded.allocate_tied_embedding"):
+def allocate_tied_embedding(
+    tied_weights,
+    indices,
+    slice_options: dict,
+    name: str = "sharded.allocate_tied_embedding",
+):
     """
     Allocator function for tensors inputs to sharded.embedding.
 
@@ -109,27 +120,28 @@ def allocate_tied_embedding(tied_weights, indices, slice_options: dict, name: st
     num_indices = indices.shape[0]
     grad_scale = 1.0
     json_args = make_gather_json_args(
-      num_features, feature_dim, num_indices,
-      grad_scale, slice_options)
+        num_features, feature_dim, num_indices, grad_scale, slice_options
+    )
 
     outputs = {
-      "output_types": [tied_weights.dtype, indices.dtype],
-      "output_shapes": [tied_weights.shape, indices.shape],
+        "output_types": [tied_weights.dtype, indices.dtype],
+        "output_shapes": [tied_weights.shape, indices.shape],
     }
     base_path = os.path.realpath(os.path.dirname(__file__))
     lib_path = os.path.join(base_path, "libconcurrent_ops.so")
     return ipu.custom_ops.precompiled_user_op(
-        [tied_weights, indices], lib_path,
+        [tied_weights, indices],
+        lib_path,
         outs=outputs,
         name=name,
-        op_name='allocate_tied_embedding',
+        op_name="allocate_tied_embedding",
         attributes=json_args,
         inputs_with_gradients=[0, 1],
-        separate_gradients=False)
+        separate_gradients=False,
+    )
 
 
-def embedding(features, indices, slice_options: dict,
-              name: str = "sharded.embedding"):
+def embedding(features, indices, slice_options: dict, name: str = "sharded.embedding"):
     """
     Sharded embedding lookup.
 
@@ -147,8 +159,8 @@ def embedding(features, indices, slice_options: dict,
     num_indices = indices[0].shape[0]
     grad_scale = 1.0
     json_args = make_gather_json_args(
-      num_features, feature_dim, num_indices,
-      grad_scale, slice_options)
+        num_features, feature_dim, num_indices, grad_scale, slice_options
+    )
 
     # We need to define the output types and shapes for every custom op:
     outputs = {
@@ -159,17 +171,21 @@ def embedding(features, indices, slice_options: dict,
     base_path = os.path.realpath(os.path.dirname(__file__))
     lib_path = os.path.join(base_path, "libconcurrent_ops.so")
     return ipu.custom_ops.precompiled_user_op(
-        [features, indices], lib_path,
+        [features, indices],
+        lib_path,
         outs=outputs,
         name=name,
-        op_name='embedding',
+        op_name="embedding",
         attributes=json_args,
         gradient_attributes=json_args,
         inputs_with_gradients=[0],
-        separate_gradients=True)[0]
+        separate_gradients=True,
+    )[0]
 
 
-def log_softmax(logits, grad_matmul_options: dict = None, name: str = "sharded.log_softmax"):
+def log_softmax(
+    logits, grad_matmul_options: dict = None, name: str = "sharded.log_softmax"
+):
     """
     Sharded log-softmax operation across the last acis of the tensor,
     you should prefer to use the fused log_softmax_cross_entropy where possible.
@@ -191,16 +207,20 @@ def log_softmax(logits, grad_matmul_options: dict = None, name: str = "sharded.l
     lib_path = os.path.join(base_path, "libconcurrent_ops.so")
 
     return ipu.custom_ops.precompiled_user_op(
-        [logits], lib_path,
+        [logits],
+        lib_path,
         outs=outputs,
         name=name,
-        op_name='sharded_log_softmax',
+        op_name="sharded_log_softmax",
         gradient_attributes=grad_attr,
         inputs_with_gradients=[0],
-        separate_gradients=False)[0]
+        separate_gradients=False,
+    )[0]
 
 
-def log_softmax_cross_entropy(logits, indices, name: str = "sharded.log_softmax_cross_entropy"):
+def log_softmax_cross_entropy(
+    logits, indices, name: str = "sharded.log_softmax_cross_entropy"
+):
     """
     Fused sharded-softmax-cross-entropy across the last axis of the tensor.
     As in regular TensorFlow the fused operation makes the backwards pass much more
@@ -213,19 +233,21 @@ def log_softmax_cross_entropy(logits, indices, name: str = "sharded.log_softmax_
     :return: Tensor of .
     """
     outputs = {
-      "output_types": [logits.dtype, logits.dtype],
-      "output_shapes": [[logits.shape[0], 1], logits.shape],
+        "output_types": [logits.dtype, logits.dtype],
+        "output_shapes": [[logits.shape[0], 1], logits.shape],
     }
     base_path = os.path.realpath(os.path.dirname(__file__))
     lib_path = os.path.join(base_path, "libconcurrent_ops.so")
 
     return ipu.custom_ops.precompiled_user_op(
-        [logits, indices], lib_path,
+        [logits, indices],
+        lib_path,
         outs=outputs,
         name=name,
-        op_name='sharded_log_softmax_cross_entropy',
+        op_name="sharded_log_softmax_cross_entropy",
         inputs_with_gradients=[0],
-        separate_gradients=False)[0]
+        separate_gradients=False,
+    )[0]
 
 
 def take_last(x, indices, name: str = "sharded.take_last"):
@@ -243,18 +265,20 @@ def take_last(x, indices, name: str = "sharded.take_last"):
         raise RuntimeError(err)
 
     outputs = {
-      "output_types": [x.dtype],
-      "output_shapes": [[x.shape[0], 1]],
+        "output_types": [x.dtype],
+        "output_shapes": [[x.shape[0], 1]],
     }
     base_path = os.path.realpath(os.path.dirname(__file__))
     lib_path = os.path.join(base_path, "libconcurrent_ops.so")
     return ipu.custom_ops.precompiled_user_op(
-        [x, indices], lib_path,
+        [x, indices],
+        lib_path,
         outs=outputs,
         name=name,
-        op_name='sharded_take_last',
+        op_name="sharded_take_last",
         inputs_with_gradients=[0],
-        separate_gradients=False)[0]
+        separate_gradients=False,
+    )[0]
 
 
 def to_all(input, num_ipus, name: str = "copy_to_all_shards"):
@@ -269,18 +293,20 @@ def to_all(input, num_ipus, name: str = "copy_to_all_shards"):
              (but each copy of tensor will be mapped to a different IPU).
     """
     outputs = {
-      "output_types": [input.dtype],
-      "output_shapes": [[num_ipus, *input.shape]],
+        "output_types": [input.dtype],
+        "output_shapes": [[num_ipus, *input.shape]],
     }
     base_path = os.path.realpath(os.path.dirname(__file__))
     lib_path = os.path.join(base_path, "libconcurrent_ops.so")
     return ipu.custom_ops.precompiled_user_op(
-        [input], lib_path,
+        [input],
+        lib_path,
         outs=outputs,
         name=name,
-        op_name='copy_to_all',
+        op_name="copy_to_all",
         inputs_with_gradients=[0],
-        separate_gradients=False)[0]
+        separate_gradients=False,
+    )[0]
 
 
 def debug_op(input, name: str = "custom_debug"):
@@ -292,15 +318,17 @@ def debug_op(input, name: str = "custom_debug"):
     :return: The input tensor.
     """
     outputs = {
-      "output_types": [input.dtype],
-      "output_shapes": [input.shape],
+        "output_types": [input.dtype],
+        "output_shapes": [input.shape],
     }
     base_path = os.path.realpath(os.path.dirname(__file__))
     lib_path = os.path.join(base_path, "libconcurrent_ops.so")
     return ipu.custom_ops.precompiled_user_op(
-        [input], lib_path,
+        [input],
+        lib_path,
         outs=outputs,
         name=name,
-        op_name='debug',
+        op_name="debug",
         inputs_with_gradients=[0],
-        separate_gradients=False)[0]
+        separate_gradients=False,
+    )[0]

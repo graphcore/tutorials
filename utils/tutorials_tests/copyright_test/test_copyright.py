@@ -1,13 +1,12 @@
 # Copyright (c) 2019 Graphcore Ltd. All rights reserved.
 import argparse
-import configparser
 import datetime
 import fileinput
 from pathlib import Path
 import re
 import sys
 
-from tutorials_tests.testing_util import get_file_list
+from tutorials_tests.testing_util import get_file_list, read_git_submodule_paths
 
 PYTHON_FILE_EXTS = [".py"]
 C_FILE_EXTS = [".c", ".cpp", ".C", ".cxx", ".c++", ".h", ".hpp"]
@@ -65,18 +64,6 @@ def check_file(path, language, amend):
         return False
 
     return True
-
-
-def read_git_submodule_paths():
-    try:
-        config = configparser.ConfigParser()
-        config.read(".gitmodules")
-        module_paths = [config[k]["path"] for k in config.sections()]
-        print(f"Git submodule paths: {module_paths}")
-        return module_paths
-    except:
-        print("No Git submodules found.")
-        return []
 
 
 def test_copyrights(amend=False):

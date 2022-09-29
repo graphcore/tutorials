@@ -2,14 +2,14 @@
 #
 # This directory contains derived work from the following: Keras simple MNIST
 # convnet example:
-# https://github.com/keras-team/keras-io/blob/master/examples/vision/mnist_convnet.py
+# <https://github.com/keras-team/keras-io/blob/master/examples/vision/mnist_convnet.py>
 # Copyright holder unknown (author: François Chollet 2015)
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 # this file except in compliance with the License. You may obtain a copy of the
 # License at
 #
-# http://www.apache.org/licenses/LICENSE-2.0
+# <http://www.apache.org/licenses/LICENSE-2.0>
 #
 # Unless required by applicable law or agreed to in writing, software distributed
 # under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
@@ -69,19 +69,19 @@ def model_fn():
 
 (x_train, y_train), (x_test, y_test) = load_data()
 
-print('Keras MNIST example, running on CPU')
+print("Keras MNIST example, running on CPU")
 # Model.__init__ takes two required arguments, inputs and outputs.
 model = keras.Model(*model_fn())
 
 # Compile our model with Stochastic Gradient Descent as an optimizer
 # and Categorical Cross Entropy as a loss.
-model.compile('sgd', 'categorical_crossentropy', metrics=["accuracy"])
+model.compile("sgd", "categorical_crossentropy", metrics=["accuracy"])
 model.summary()
 
-print('\nTraining')
+print("\nTraining")
 model.fit(x_train, y_train, epochs=3, batch_size=batch_size)
 
-print('\nEvaluation')
+print("\nEvaluation")
 model.evaluate(x_test, y_test, batch_size=batch_size)
 
 from tensorflow.python import ipu
@@ -102,25 +102,28 @@ test_data_len = make_divisible(test_data_len, batch_size)
 x_test, y_test = x_test[:test_data_len], y_test[:test_data_len]
 
 ipu_config = ipu.config.IPUConfig()
+ipu_config.device_connection.type = (
+    ipu.config.DeviceConnectionType.ON_DEMAND
+)  # Optional - allows parallel execution
 ipu_config.auto_select_ipus = 1
 ipu_config.configure_ipu_system()
 
 strategy = ipu.ipu_strategy.IPUStrategy()
 
-print('Keras MNIST example, running on IPU')
+print("Keras MNIST example, running on IPU")
 with strategy.scope():
     # Model.__init__ takes two required arguments, inputs and outputs.
     model = keras.Model(*model_fn())
 
     # Compile our model with Stochastic Gradient Descent as an optimizer
     # and Categorical Cross Entropy as a loss.
-    model.compile('sgd', 'categorical_crossentropy', metrics=["accuracy"])
+    model.compile("sgd", "categorical_crossentropy", metrics=["accuracy"])
     model.summary()
 
-    print('\nTraining')
+    print("\nTraining")
     model.fit(x_train, y_train, epochs=3, batch_size=batch_size)
 
-    print('\nEvaluation')
+    print("\nEvaluation")
     model.evaluate(x_test, y_test, batch_size=batch_size)
 
 (x_train, y_train), (x_test, y_test) = load_data()
@@ -135,23 +138,31 @@ test_steps_per_execution = test_data_len // batch_size
 test_data_len = make_divisible(test_data_len, batch_size)
 x_test, y_test = x_test[:test_data_len], y_test[:test_data_len]
 
-print('Keras MNIST example, running on IPU with steps_per_execution')
+print("Keras MNIST example, running on IPU with steps_per_execution")
 with strategy.scope():
     # Model.__init__ takes two required arguments, inputs and outputs.
     model = keras.Model(*model_fn())
 
     # Compile our model with Stochastic Gradient Descent as an optimizer
     # and Categorical Cross Entropy as a loss.
-    model.compile('sgd', 'categorical_crossentropy', metrics=["accuracy"],
-                  steps_per_execution=train_steps_per_execution)
+    model.compile(
+        "sgd",
+        "categorical_crossentropy",
+        metrics=["accuracy"],
+        steps_per_execution=train_steps_per_execution,
+    )
     model.summary()
 
-    print('\nTraining')
+    print("\nTraining")
     model.fit(x_train, y_train, epochs=3, batch_size=64)
 
-    print('\nEvaluation')
-    model.compile('sgd', 'categorical_crossentropy', metrics=["accuracy"],
-                  steps_per_execution=test_steps_per_execution)
+    print("\nEvaluation")
+    model.compile(
+        "sgd",
+        "categorical_crossentropy",
+        metrics=["accuracy"],
+        steps_per_execution=test_steps_per_execution,
+    )
     model.evaluate(x_test, y_test, batch_size=batch_size)
 
 num_ipus = num_replicas = 2
@@ -170,27 +181,34 @@ test_data_len = make_divisible(test_data_len, batch_size * num_replicas)
 x_test, y_test = x_test[:test_data_len], y_test[:test_data_len]
 
 ipu_config = ipu.config.IPUConfig()
-ipu_config.device_connection.type = ipu.config.DeviceConnectionType.ON_DEMAND
 ipu_config.auto_select_ipus = num_ipus
 ipu_config.configure_ipu_system()
 
-print('Keras MNIST example, running on IPU with replication')
+print("Keras MNIST example, running on IPU with replication")
 with strategy.scope():
     # Model.__init__ takes two required arguments, inputs and outputs.
     model = keras.Model(*model_fn())
 
     # Compile our model with Stochastic Gradient Descent as an optimizer
     # and Categorical Cross Entropy as a loss.
-    model.compile('sgd', 'categorical_crossentropy', metrics=["accuracy"],
-                  steps_per_execution=train_steps_per_execution)
+    model.compile(
+        "sgd",
+        "categorical_crossentropy",
+        metrics=["accuracy"],
+        steps_per_execution=train_steps_per_execution,
+    )
     model.summary()
 
-    print('\nTraining')
+    print("\nTraining")
     model.fit(x_train, y_train, epochs=3, batch_size=64)
 
-    print('\nEvaluation')
-    model.compile('sgd', 'categorical_crossentropy', metrics=["accuracy"],
-                  steps_per_execution=test_steps_per_execution)
+    print("\nEvaluation")
+    model.compile(
+        "sgd",
+        "categorical_crossentropy",
+        metrics=["accuracy"],
+        steps_per_execution=test_steps_per_execution,
+    )
     model.evaluate(x_test, y_test, batch_size=batch_size)
 
 num_ipus = 2
@@ -203,14 +221,18 @@ gradient_accumulation_steps_per_replica = 8
 train_data_len = x_train.shape[0]
 train_steps_per_execution = train_data_len // (batch_size * num_replicas)
 # `steps_per_execution` needs to be divisible by `gradient_accumulation_steps_per_replica`
-train_steps_per_execution = make_divisible(train_steps_per_execution, gradient_accumulation_steps_per_replica)
+train_steps_per_execution = make_divisible(
+    train_steps_per_execution, gradient_accumulation_steps_per_replica
+)
 train_data_len = make_divisible(train_data_len, train_steps_per_execution * batch_size)
 x_train, y_train = x_train[:train_data_len], y_train[:train_data_len]
 
 test_data_len = x_test.shape[0]
 test_steps_per_execution = test_data_len // (batch_size * num_replicas)
 # `steps_per_execution` needs to be divisible by `gradient_accumulation_steps_per_replica`
-test_steps_per_execution = make_divisible(test_steps_per_execution, gradient_accumulation_steps_per_replica)
+test_steps_per_execution = make_divisible(
+    test_steps_per_execution, gradient_accumulation_steps_per_replica
+)
 test_data_len = make_divisible(test_data_len, test_steps_per_execution * batch_size)
 x_test, y_test = x_test[:test_data_len], y_test[:test_data_len]
 
@@ -235,28 +257,36 @@ def model_fn():
     return input_layer, x
 
 
-print('Keras MNIST example, running on IPU with pipelining')
+print("Keras MNIST example, running on IPU with pipelining")
 with strategy.scope():
     # Model.__init__ takes two required arguments, inputs and outputs.
     model = keras.Model(*model_fn())
 
     model.set_pipelining_options(
         gradient_accumulation_steps_per_replica=gradient_accumulation_steps_per_replica,
-        pipeline_schedule=ipu.ops.pipelining_ops.PipelineSchedule.Grouped
+        pipeline_schedule=ipu.ops.pipelining_ops.PipelineSchedule.Grouped,
     )
 
     # Compile our model with Stochastic Gradient Descent as an optimizer
     # and Categorical Cross Entropy as a loss.
-    model.compile('sgd', 'categorical_crossentropy', metrics=["accuracy"],
-                  steps_per_execution=train_steps_per_execution)
+    model.compile(
+        "sgd",
+        "categorical_crossentropy",
+        metrics=["accuracy"],
+        steps_per_execution=train_steps_per_execution,
+    )
     model.summary()
 
-    print('\nTraining')
+    print("\nTraining")
     model.fit(x_train, y_train, epochs=3, batch_size=batch_size)
 
-    print('\nEvaluation')
-    model.compile('sgd', 'categorical_crossentropy', metrics=["accuracy"],
-                  steps_per_execution=test_steps_per_execution)
+    print("\nEvaluation")
+    model.compile(
+        "sgd",
+        "categorical_crossentropy",
+        metrics=["accuracy"],
+        steps_per_execution=test_steps_per_execution,
+    )
     model.evaluate(x_test, y_test, batch_size=batch_size)
 
-# Generated:2022-05-19T17:30 Source:demo.py SST:0.0.7
+# Generated:2022-09-28T12:49 Source:demo.py SST:0.0.8

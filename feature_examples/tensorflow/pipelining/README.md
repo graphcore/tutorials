@@ -1,3 +1,4 @@
+<!-- Copyright (c) 2020 Graphcore Ltd. All rights reserved. -->
 # TensorFlow Pipelining example
 
 This example shows how to use pipelining in TensorFlow to train a very simple model
@@ -15,7 +16,7 @@ consisting of just dense layers.
 1) Prepare the TensorFlow environment.
 
    Install the Poplar SDK following the instructions in the Getting Started guide for your IPU system.
-   Make sure to source the `enable.sh` script for Poplar and activate a Python virtualenv with 
+   Make sure to source the `enable.sh` script for Poplar and activate a Python virtualenv with
    a TensorFlow 1 wheel from the Poplar SDK installed (use the version appropriate to your operating system and processor).
 
 2) Run the script.

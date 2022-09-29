@@ -86,13 +86,19 @@ def prepare_train_features(examples):
                 token_end_index -= 1
 
             # Detect if the answer is out of the span (in which case this feature is labeled with the CLS index).
-            if not (offsets[token_start_index][0] <= start_char and offsets[token_end_index][1] >= end_char):
+            if not (
+                offsets[token_start_index][0] <= start_char
+                and offsets[token_end_index][1] >= end_char
+            ):
                 tokenized_examples["start_positions"].append(cls_index)
                 tokenized_examples["end_positions"].append(cls_index)
             else:
                 # Otherwise move the token_start_index and token_end_index to the two ends of the answer.
                 # Note: we could go after the last offset if the answer is the last word (edge case).
-                while token_start_index < len(offsets) and offsets[token_start_index][0] <= start_char:
+                while (
+                    token_start_index < len(offsets)
+                    and offsets[token_start_index][0] <= start_char
+                ):
                     token_start_index += 1
                 tokenized_examples["start_positions"].append(token_start_index - 1)
                 while offsets[token_end_index][1] >= end_char:
@@ -148,7 +154,14 @@ def prepare_validation_features(examples):
 
 # `postprocess_qa_predictions` comes unmodified from
 # https://github.com/huggingface/notebooks/blob/master/examples/question_answering.ipynb
-def postprocess_qa_predictions(examples, features, raw_predictions, n_best_size=20, max_answer_length=30, squad_v2=False):
+def postprocess_qa_predictions(
+    examples,
+    features,
+    raw_predictions,
+    n_best_size=20,
+    max_answer_length=30,
+    squad_v2=False,
+):
     all_start_logits, all_end_logits = raw_predictions
     # Build a map example to its corresponding features.
     example_id_to_index = {k: i for i, k in enumerate(examples["id"])}
@@ -160,7 +173,9 @@ def postprocess_qa_predictions(examples, features, raw_predictions, n_best_size=
     predictions = collections.OrderedDict()
 
     # Logging.
-    print(f"Post-processing {len(examples)} example predictions split into {len(features)} features.")
+    print(
+        f"Post-processing {len(examples)} example predictions split into {len(features)} features."
+    )
 
     # Let's loop over all the examples!
     for example_index, example in enumerate(tqdm(examples)):
@@ -181,27 +196,36 @@ def postprocess_qa_predictions(examples, features, raw_predictions, n_best_size=
             offset_mapping = features[feature_index]["offset_mapping"]
 
             # Update minimum null prediction.
-            cls_index = features[feature_index]["input_ids"].index(tokenizer.cls_token_id)
+            cls_index = features[feature_index]["input_ids"].index(
+                tokenizer.cls_token_id
+            )
             feature_null_score = start_logits[cls_index] + end_logits[cls_index]
             if min_null_score is None or min_null_score < feature_null_score:
                 min_null_score = feature_null_score
 
             # Go through all possibilities for the `n_best_size` greater start and end logits.
-            start_indexes = np.argsort(start_logits)[-1: -n_best_size - 1: -1].tolist()
-            end_indexes = np.argsort(end_logits)[-1: -n_best_size - 1: -1].tolist()
+            start_indexes = np.argsort(start_logits)[
+                -1 : -n_best_size - 1 : -1
+            ].tolist()
+            end_indexes = np.argsort(end_logits)[-1 : -n_best_size - 1 : -1].tolist()
             for start_index in start_indexes:
                 for end_index in end_indexes:
                     # Don't consider out-of-scope answers, either because the indices are out of bounds or correspond
                     # to part of the input_ids that are not in the context.
-                    if start_index >= len(offset_mapping) \
-                       or end_index >= len(offset_mapping) \
-                       or offset_mapping[start_index] is None \
-                       or offset_mapping[end_index] is None \
-                       or offset_mapping[start_index] == [] \
-                       or offset_mapping[end_index] == []:
+                    if (
+                        start_index >= len(offset_mapping)
+                        or end_index >= len(offset_mapping)
+                        or offset_mapping[start_index] is None
+                        or offset_mapping[end_index] is None
+                        or offset_mapping[start_index] == []
+                        or offset_mapping[end_index] == []
+                    ):
                         continue
                     # Don't consider answers with a length that is either < 0 or > max_answer_length.
-                    if end_index < start_index or end_index - start_index + 1 > max_answer_length:
+                    if (
+                        end_index < start_index
+                        or end_index - start_index + 1 > max_answer_length
+                    ):
                         continue
 
                     start_char = offset_mapping[start_index][0]
@@ -209,12 +233,14 @@ def postprocess_qa_predictions(examples, features, raw_predictions, n_best_size=
                     valid_answers.append(
                         {
                             "score": start_logits[start_index] + end_logits[end_index],
-                            "text": context[start_char: end_char]
+                            "text": context[start_char:end_char],
                         }
                     )
 
         if len(valid_answers) > 0:
-            best_answer = sorted(valid_answers, key=lambda x: x["score"], reverse=True)[0]
+            best_answer = sorted(valid_answers, key=lambda x: x["score"], reverse=True)[
+                0
+            ]
         else:
             # In the very rare edge case we have not a single non-null prediction, we create a fake prediction to avoid
             # failure.
@@ -224,7 +250,9 @@ def postprocess_qa_predictions(examples, features, raw_predictions, n_best_size=
         if not squad_v2:
             predictions[example["id"]] = best_answer["text"]
         else:
-            answer = best_answer["text"] if best_answer["score"] > min_null_score else ""
+            answer = (
+                best_answer["text"] if best_answer["score"] > min_null_score else ""
+            )
             predictions[example["id"]] = answer
 
     return predictions
@@ -234,6 +262,7 @@ class PadCollate:
     """
     Collate into a batch and pad the batch up to a fixed size.
     """
+
     def __init__(self, batch_size, padding_val_dict=None):
         self.batch_size = batch_size
         self.padding_val_dict = padding_val_dict
@@ -241,7 +270,7 @@ class PadCollate:
     def pad_tensor(self, x, val):
         pad_size = list(x.shape)
         pad_size[0] = self.batch_size - x.size(0)
-        return torch.cat([x, val*torch.ones(*pad_size, dtype=x.dtype)], dim=0)
+        return torch.cat([x, val * torch.ones(*pad_size, dtype=x.dtype)], dim=0)
 
     def __call__(self, batch):
         size = len(batch)

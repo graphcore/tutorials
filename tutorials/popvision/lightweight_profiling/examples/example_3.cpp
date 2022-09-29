@@ -6,10 +6,12 @@ using namespace poplar;
 
 class DummyVertex : public SupervisorVertex {
   poplar::Input<int> input;
+
 public:
   __attribute__((target("supervisor"))) bool compute() {
     // Simulate some computation
-    for (volatile int i{}; i < 100; ++i);
+    for (volatile int i{}; i < 100; ++i)
+      ;
     return true;
   }
 };
@@ -28,9 +30,9 @@ using namespace poplar::program;
 poplar::Device getIpuHwDevice(std::size_t numIpus) {
   auto dm = poplar::DeviceManager::createDeviceManager();
   auto hwDevices = dm.getDevices(poplar::TargetType::IPU, numIpus);
-  auto it = std::find_if(hwDevices.begin(), hwDevices.end(), [](poplar::Device &device) {
-     return device.attach();
-  });
+  auto it =
+      std::find_if(hwDevices.begin(), hwDevices.end(),
+                   [](poplar::Device &device) { return device.attach(); });
   if (it != hwDevices.end()) {
     return std::move(*it);
   }
@@ -88,27 +90,20 @@ int main(int argc, char **argv) {
   auto inStream = graph.addHostToDeviceFIFO("in", INT, 1);
 
   Sequence seq{
-    Copy(inStream, in1),
-    Repeat{4, Sequence{
-      Copy(in1, in2),
       Copy(inStream, in1),
-      Execute(op)
-      }},
-    Copy(in1, in2),
-    Execute(op)
-  };
+      Repeat{4, Sequence{Copy(in1, in2), Copy(inStream, in1), Execute(op)}},
+      Copy(in1, in2), Execute(op)};
 
   // Compile the model
-  OptionFlags engineOpts{
-    {"profiler.programs.filter", "operation"},
-    {"debug.instrumentExternalExchange", "true"},
-    {"profiler.blocks.implicitFlush", "false"}
-  };
+  OptionFlags engineOpts{{"profiler.programs.filter", "operation"},
+                         {"debug.instrumentExternalExchange", "true"},
+                         {"profiler.blocks.implicitFlush", "false"}};
   Engine engine(graph, seq, engineOpts);
 
   // Dummy callback that sends zeroes
   const int value{0};
-  auto callback = std::make_unique<HostToDeviceCallback>(poplar::ArrayRef<int>(&value, 1));
+  auto callback =
+      std::make_unique<HostToDeviceCallback>(poplar::ArrayRef<int>(&value, 1));
   engine.connectStreamToCallback("in", 0, std::move(callback));
 
   // Execute the model
@@ -126,13 +121,12 @@ int main(int argc, char **argv) {
       } else {
         std::cout << std::setw(20) << block.program()->name();
       }
-      std::cout << " in tile " << std::setw(4) << block.tile()
-                << ": " << std::setw(8) << (to - from) << " ("
-                << from << " - " << to << ")\n";
+      std::cout << " in tile " << std::setw(4) << block.tile() << ": "
+                << std::setw(8) << (to - from) << " (" << from << " - " << to
+                << ")\n";
     }
   }
 
   return 0;
 }
 #endif
-

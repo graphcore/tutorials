@@ -23,8 +23,10 @@ def gather_grad_fn():
     """
     Return a function that computes the gradient of a gather.
     """
+
     def reduction_output(features, indices):
         return gather(features, indices)[1]
+
     return jax.grad(reduction_output, 0)
 
 
@@ -38,8 +40,10 @@ def matmul_grad_fns():
     """
     Return a function to cmopute grads of matmul.
     """
+
     def reduction_output(a, b):
         return matmul(a, b)[1]
+
     return jax.grad(reduction_output, 0), jax.grad(reduction_output, 1)
 
 
@@ -63,5 +67,6 @@ def projection_softmax_cross_entropy(a, b, labels):
 def projection_softmax_cross_entropy_grad_fns():
     def loss_only(a, b, labels):
         return projection_softmax_cross_entropy(a, b, labels)[0]
+
     # Return dL/da and dL/db:
     return jax.grad(loss_only, 0), jax.grad(loss_only, 1)

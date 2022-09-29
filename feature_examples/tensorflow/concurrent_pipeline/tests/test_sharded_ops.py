@@ -27,8 +27,17 @@ def test_small_embedding(tmp_path):
 def test_larger_embedding(tmp_path):
     out = testing_util.run_command_fail_explicitly(
         [
-            sys.executable,  "tests/sharded_embedding_tool.py",
-            "--ipus", "4", "--vocab-size", "8000", "--feature-size", "768", "--sequence-length", "256"],
+            sys.executable,
+            "tests/sharded_embedding_tool.py",
+            "--ipus",
+            "4",
+            "--vocab-size",
+            "8000",
+            "--feature-size",
+            "768",
+            "--sequence-length",
+            "256",
+        ],
         working_directory,
     )
     assert "Results match." in out
@@ -41,7 +50,7 @@ def custom_ops():
     """
     build_path = pathlib.Path(__file__).parents[1]
 
-    shared_libs = ['libconcurrent_ops.so']
+    shared_libs = ["libconcurrent_ops.so"]
     paths = [pathlib.Path(build_path, "custom_ops", f) for f in shared_libs]
 
     # Use exclusive lockfile to avoid race conditions on the build:
@@ -50,7 +59,7 @@ def custom_ops():
     print(f"Building paths: {paths}")
 
     def build_ops():
-        run(['make', '-j'], cwd=build_path)
+        run(["make", "-j"], cwd=build_path)
 
     with filelock.FileLock(lock_path):
         build_ops()

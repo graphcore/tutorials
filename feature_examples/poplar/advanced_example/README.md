@@ -1,3 +1,4 @@
+<!-- Copyright (c) 2020 Graphcore Ltd. All rights reserved. -->
 # Advanced Poplar Example
 
 This example performs a simple computation but uses more advanced

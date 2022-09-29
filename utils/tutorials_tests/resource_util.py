@@ -13,7 +13,7 @@ def fetch_resources(script_name, test_file, cwd):
     if not os.path.isfile(test_file):
         print("Fetching resource files")
         if not os.path.isfile(os.path.join(cwd, script_name)):
-            raise Exception('Unable to find ' + script_name)
+            raise Exception("Unable to find " + script_name)
         # The script may contain relative paths, therefore we
         # must set use the cwd passed in
         testing_util.run_command([os.path.join(cwd, script_name)], cwd=cwd)
@@ -22,7 +22,7 @@ def fetch_resources(script_name, test_file, cwd):
 @contextmanager
 def captured_output():
     """Return a context manager that temporarily replaces the sys stream stdout
-       with a StringIO
+    with a StringIO
     """
     new_out = six.StringIO()
     old_out = sys.stdout

@@ -31,4 +31,3 @@ POPLAR_ENGINE_OPTIONS='{"autoReport.all":"true", "autoReport.directory":"'${PROF
  PVTI_OPTIONS='{"enable":"true", "directory":"'${PROFILE_DIR}'"}' \
  TF_POPLAR_FLAGS='--use_synthetic_data' \
  python3 ${PROG} ${ARGS} ${ARGS_OVERRIDE}
- 

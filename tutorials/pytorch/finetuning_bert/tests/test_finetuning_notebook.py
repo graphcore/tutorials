@@ -1,22 +1,22 @@
 # Copyright (c) 2021 Graphcore Ltd. All rights reserved.
 
-import shutil
 from pathlib import Path
 import pytest
-from tutorials_tests.testing_util import SubProcessChecker
+import shutil
+import tutorials_tests.testing_util as testing_util
+
+WORKING_PATH = Path(__file__).parent.parent.resolve()
 
 
-class TestComplete(SubProcessChecker):
+@pytest.mark.category3
+@pytest.mark.ipus(16)
+def test_normal_operation():
+    testing_util.run_command(
+        "ipython Fine-tuning-BERT.py",
+        WORKING_PATH,
+        "Question: What speed-up can one expect from using sequence packing for"
+        " training BERT on IPU?",
+    )
 
-    @pytest.mark.category3
-    @pytest.mark.ipus(16)
-    def test_model(self):
-        working_path = Path(__file__).parent.parent
-
-        # Run notebook and check that it runs correctly
-        cmd = "ipython Fine-tuning-BERT.py"
-        self.run_command(cmd,
-                         working_path,
-                         "Question: What speed-up can one expect from using sequence packing for training BERT on IPU?")
-        shutil.rmtree(working_path/"checkpoints")
-        shutil.rmtree(working_path/"exe_cache")
+    shutil.rmtree(WORKING_PATH / "checkpoints", ignore_errors=True)
+    shutil.rmtree(WORKING_PATH / "exe_cache", ignore_errors=True)

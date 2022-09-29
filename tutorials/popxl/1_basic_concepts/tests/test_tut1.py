@@ -4,7 +4,6 @@ import pytest
 from pathlib import Path
 import sys
 from tutorials_tests import testing_util
-from tutorials_tests.testing_util import SubProcessChecker
 
 
 @pytest.mark.category1

@@ -40,38 +40,38 @@ class ResNet(object):
         # This is an optimisation used in the CNNs training example. It performs
         # data normalisation and casting on the IPU and also pads the image to
         # add a 4th channel. For more information, see:
-        # https://docs.graphcore.ai/projects/tensorflow1-user-guide/en/latest/tensorflow/api.html#tensorflow.python.ipu.image_ops.normalise_image
-        with tf.variable_scope('normalise_image'):
-            scale = 1.0/255.0
+        # https://docs.graphcore.ai/projects/tensorflow1-user-guide/en/3.0.0/tensorflow/api.html#tensorflow.python.ipu.image_ops.normalise_image
+        with tf.variable_scope("normalise_image"):
+            scale = 1.0 / 255.0
             mean = NORMALIZED_MEAN
             std = NORMALIZED_STD
             image = image_ops.normalise_image(image, mean, std, scale)
 
         # conv1
-        with tf.variable_scope('conv1'):
+        with tf.variable_scope("conv1"):
             x = self._conv(image, kernels[0], filters[0], strides[0])
             x = self._bn(x)
             x = self._relu(x)
-            x = tf.nn.max_pool(x, [1, 3, 3, 1], [1, 2, 2, 1], 'SAME')
+            x = tf.nn.max_pool(x, [1, 3, 3, 1], [1, 2, 2, 1], "SAME")
 
         # conv2_x
-        x = self._residual_block_first(x, filters[1], strides[1], name='conv2_1')
-        x = self._residual_block(x, name='conv2_2')
+        x = self._residual_block_first(x, filters[1], strides[1], name="conv2_1")
+        x = self._residual_block(x, name="conv2_2")
 
         # conv3_x
-        x = self._residual_block_first(x, filters[2], strides[2], name='conv3_1')
-        x = self._residual_block(x, name='conv3_2')
+        x = self._residual_block_first(x, filters[2], strides[2], name="conv3_1")
+        x = self._residual_block(x, name="conv3_2")
 
         # conv4_x
-        x = self._residual_block_first(x, filters[3], strides[3], name='conv4_1')
-        x = self._residual_block(x, name='conv4_2')
+        x = self._residual_block_first(x, filters[3], strides[3], name="conv4_1")
+        x = self._residual_block(x, name="conv4_2")
 
         # conv5_x
-        x = self._residual_block_first(x, filters[4], strides[4], name='conv5_1')
-        x = self._residual_block(x, name='conv5_2')
+        x = self._residual_block_first(x, filters[4], strides[4], name="conv5_1")
+        x = self._residual_block(x, name="conv5_2")
 
         # Logit
-        with tf.variable_scope('logits') as scope:
+        with tf.variable_scope("logits") as scope:
             x = tf.reduce_mean(x, [1, 2])
             x = self._fc(x, self._num_classes)
 
@@ -88,17 +88,17 @@ class ResNet(object):
         with tf.variable_scope(name) as scope:
 
             # Shortcut connection
-            shortcut = self._conv(x, 1, out_channel, strides, name='shortcut_conv')
-            shortcut = self._bn(shortcut, name='shortcut_norm')
+            shortcut = self._conv(x, 1, out_channel, strides, name="shortcut_conv")
+            shortcut = self._bn(shortcut, name="shortcut_norm")
             # Residual
-            x = self._conv(x, 3, out_channel, strides, name='conv_1')
-            x = self._bn(x, name='bn_1')
-            x = self._relu(x, name='relu_1')
-            x = self._conv(x, 3, out_channel, 1, name='conv_2')
-            x = self._bn(x, name='bn_2')
+            x = self._conv(x, 3, out_channel, strides, name="conv_1")
+            x = self._bn(x, name="bn_1")
+            x = self._relu(x, name="relu_1")
+            x = self._conv(x, 3, out_channel, 1, name="conv_2")
+            x = self._bn(x, name="bn_2")
             # Merge
             x = x + shortcut
-            x = self._relu(x, name='relu_2')
+            x = self._relu(x, name="relu_2")
         return x
 
     def _residual_block(self, x, input_q=None, output_q=None, name="unit"):
@@ -107,14 +107,18 @@ class ResNet(object):
             # Shortcut connection
             shortcut = x
             # Residual
-            x = self._conv(x, 3, num_channel, 1, input_q=input_q, output_q=output_q, name='conv_1')
-            x = self._bn(x, name='bn_1')
-            x = self._relu(x, name='relu_1')
-            x = self._conv(x, 3, num_channel, 1, input_q=output_q, output_q=output_q, name='conv_2')
-            x = self._bn(x, name='bn_2')
+            x = self._conv(
+                x, 3, num_channel, 1, input_q=input_q, output_q=output_q, name="conv_1"
+            )
+            x = self._bn(x, name="bn_1")
+            x = self._relu(x, name="relu_1")
+            x = self._conv(
+                x, 3, num_channel, 1, input_q=output_q, output_q=output_q, name="conv_2"
+            )
+            x = self._bn(x, name="bn_2")
 
             x = x + shortcut
-            x = self._relu(x, name='relu_2')
+            x = self._relu(x, name="relu_2")
         return x
 
     def _average_gradients(self, tower_grads):
@@ -160,10 +164,30 @@ class ResNet(object):
         return average_grads
 
     # Helper functions(counts FLOPs and number of weights)
-    def _conv(self, x, filter_size, out_channel, stride, pad="SAME", input_q=None, output_q=None, name="conv"):
+    def _conv(
+        self,
+        x,
+        filter_size,
+        out_channel,
+        stride,
+        pad="SAME",
+        input_q=None,
+        output_q=None,
+        name="conv",
+    ):
         b, h, w, in_channel = x.get_shape().as_list()
-        x = utils._conv(x, filter_size, out_channel, stride, pad, input_q, output_q, name)
-        f = 2 * (h/stride) * (w/stride) * in_channel * out_channel * filter_size * filter_size
+        x = utils._conv(
+            x, filter_size, out_channel, stride, pad, input_q, output_q, name
+        )
+        f = (
+            2
+            * (h / stride)
+            * (w / stride)
+            * in_channel
+            * out_channel
+            * filter_size
+            * filter_size
+        )
         w = in_channel * out_channel * filter_size * filter_size
         scope_name = tf.get_variable_scope().name + "/" + name
         self._add_flops_weights(scope_name, f, w)

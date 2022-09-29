@@ -1,3 +1,4 @@
+<!-- Copyright (c) 2021 Graphcore Ltd. All rights reserved. -->
 ### Tests
 
 This directory contains tests for the Poplar MNIST demo.

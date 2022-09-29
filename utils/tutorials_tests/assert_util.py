@@ -48,28 +48,7 @@ def assert_result_equals_tensor_value(output, tensor):
             "eg. array([3., 8.], dtype=float32)"
         )
 
-    assert contents == np.array_repr(tensor), (
-        "Output value {} does not "
-        "equal expected value {}".format(np.array_repr(contents), tensor)
-    )
-
-
-def assert_result_equals_string(output, expected):
-    """Checks output line equals expected string
-
-    Args:
-        output: String representing the output of a test.
-        expected: String of expected result.
-
-    Returns:
-        None
-
-    Raises:
-        Assertion Error: Output string does not equal the expected
-            string
-    """
-
-    assert output == expected, (
-        "Output string {} does not "
-        "equal expected string {}".format(output, expected)
-    )
+    expected = np.array_repr(tensor)
+    assert (
+        contents == expected
+    ), f"Output value {contents} does not equal expected value {expected}"

@@ -1,3 +1,4 @@
+<!-- Copyright (c) 2019 Graphcore Ltd. All rights reserved. -->
 # PopART MNIST Training Demo
 
 This example trains a network on the MNIST dataset using PopART.

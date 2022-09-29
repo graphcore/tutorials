@@ -6,17 +6,14 @@ import numpy as np
 
 import tensorflow as tf
 from tensorflow.python import ipu
-from tensorflow.python.ipu import horovod as hvd
-from tensorflow.python.ipu.horovod import popdist_strategy
+from tensorflow.python.ipu.distributed import popdist_strategy
 
 BATCH_SIZE = 32
 
 # Initialize IPU configuration.
 config = ipu.config.IPUConfig()
-popdist.tensorflow.set_ipu_config(config, ipus_per_replica=1)
+popdist.tensorflow.set_ipu_config(config)
 config.configure_ipu_system()
-
-hvd.init()
 
 # Create distribution strategy.
 strategy = popdist_strategy.PopDistStrategy()
@@ -29,7 +26,8 @@ test_y = test_y.astype(np.int32)
 # Create dataset and shard it across the instances.
 dataset = tf.data.Dataset.from_tensor_slices((test_x, test_y))
 dataset = dataset.shard(
-    num_shards=popdist.getNumInstances(), index=popdist.getInstanceIndex())
+    num_shards=popdist.getNumInstances(), index=popdist.getInstanceIndex()
+)
 
 # Perform batching after sharding.
 for i, element in enumerate(dataset):
@@ -56,7 +54,9 @@ if popdist.getInstanceIndex() == 0:
     samples_discarded = samples_per_shard % BATCH_SIZE
     print(f"\tSamples discarded:\t{samples_discarded}")
 
-    print(f"Data distribution within each instance ({popdist.getNumLocalReplicas()} local replica(s)):")
+    print(
+        f"Data distribution within each instance ({popdist.getNumLocalReplicas()} local replica(s)):"
+    )
     batches_per_replica = batches_per_shard // popdist.getNumLocalReplicas()
     print(f"\tBatches per replica:\t{batches_per_replica}")
     batches_discarded = batches_per_shard % popdist.getNumLocalReplicas()
@@ -67,6 +67,6 @@ if popdist.getInstanceIndex() == 0:
 with strategy.scope():
     model = tf.keras.models.load_model("saved_model.h5")
 
-    model.compile(metrics=['accuracy'], steps_per_execution=steps_per_execution)
+    model.compile(metrics=["accuracy"], steps_per_execution=steps_per_execution)
     # Equally, you could use `model.predict()`
     hist = model.evaluate(dataset, verbose=1)

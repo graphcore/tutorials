@@ -1,3 +1,4 @@
+<!-- Copyright (c) 2020 Graphcore Ltd. All rights reserved. -->
 # Creating a simple TensorFlow Custom Operator
 
 Creates a simple custom operator that adds two vectors of arbitrary size. The operator

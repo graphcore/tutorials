@@ -29,7 +29,7 @@ from tensorflow.keras.datasets import imdb
 from tensorflow.keras.preprocessing import sequence
 from tensorflow.keras.optimizers import Adam
 
-if tf.__version__[0] != '2':
+if tf.__version__[0] != "2":
     raise ImportError("TensorFlow 2 is required for this example")
 
 max_features = 20000
@@ -59,7 +59,7 @@ def get_model():
 
     with ipu.keras.PipelineStage(1):
         x = LSTM(128, dropout=0.2)(x)
-        x = Dense(1, activation='sigmoid')(x)
+        x = Dense(1, activation="sigmoid")(x)
 
     return tf.keras.Model(input_layer, x)
 
@@ -75,14 +75,18 @@ def main():
     with strategy.scope():
 
         model = get_model()
-        model.set_pipelining_options(gradient_accumulation_steps_per_replica=gradient_accumulation_steps_per_replica)
+        model.set_pipelining_options(
+            gradient_accumulation_steps_per_replica=gradient_accumulation_steps_per_replica
+        )
 
         # The effective batch size is minibatch_size x gradient_accumulation_steps_per_replica x num_replicas,
         # so choose LR appropriately.
         # Note that num_replicas = 1 here.
-        model.compile(steps_per_execution=384, loss='binary_crossentropy', optimizer=Adam(0.005))
+        model.compile(
+            steps_per_execution=384, loss="binary_crossentropy", optimizer=Adam(0.005)
+        )
         model.fit(get_dataset(), steps_per_epoch=768, epochs=2)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

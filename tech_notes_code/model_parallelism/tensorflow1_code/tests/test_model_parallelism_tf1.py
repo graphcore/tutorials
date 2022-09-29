@@ -7,8 +7,7 @@ from tutorials_tests.testing_util import run_command_fail_explicitly
 cwd = Path(__file__).parent.parent
 
 
-class TestParallelism():
-
+class TestParallelism:
     @pytest.mark.category1
     @pytest.mark.ipus(4)
     def test_sharding(self):

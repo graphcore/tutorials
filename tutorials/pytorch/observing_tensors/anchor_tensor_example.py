@@ -29,8 +29,16 @@ class BasicLinearModel(nn.Module):
             return x, self.loss(x, labels)
         return x
 
+
 batch_size_train = 1000
-tensors = ['Gradient___model.fc1.weight', 'Gradient___model.fc3.weight', 'Gradient___model.fc2.bias', 'Gradient___model.fc1.bias', 'Gradient___model.fc3.bias', 'Gradient___model.fc2.weight']
+tensors = [
+    "Gradient___fc1.weight",
+    "Gradient___fc3.weight",
+    "Gradient___fc2.bias",
+    "Gradient___fc1.bias",
+    "Gradient___fc3.bias",
+    "Gradient___fc2.weight",
+]
 pictureName = "GradientHistogram.png"
 
 # Initialize the PopTorch options and anchor the tensors of interest
@@ -39,13 +47,20 @@ for t in tensors:
     opts.anchorTensor(t, t)
 
 # Download the dataset then load it into the dataloaders
-transform = torchvision.transforms.Compose([
-    torchvision.transforms.ToTensor(),
-    torchvision.transforms.Normalize((0.5,), (0.5,))])
-train_data = torchvision.datasets.MNIST("~/.torch/datasets", transform=transform, download=True, train=True)
-train_loader = poptorch.DataLoader(opts, train_data, batch_size=batch_size_train, shuffle=True)
+transform = torchvision.transforms.Compose(
+    [
+        torchvision.transforms.ToTensor(),
+        torchvision.transforms.Normalize((0.5,), (0.5,)),
+    ]
+)
+train_data = torchvision.datasets.MNIST(
+    "~/.torch/datasets", transform=transform, download=True, train=True
+)
+train_loader = poptorch.DataLoader(
+    opts, train_data, batch_size=batch_size_train, shuffle=True
+)
 
-# Intialize the PopTorch training model
+# Initialize the PopTorch training model
 model = BasicLinearModel()
 model.train()  # Switch the model to training mode
 # Models are initialised in training mode by default, so the line above will
@@ -54,7 +69,9 @@ optimizer = poptorch.optim.SGD(model.parameters(), lr=0.01)
 poptorch_model = poptorch.trainingModel(model, options=opts, optimizer=optimizer)
 
 # Compile the model so we can use getTensorNames to print out all the tensor names
-poptorch_model.compile(torch.zeros(batch_size_train, 1, 28, 28), torch.zeros(batch_size_train).long())
+poptorch_model.compile(
+    torch.zeros(batch_size_train, 1, 28, 28), torch.zeros(batch_size_train).long()
+)
 print("tensor names:", poptorch_model.getTensorNames())
 
 # Train the model
@@ -64,7 +81,7 @@ for data, labels in tqdm(train_loader, desc="batches", leave=False):
     output, loss = poptorch_model(data, labels)
     total_loss += loss
     predictions += output
-print('Loss: {:.4f}'.format(total_loss.item()))
+print(f"Loss: {total_loss.item():.4f}")
 
 # Retrieve the tensors using getAnchoredTensor
 gradient = []
@@ -81,6 +98,6 @@ gradient_data = gradient.numpy()
 # [histogram provided in the `static` folder](static/GradientHistogram.png).
 fig, axs = plt.subplots(tight_layout=True)
 axs.hist(gradient_data, bins=50)
-axs.set(title = "Gradient Histogram", ylabel='Frequency')
+axs.set(title="Gradient Histogram", ylabel="Frequency")
 plt.savefig(pictureName)
-print("Saved histogram to ./{}".format(pictureName))
+print(f"Saved histogram to ./{pictureName}")

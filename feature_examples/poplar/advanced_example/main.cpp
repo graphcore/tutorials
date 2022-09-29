@@ -39,7 +39,7 @@ buildGraphAndPrograms(poplar::Graph &g, const utils::Options &options) {
   // Before we can add a custom vertex to the graph we need to load its
   // code. NOTE: .gp files are precompiled codelets but we could also
   // have loaded and compiled source directly here:
-  g.addCodelets("codelets.gp"); //g.addCodelets("codelets.cpp");
+  g.addCodelets("codelets.gp"); // g.addCodelets("codelets.cpp");
   auto v = g.addVertex(cs1, "VectorAdd");
 
   // Vertices must also be mapped to tiles. This computation will
@@ -62,7 +62,7 @@ buildGraphAndPrograms(poplar::Graph &g, const utils::Options &options) {
   auto stream1 = g.addHostToDeviceFIFO("write_x", FLOAT, v1.numElements());
   auto stream2 = g.addHostToDeviceFIFO("write_y", FLOAT, v2.numElements());
   auto stream3 = g.addHostToDeviceFIFO("write_z", FLOAT, v3.numElements());
-  auto stream4 = g.addDeviceToHostFIFO("read_z",  FLOAT, v3.numElements());
+  auto stream4 = g.addDeviceToHostFIFO("read_z", FLOAT, v3.numElements());
 
   // Add a second compute set that will perform the same calculation using
   // Poplib's reduction API:
@@ -70,8 +70,7 @@ buildGraphAndPrograms(poplar::Graph &g, const utils::Options &options) {
   std::vector<ComputeSet> reductionSets;
   // Concatenate the vectors into a matrix so we can reduce one axis:
   auto tc = poplar::concat(v1.reshape({v1.numElements(), 1}),
-                           v2.reshape({v2.numElements(), 1}),
-                           {1});
+                           v2.reshape({v2.numElements(), 1}), {1});
   auto reduce = popops::ReduceParams(popops::Operation::ADD);
   // Create compute sets that perform the reduction, storing th eresult in v3:
   popops::reduceWithOutput(g, tc, v3, {1}, reduce, reductionSets, "reduction");
@@ -83,11 +82,8 @@ buildGraphAndPrograms(poplar::Graph &g, const utils::Options &options) {
   // Add program which initialises the inputs. Poplar is able to merge these
   // copies for efficiency:
   progs[WRITE_INPUTS] =
-    program::Sequence({
-      program::Copy(stream1, v1),
-      program::Copy(stream2, v2),
-      program::Copy(stream3, v3)}
-    );
+      program::Sequence({program::Copy(stream1, v1), program::Copy(stream2, v2),
+                         program::Copy(stream3, v3)});
 
   // Program that executes custom vertex in compute set 1:
   progs[CUSTOM_PROG] = program::Execute(cs1);
@@ -120,19 +116,19 @@ void executeGraphProgram(poplar::Device &device, poplar::Executable &exe,
   engine.connectStream("write_z", zInit.data());
 
   // Run using custom vertex:
-  engine.connectStream("read_z",  zResult1.data());
+  engine.connectStream("read_z", zResult1.data());
   engine.run(WRITE_INPUTS);
   engine.run(CUSTOM_PROG);
   engine.run(READ_RESULTS);
 
   // Run program using PopLibs reduction:
-  engine.connectStream("read_z",  zResult2.data());
+  engine.connectStream("read_z", zResult2.data());
   engine.run(WRITE_INPUTS);
   engine.run(REDUCTION_PROG);
   engine.run(READ_RESULTS);
 
   // Check both methods give same result:
-  for (auto i = 0u; i< zResult1.size(); ++i) {
+  for (auto i = 0u; i < zResult1.size(); ++i) {
     if (zResult1[i] != zResult2[i]) {
       throw std::runtime_error("Results do not match");
     }
@@ -146,7 +142,7 @@ void executeGraphProgram(poplar::Device &device, poplar::Executable &exe,
   }
 }
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
   try {
     auto options = utils::parseOptions(argc, argv);
     auto device = utils::getDeviceFromOptions(options);
@@ -169,7 +165,7 @@ int main(int argc, char** argv) {
 
     executeGraphProgram(device, exe, options);
 
-  } catch (const std::exception& e) {
+  } catch (const std::exception &e) {
     std::cerr << "Exception: " << e.what() << "\n";
     return EXIT_FAILURE;
   }

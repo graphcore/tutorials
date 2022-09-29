@@ -15,37 +15,46 @@
 from pathlib import Path
 import pytest
 
-from tutorials_tests.testing_util import SubProcessChecker
+import tutorials_tests.testing_util as testing_util
 
-working_path = Path(__file__).parent.parent
+working_path = Path(__file__).parents[1]
 
 
-class TestComplete(SubProcessChecker):
+@pytest.mark.category1
+@pytest.mark.ipus(1)
+def test_run_demo_ipu():
+    testing_util.run_command(
+        "python3 completed_demos/completed_demo_ipu.py",
+        working_path,
+        "Program ran successfully",
+    )
 
-    @pytest.mark.category1
-    @pytest.mark.ipus(1)
-    def test_run_demo_ipu(self):
-        self.run_command("python3 completed_demos/completed_demo_ipu.py",
-                         working_path,
-                         "Program ran successfully")
 
-    @pytest.mark.category1
-    @pytest.mark.ipus(2)
-    def test_run_demo_faster(self):
-        self.run_command("python3 completed_demos/completed_demo_faster.py",
-                         working_path,
-                         "Program ran successfully")
+@pytest.mark.category1
+@pytest.mark.ipus(2)
+def test_run_demo_faster():
+    testing_util.run_command(
+        "python3 completed_demos/completed_demo_faster.py",
+        working_path,
+        "Program ran successfully",
+    )
 
-    @pytest.mark.category1
-    @pytest.mark.ipus(2)
-    def test_run_demo_replication(self):
-        self.run_command("python3 completed_demos/completed_demo_replicated.py",
-                         working_path,
-                         "Program ran successfully")
 
-    @pytest.mark.category1
-    @pytest.mark.ipus(4)
-    def test_run_demo_pipelining(self):
-        self.run_command("python3 completed_demos/completed_demo_pipelining.py",
-                         working_path,
-                         "Program ran successfully")
+@pytest.mark.category1
+@pytest.mark.ipus(2)
+def test_run_demo_replication():
+    testing_util.run_command(
+        "python3 completed_demos/completed_demo_replicated.py",
+        working_path,
+        "Program ran successfully",
+    )
+
+
+@pytest.mark.category1
+@pytest.mark.ipus(4)
+def test_run_demo_pipelining():
+    testing_util.run_command(
+        "python3 completed_demos/completed_demo_pipelining.py",
+        working_path,
+        "Program ran successfully",
+    )

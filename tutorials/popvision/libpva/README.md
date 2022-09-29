@@ -1,3 +1,4 @@
+<!-- Copyright (c) 2021 Graphcore Ltd. All rights reserved. -->
 # Tutorial: Accessing profiling information
 
 In this tutorial you will learn to use the `libpva` python module, this library
@@ -46,7 +47,7 @@ the [Graphcore downloads portal](https://downloads.graphcore.ai/).
 
 In this tutorial we use the `libpva` library to access profiles of the IPU, the
 documentation for it can be found here:
-[PopVision Analysis Python API](https://docs.graphcore.ai/projects/libpva/en/latest/api-python.html).
+[PopVision Analysis Python API](https://docs.graphcore.ai/projects/libpva/en/3.0.0/api-python.html).
 
 ### Loading a profile
 
@@ -56,7 +57,8 @@ following:
 
 ```python
 import pva
-report = pva.openReport('profile.pop')
+
+report = pva.openReport("profile.pop")
 ```
 
 Now you can access information from the report, as shown in the following examples:
@@ -87,7 +89,7 @@ sum(step.ipus[0].cycles for step in report.execution.steps)
 
 To analyse the compiled program, it is best to use a `ProgramVisitor` class with
 the appropriate visitor functions (See [API
-Documentation](https://docs.graphcore.ai/projects/libpva/en/latest/api-python.html#pva.ProgramVisitor)
+Documentation](https://docs.graphcore.ai/projects/libpva/en/3.0.0/api-python.html#pva.ProgramVisitor)
 for a list of available methods).
 
 A more general explanation of the ["visitor pattern" is available on
@@ -121,12 +123,14 @@ The following example plots total memory usage (including gaps) for each tile.
 
 ```python
 import matplotlib
-matplotlib.use('Agg')
+
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+
 plt.plot([tile.memory.total.includingGaps for tile in report.compilation.tiles])
-plt.xlabel('Tiles')
-plt.ylabel('Bytes')
-plt.savefig('MemoryByTilePlot.png')
+plt.xlabel("Tiles")
+plt.ylabel("Bytes")
+plt.savefig("MemoryByTilePlot.png")
 ```
 
 Now open the newly created `MemoryByTilePlot.png` file and you should see a
@@ -147,7 +151,7 @@ using the PopVision Graph Analyser desktop tool, it provides a graphical
 interface to explore the performance of your programs on the IPU and can enable
 you to optimize the usage of tile resources in your IPU application.
 
-[The Poplar profiling tutorial](../../poplar/tut4_profiling/README.rst)
+[The Poplar profiling tutorial](../../poplar/tut4_profiling/README.md)
 provides a comprehensive example of using the Graph Analyser to profile a
 simple IPU application.
 

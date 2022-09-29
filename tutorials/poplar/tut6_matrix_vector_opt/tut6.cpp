@@ -235,12 +235,13 @@ Program buildMultiplyProgram(Graph &graph, Tensor matrix, Tensor in,
   return Sequence({Execute(mulCS), Execute(reduceCS)});
 }
 
-void help(const char* app) {
-  std::cerr << "usage: " << app << " numRows numCols --device {model-ipu1,model-ipu2,ipu}\n";
+void help(const char *app) {
+  std::cerr << "usage: " << app
+            << " numRows numCols --device {model-ipu1,model-ipu2,ipu}\n";
 }
 
-int parse_args(unsigned &numRows, unsigned &numCols, const char* &dev,
-               int argc, char** argv) {
+int parse_args(unsigned &numRows, unsigned &numCols, const char *&dev, int argc,
+               char **argv) {
   for (int a = 1; a < argc; ++a) {
     if (strcmp(argv[a], "--device") == 0) {
       ++a;
@@ -249,28 +250,24 @@ int parse_args(unsigned &numRows, unsigned &numCols, const char* &dev,
         return -1;
       }
       dev = argv[a];
-      if (strcmp(dev, "ipu") &&
-          strcmp(dev, "model-ipu1") &&
+      if (strcmp(dev, "ipu") && strcmp(dev, "model-ipu1") &&
           strcmp(dev, "model-ipu2")) {
         printf("Unrecognised device %s\n", dev);
         return -1;
       }
-    }
-    else if (numRows == 0) {
+    } else if (numRows == 0) {
       numRows = atoi(argv[a]);
       if (numRows <= 0) {
         printf("Malformed numRows argument\n");
         return -1;
       }
-    }
-    else if (numCols == 0) {
+    } else if (numCols == 0) {
       numCols = atoi(argv[a]);
       if (numCols <= 0) {
         printf("Malformed numCols argument\n");
         return -1;
       }
-    }
-    else {
+    } else {
       printf("Unexpected arguments\n");
       return -1;
     }
@@ -285,7 +282,7 @@ int parse_args(unsigned &numRows, unsigned &numCols, const char* &dev,
 int main(int argc, char **argv) {
   unsigned numRows = 0;
   unsigned numCols = 0;
-  const char* dev = "model-ipu2";
+  const char *dev = "model-ipu2";
 
   int ret = parse_args(numRows, numCols, dev, argc, argv);
   if (ret != 0) {
@@ -314,13 +311,12 @@ int main(int argc, char **argv) {
     // Attempt to attach to a single IPU:
     auto devices = manager.getDevices(poplar::TargetType::IPU, 1);
     std::cout << "Trying to attach to IPU\n";
-    auto it = std::find_if(devices.begin(), devices.end(), [](Device &device) {
-       return device.attach();
-    });
+    auto it = std::find_if(devices.begin(), devices.end(),
+                           [](Device &device) { return device.attach(); });
 
     if (it == devices.end()) {
       std::cerr << "Error attaching to device\n";
-      return 1; //EXIT_FAILURE
+      return 1; // EXIT_FAILURE
     }
 
     device = std::move(*it);
@@ -370,7 +366,8 @@ int main(int argc, char **argv) {
   // Create an engine from the compute graph and control program.
   Engine engine(graph,
                 Sequence({Copy(inStreamV, inputVector), Copy(inStreamM, matrix),
-                         mulProg, Copy(outputVector, outStream)}), engineOpts);
+                          mulProg, Copy(outputVector, outStream)}),
+                engineOpts);
   engine.load(device);
   engine.connectStream("inputVector", hInput.data());
   engine.connectStream("inputMatrix", hMatrix.data());
@@ -380,7 +377,8 @@ int main(int argc, char **argv) {
   engine.run();
 
   // Check the results match what is expected.
-  int err = checkResult(hMatrix.data(), hInput.data(), hOutput.data(), numRows, numCols);
+  int err = checkResult(hMatrix.data(), hInput.data(), hOutput.data(), numRows,
+                        numCols);
   if (err)
     return err;
 

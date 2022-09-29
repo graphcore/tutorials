@@ -9,11 +9,12 @@ import numpy as np
 from collections import namedtuple
 
 Benchmark = namedtuple(
-    'Benchmark', [
-        'graph_builder',     # opts -> proto,data,outputs,losses,optimizer
-        'add_args',          # parser -> parser
-        'iteration_report',  # duration,opts -> string
-    ]
+    "Benchmark",
+    [
+        "graph_builder",  # opts -> proto,data,outputs,losses,optimizer
+        "add_args",  # parser -> parser
+        "iteration_report",  # duration,opts -> string
+    ],
 )
 Benchmark.__new__.__defaults__ = (lambda parser: parser, lambda *_: "")
 
@@ -22,7 +23,7 @@ def run(benchmark, opts):
     proto, data, outputs, losses, optimizer = benchmark.graph_builder(opts)
 
     if opts.save_graph:
-        with open('model.onnx', "wb") as f:
+        with open("model.onnx", "wb") as f:
             f.write(proto)
             print("Written to file: model.onnx")
 
@@ -57,8 +58,11 @@ def run(benchmark, opts):
     # Select a device
     deviceManager = popart.DeviceManager()
     if opts.simulation:
-        deviceOptions = {"compileIPUCode": True,
-                         'numIPUs': opts.shards, "tilesPerIPU": 1216}
+        deviceOptions = {
+            "compileIPUCode": True,
+            "numIPUs": opts.shards,
+            "tilesPerIPU": 1216,
+        }
         device = deviceManager.createIpuModelDevice(deviceOptions)
     else:
         deviceManager.setOnDemandAttachTimeout(10000)
@@ -68,24 +72,25 @@ def run(benchmark, opts):
         if device is None:
             raise OSError("Failed to acquire IPU.")
 
-    if opts.mode == 'train':
-        session = popart.TrainingSession(fnModel=proto,
-                                         loss=losses,
-                                         deviceInfo=device,
-                                         optimizer=optimizer,
-                                         dataFlow=dataFlow,
-                                         userOptions=options)
+    if opts.mode == "train":
+        session = popart.TrainingSession(
+            fnModel=proto,
+            loss=losses,
+            deviceInfo=device,
+            optimizer=optimizer,
+            dataFlow=dataFlow,
+            userOptions=options,
+        )
     else:
-        session = popart.InferenceSession(fnModel=proto,
-                                          deviceInfo=device,
-                                          dataFlow=dataFlow,
-                                          userOptions=options)
+        session = popart.InferenceSession(
+            fnModel=proto, deviceInfo=device, dataFlow=dataFlow, userOptions=options
+        )
 
     print("Compiling...")
     start = time.time()
     session.prepareDevice()
     compilation_duration = time.time() - start
-    print("Duration: {:.3f} seconds\n".format(compilation_duration))
+    print(f"Duration: {compilation_duration:.3f} seconds\n")
 
     # Create buffers to receive results from the execution
     anchors = session.initAnchorArrays()
@@ -95,8 +100,10 @@ def run(benchmark, opts):
 
     # Add a batches_per_step dimension if needed
     if opts.batches_per_step > 1:
-        data = {k: np.repeat(v[np.newaxis], opts.batches_per_step, 0)
-                for k, v in data.items()}
+        data = {
+            k: np.repeat(v[np.newaxis], opts.batches_per_step, 0)
+            for k, v in data.items()
+        }
 
     stepio = popart.PyStepIO(data, anchors)
 
@@ -109,9 +116,8 @@ def run(benchmark, opts):
         session.run(stepio)
         duration = time.time() - start
 
-        average_batches_per_sec += (opts.batches_per_step /
-                                    duration)/opts.steps
-        report_string = "{:<8.3} sec/itr.".format(duration)
+        average_batches_per_sec += (opts.batches_per_step / duration) / opts.steps
+        report_string = f"{duration:<8.3} sec/itr."
         report_string += "   " + benchmark.iteration_report(opts, duration)
         print(report_string)
 
@@ -123,40 +129,74 @@ def run(benchmark, opts):
 
 def parse_opts(benchmark, arg_string=None):
     parser = argparse.ArgumentParser(
-        description='Synthetic Benchmarks in Popart', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+        description="Synthetic Benchmarks in PopART",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
     # Default Arguments
-    parser.add_argument('--mode', choices=["infer", "eval", "train"], default='infer',
-                        help='Which graph to run: infer/eval/train')
-    parser.add_argument('--use-generated-data', action="store_true",
-                        help="Add data transfer ops. Models execution with IO but unbounded by the CPU pipeline.")
-    parser.add_argument('--batches-per-step', type=int, default=1,
-                        help="Number of batches to run per step (on the device)")
-    parser.add_argument('--steps', type=int, default=1,
-                        help="Number of steps to run (on the host)")
-    parser.add_argument('--convolution-options', type=str,
-                        help='Set convolution options as a JSON string.')
-    parser.add_argument('--lstm-options', type=str,
-                        help='Set LSTM options as a JSON string.')
-    parser.add_argument('--shards', type=int, default=1,
-                        help="Select a number of IPUs to split across")
-    parser.add_argument('--auto-sharding', action="store_true",
-                        help="Use auto sharding")
-    parser.add_argument('--pipeline', action="store_true",
-                        help="Pipeline the model over 'shards' IPUs")
-    parser.add_argument('--recompute', action="store_true", default=False,
-                        help="Enable recomputations of activations in backward pass")
-    parser.add_argument('--simulation', action="store_true",
-                        help="Run the program on the IPU Model")
-    parser.add_argument('--save-graph', action="store_true",
-                        help="Save default graph to model.onnx")
-    parser.add_argument('--use-zero-values', action="store_true",
-                        help="If True weights and input will be initialised to zeros (otherwise random data)")
-    parser.add_argument('--report-hw-cycle-count', type=bool, default=False,
-                        help='Report the number of cycles a "run" takes.')
+    parser.add_argument(
+        "--mode",
+        choices=["infer", "eval", "train"],
+        default="infer",
+        help="Which graph to run: infer/eval/train",
+    )
+    parser.add_argument(
+        "--use-generated-data",
+        action="store_true",
+        help="Add data transfer ops. Models execution with IO but unbounded by the CPU pipeline.",
+    )
+    parser.add_argument(
+        "--batches-per-step",
+        type=int,
+        default=1,
+        help="Number of batches to run per step (on the device)",
+    )
+    parser.add_argument(
+        "--steps", type=int, default=1, help="Number of steps to run (on the host)"
+    )
+    parser.add_argument(
+        "--convolution-options",
+        type=str,
+        help="Set convolution options as a JSON string.",
+    )
+    parser.add_argument(
+        "--lstm-options", type=str, help="Set LSTM options as a JSON string."
+    )
+    parser.add_argument(
+        "--shards", type=int, default=1, help="Select a number of IPUs to split across"
+    )
+    parser.add_argument(
+        "--auto-sharding", action="store_true", help="Use auto sharding"
+    )
+    parser.add_argument(
+        "--pipeline", action="store_true", help="Pipeline the model over 'shards' IPUs"
+    )
+    parser.add_argument(
+        "--recompute",
+        action="store_true",
+        default=False,
+        help="Enable recomputations of activations in backward pass",
+    )
+    parser.add_argument(
+        "--simulation", action="store_true", help="Run the program on the IPU Model"
+    )
+    parser.add_argument(
+        "--save-graph", action="store_true", help="Save default graph to model.onnx"
+    )
+    parser.add_argument(
+        "--use-zero-values",
+        action="store_true",
+        help="If True weights and input will be initialised to zeros (otherwise random data)",
+    )
+    parser.add_argument(
+        "--report-hw-cycle-count",
+        type=bool,
+        default=False,
+        help='Report the number of cycles a "run" takes.',
+    )
     # Benchmark Arguments
     benchmark.add_args(parser)
 
     opts = parser.parse_args(arg_string)
 
-    # Should change this to a dictonary
+    # Should change this to a dictionary
     return opts

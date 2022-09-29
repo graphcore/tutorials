@@ -1,3 +1,4 @@
+<!-- Copyright (c) 2021 Graphcore Ltd. All rights reserved. -->
 # Observing tensors in PopTorch
 
 In PyTorch, you will often want to observe the values of tensors within your
@@ -20,10 +21,10 @@ Requirements:
 - Other Python modules: `pip install -r requirements.txt`;
 - An IPU: This tutorial has been designed to be run on a single IPU. If you do
   not have access to an IPU, you can use the option
-  [`useIpuModel`](https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/overview.html#poptorch.Options.useIpuModel)
+  [`useIpuModel`](https://docs.graphcore.ai/projects/poptorch-user-guide/en/3.0.0/overview.html#poptorch.Options.useIpuModel)
   to run a simulation on CPU instead. You can read more on the IPU Model and
   its limitations
-  [here](https://docs.graphcore.ai/projects/poplar-user-guide/en/latest/poplar_programs.html#programming-with-poplar).
+  [here](https://docs.graphcore.ai/projects/poplar-user-guide/en/3.0.0/poplar_programs.html#programming-with-poplar).
 
 ## Table of Contents
 
@@ -33,7 +34,7 @@ Requirements:
 - [Method 2 Direct anchoring](#Method-2-Direct-anchoring)
 - [Anchor modes](#Anchor-modes)
 - [Gradient histogram example](#Gradient-histogram-example)
-  - [Import the packages](#Import-the-packages)
+  - [Import the packages](#Import-packages)
   - [Build the model](#Build-the-model)
   - [Assigning assorted parameters](#Assigning-assorted-parameters)
   - [Set PopTorch options](#Set-PopTorch-options)
@@ -121,7 +122,7 @@ class BasicLinearModel(torch.nn.Module):
 > optimizer, you must use the return value of `ipu_print_tensor()`.
 
 Additional documentation can be found in the [PopTorch User
-Guide](https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/overview.html?highlight=ipu_print_tensor%28#poptorch-ipu-print-tensor)
+Guide](https://docs.graphcore.ai/projects/poptorch-user-guide/en/3.0.0/overview.html?highlight=ipu_print_tensor%28#poptorch-ipu-print-tensor)
 
 ## Method 2 Direct anchoring
 
@@ -146,7 +147,7 @@ model.train()  # Switch the model to training mode
 # Models are initialised in training mode by default, so the line above will
 # have no effect. Its purpose is to show how the mode can be set explicitly.
 poptorch_model = poptorch.trainingModel(model)
-poptorch_model(input, label) # compiling the model
+poptorch_model(input, label)  # compiling the model
 ```
 
 There are 3 steps to take:
@@ -170,14 +171,14 @@ There are 3 steps to take:
     - The anchor is created by calling the `anchorTensor()` PopTorch method;
     - You must pass in two mandatory string variables: the user-defined name for
       the anchor and the name of the chosen tensor;
-    - See [PopTorch API documentation](https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/reference.html#poptorch.Options.anchorTensor)
+    - See [PopTorch API documentation](https://docs.graphcore.ai/projects/poptorch-user-guide/en/3.0.0/reference.html#poptorch.Options.anchorTensor)
       for the optional variables `anchor_mode` and `anchor_return_period` or
       refer to the next section.
 
     ```python
     opts = poptorch.Options()
-    opts.anchorTensor('grad_bias', 'Gradient___model.fc2.bias')
-    opts.anchorTensor('update_weight', 'UpdatedVar___model.fc2.weight')
+    opts.anchorTensor("grad_bias", "Gradient___model.fc2.bias")
+    opts.anchorTensor("update_weight", "UpdatedVar___model.fc2.weight")
 
     poptorch_model = poptorch.trainingModel(model, opts)
     poptorch_model(input, label)
@@ -193,8 +194,8 @@ There are 3 steps to take:
       `anchorTensor()`.
 
     ```python
-    grad = poptorch_model.getAnchoredTensor('grad_bias')
-    update = poptorch_model.getAnchoredTensor('update_weight')
+    grad = poptorch_model.getAnchoredTensor("grad_bias")
+    update = poptorch_model.getAnchoredTensor("update_weight")
     ```
 
 > **NOTE**: Debug logs (using environmental variables `POPTORCH_LOG_LEVEL` or
@@ -202,7 +203,7 @@ There are 3 steps to take:
 > interest.
 
 Additional documentation can be found in the [PopTorch User
-Guide](https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/debugging.html)
+Guide](https://docs.graphcore.ai/projects/poptorch-user-guide/en/3.0.0/debugging.html)
 
 ## Anchor modes
 
@@ -254,7 +255,7 @@ opts.anchorTensor('update_weight', 'UpdatedVar___model.fc2.weight', anchor_mode=
 ```
 
 Additional documentation can be found in the [PopTorch User
-Guide](https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/batching.html#poptorch-options-training-anchorreturntype)
+Guide](https://docs.graphcore.ai/projects/poptorch-user-guide/en/3.0.0/batching.html#poptorch-options-training-anchorreturntype)
 
 ## Gradient histogram example
 
@@ -337,11 +338,18 @@ opts = poptorch.Options()
 We will use the MNIST dataset that we download from `torchvision`.
 
 ```python
-transform = torchvision.transforms.Compose([
-    torchvision.transforms.ToTensor(),
-    torchvision.transforms.Normalize((0.5,), (0.5,))])
-train_data = torchvision.datasets.MNIST("~/.torch/datasets", transform=transform, download=True, train=True)
-train_loader = poptorch.DataLoader(opts, train_data, batch_size=batch_size_train, shuffle=True)
+transform = torchvision.transforms.Compose(
+    [
+        torchvision.transforms.ToTensor(),
+        torchvision.transforms.Normalize((0.5,), (0.5,)),
+    ]
+)
+train_data = torchvision.datasets.MNIST(
+    "~/.torch/datasets", transform=transform, download=True, train=True
+)
+train_loader = poptorch.DataLoader(
+    opts, train_data, batch_size=batch_size_train, shuffle=True
+)
 ```
 
 ### Initialising the PopTorch model
@@ -364,7 +372,9 @@ We then compile the PopTorch model ahead of time so that we can call the
 `getTensorNames()` method.
 
 ```python
-poptorch_model.compile(torch.zeros(batch_size_train, 1, 28, 28), torch.zeros(batch_size_train).long())
+poptorch_model.compile(
+    torch.zeros(batch_size_train, 1, 28, 28), torch.zeros(batch_size_train).long()
+)
 print("tensor names:", poptorch_model.getTensorNames())
 ```
 
@@ -378,7 +388,14 @@ the options that will be passed to our `trainingModel`, we need to add
 Here, we will do it right after the PopTorch options have been initialised.
 
 ```python
-tensors = ['Gradient___model.fc1.weight', 'Gradient___model.fc3.weight', 'Gradient___model.fc2.bias', 'Gradient___model.fc1.bias', 'Gradient___model.fc3.bias', 'Gradient___model.fc2.weight']
+tensors = [
+    "Gradient___model.fc1.weight",
+    "Gradient___model.fc3.weight",
+    "Gradient___model.fc2.bias",
+    "Gradient___model.fc1.bias",
+    "Gradient___model.fc3.bias",
+    "Gradient___model.fc2.weight",
+]
 for t in tensors:
     opts.anchorTensor(t, t)
 ```
@@ -396,7 +413,7 @@ for data, labels in tqdm(train_loader, desc="batches", leave=False):
     output, loss = poptorch_model(data, labels)
     total_loss += loss
     predictions += output
-print('Loss: {:.4f}'.format(total_loss.item()))
+print(f"Loss: {total_loss.item():.4f}")
 ```
 
 ### Retrieving the tensors
@@ -438,7 +455,7 @@ overflowing of gradients.
 ```python
 fig, axs = plt.subplots(tight_layout=True)
 axs.hist(gradient_data, bins=50)
-axs.set(title = "Gradient Histogram", ylabel='Frequency')
+axs.set(title="Gradient Histogram", ylabel="Frequency")
 plt.savefig(pictureName)
-print("Saved histogram to ./{}".format(pictureName))
+print(f"Saved histogram to ./{pictureName}")
 ```

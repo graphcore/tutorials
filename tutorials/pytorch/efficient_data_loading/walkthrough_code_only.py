@@ -8,15 +8,18 @@
 
 def is_interactive():
     import __main__ as main
-    return not hasattr(main, '__file__')
+
+    return not hasattr(main, "__file__")
 
 
 if __name__ == "__main__" and not is_interactive():
-    print("This tutorial has been designed to run in a Jupyter notebook. "
-          "If you would like to run it as a Python script, please "
-          "process spawning issues when using asynchronous data loading, "
-          "use tuto_data_loading.py instead. This is required due to Python "
-          "as detailed in the README.")
+    print(
+        "This tutorial has been designed to run in a Jupyter notebook. "
+        "If you would like to run it as a Python script, please "
+        "process spawning issues when using asynchronous data loading, "
+        "use tuto_data_loading.py instead. This is required due to Python "
+        "as detailed in the README."
+    )
     exit(0)
 
 import time
@@ -66,9 +69,8 @@ model.train()  # Switch the model to training mode
 # have no effect. Its purpose is to show how the mode can be set explicitly.
 
 training_model = poptorch.trainingModel(
-    model,
-    opts,
-    torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9))
+    model, opts, torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
+)
 
 features = torch.randn([10000, 1, 128, 128])
 labels = torch.empty([10000], dtype=torch.long).random_(10)
@@ -81,7 +83,7 @@ training_data = poptorch.DataLoader(
     shuffle=True,
     drop_last=True,
     num_workers=num_workers,
-    mode=poptorch.DataLoaderMode.Async
+    mode=poptorch.DataLoaderMode.Async,
 )
 
 
@@ -109,12 +111,15 @@ opts = poptorch.Options()
 opts.deviceIterations(device_iterations)
 opts.replicationFactor(replicas)
 opts.enableSyntheticData(True)
+opts.enableExecutableCaching(".graphcore")
 
 model = ClassificationModel()
 training_model = poptorch.trainingModel(
     model,
     opts,
-    poptorch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9, use_combined_accum=False)
+    poptorch.optim.SGD(
+        model.parameters(), lr=0.001, momentum=0.9, use_combined_accum=False
+    ),
 )
 training_data = poptorch.DataLoader(
     opts,
@@ -124,7 +129,7 @@ training_data = poptorch.DataLoader(
     drop_last=True,
     num_workers=num_workers,
     mode=poptorch.DataLoaderMode.Async,
-    async_options={"early_preload": True}
+    async_options={"early_preload": True},
 )
 steps = len(training_data)
 data_batch, labels_batch = next(iter(training_data))
@@ -146,21 +151,44 @@ print(f"IPU throughput: {items_per_second:.2f} items/s")
 training_data.terminate()
 
 
-def validate_model_performance(dataset, device_iterations=50,
-                               batch_size=16, replicas=4, num_workers=4,
-                               synthetic_data=False):
+def validate_model_performance(
+    dataset,
+    device_iterations=50,
+    batch_size=16,
+    replicas=4,
+    num_workers=4,
+    synthetic_data=False,
+):
     opts = poptorch.Options()
     opts.deviceIterations(device_iterations)
     opts.replicationFactor(replicas)
+    opts.enableExecutableCaching(".graphcore")
+
     if synthetic_data:
         opts.enableSyntheticData(True)
 
-    training_data = poptorch.DataLoader(opts, dataset=dataset, batch_size=batch_size,
-                                        shuffle=True, drop_last=True,
-                                        num_workers=num_workers,
-                                        mode=poptorch.DataLoaderMode.Async,
-                                        async_options={"early_preload": True})
+    model = ClassificationModel()
+    training_model = poptorch.trainingModel(
+        model,
+        opts,
+        poptorch.optim.SGD(
+            model.parameters(), lr=0.001, momentum=0.9, use_combined_accum=False
+        ),
+    )
+
+    training_data = poptorch.DataLoader(
+        opts,
+        dataset=dataset,
+        batch_size=batch_size,
+        shuffle=True,
+        drop_last=True,
+        num_workers=num_workers,
+        mode=poptorch.DataLoaderMode.Async,
+        async_options={"early_preload": True},
+    )
     steps = len(training_data)
+    data_batch, labels_batch = next(iter(training_data))
+    training_model.compile(data_batch, labels_batch)
     with catchtime() as t:
         for data_batch, labels_batch in training_data:
             pass
@@ -188,20 +216,40 @@ def validate_model_performance(dataset, device_iterations=50,
     training_data.terminate()
 
 
-validate_model_performance(dataset, batch_size=16, replicas=1,
-                           device_iterations=50, num_workers=4,
-                           synthetic_data=True)
+validate_model_performance(
+    dataset,
+    batch_size=16,
+    replicas=1,
+    device_iterations=50,
+    num_workers=4,
+    synthetic_data=True,
+)
 
-validate_model_performance(dataset, batch_size=16, replicas=1,
-                           device_iterations=50, num_workers=4,
-                           synthetic_data=False)
+validate_model_performance(
+    dataset,
+    batch_size=16,
+    replicas=1,
+    device_iterations=50,
+    num_workers=4,
+    synthetic_data=False,
+)
 
-validate_model_performance(dataset, batch_size=16, replicas=4,
-                           device_iterations=50, num_workers=4,
-                           synthetic_data=True)
+validate_model_performance(
+    dataset,
+    batch_size=16,
+    replicas=4,
+    device_iterations=50,
+    num_workers=4,
+    synthetic_data=True,
+)
 
-validate_model_performance(dataset, batch_size=16, replicas=4,
-                           device_iterations=50, num_workers=4,
-                           synthetic_data=False)
+validate_model_performance(
+    dataset,
+    batch_size=16,
+    replicas=4,
+    device_iterations=50,
+    num_workers=4,
+    synthetic_data=False,
+)
 
-# Generated:2022-05-19T17:35 Source:walkthrough.py SST:0.0.7
+# Generated:2022-09-28T10:50 Source:walkthrough.py SST:0.0.8

@@ -56,7 +56,7 @@ class TestPopARTMNISTImageClassificationConvolution:
     @pytest.mark.category3
     def test_mnist_conv_simulation(self):
         """Simulation test with basic arguments - This simulation takes
-           around 838s (~14 minutes) to complete"""
+        around 838s (~14 minutes) to complete"""
         cmd, args = self.generic_cmd.copy(), self.generic_arguments.copy()
         args["--batch-size"] = 1
         args["--batches-per-step"] = 1

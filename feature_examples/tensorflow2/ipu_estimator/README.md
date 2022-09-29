@@ -1,3 +1,4 @@
+<!-- Copyright (c) 2020 Graphcore Ltd. All rights reserved. -->
 # CIFAR-10 Estimators
 
 This example shows how to use IPU-specific Estimators as an alternative to the
@@ -84,7 +85,7 @@ This example is licensed under the MIT license - see the LICENSE file at the top
 
 It includes derived work from:
 
-Keras, https://github.com/keras-team/keras/tree/1a3ee8441933fc007be6b2beb47af67998d50737
+Keras, <https://github.com/keras-team/keras/tree/1a3ee8441933fc007be6b2beb47af67998d50737>
 (Source file has been deleted from the master branch)
 
 All contributions by François Chollet:

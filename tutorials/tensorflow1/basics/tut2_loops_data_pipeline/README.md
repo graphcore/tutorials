@@ -1,10 +1,11 @@
+<!-- Copyright (c) 2021 Graphcore Ltd. All rights reserved. -->
 # Tutorial 2: Loops and data pipelines
 
 ## Introduction and overview
 
 In the first tutorial in this series, we walked through the steps of getting a simple model to run on the IPU. However, the resulting code was not as fast as it could have been, as there was significant overhead from calling `sess.run` every time the training loop body was executed. To eliminate this overhead, we need a way to run a looped function inside a single `sess.run` call.
 
-TensorFlow for IPU handles this with the `ipu.loops` API, which allows us to create on-device loops for the IPU. The function which forms the body of the loop takes its previous output and/or the next batch of data from a dataset as inputs. 
+TensorFlow for IPU handles this with the `ipu.loops` API, which allows us to create on-device loops for the IPU. The function which forms the body of the loop takes its previous output and/or the next batch of data from a dataset as inputs.
 
 To create a dataset the loop can iterate over, a `tf.data.Dataset` object is wrapped in an IPU infeed queue, an object which adds IPU-specific infeed operations and serves as a glue between the dataset and the `ipu.loops` API.
 
@@ -27,8 +28,8 @@ fashion_mnist = tf.keras.datasets.fashion_mnist
 (x_train, y_train), _ = fashion_mnist.load_data()
 
 # Normalize and cast the data
-x_train = x_train.astype('float32') / 255
-y_train = y_train.astype('int32')
+x_train = x_train.astype("float32") / 255
+y_train = y_train.astype("int32")
 
 # Create and configure the dataset for iteration
 dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train))
@@ -39,12 +40,14 @@ dataset = dataset.repeat().batch(BATCHSIZE, drop_remainder=True)
 # Fashion-MNIST images are greyscale, so we add a channels dimension
 expand_dims = tf.keras.layers.Reshape((28, 28, 1))
 
-conv = (tf.keras.layers.Conv2D(filters=8,
-                               kernel_size=(3, 3),
-                               strides=(1, 1),
-                               padding='same',
-                               activation=tf.nn.relu,
-                               data_format="channels_last"))
+conv = tf.keras.layers.Conv2D(
+    filters=8,
+    kernel_size=(3, 3),
+    strides=(1, 1),
+    padding="same",
+    activation=tf.nn.relu,
+    data_format="channels_last",
+)
 
 flatten = tf.keras.layers.Flatten()
 
@@ -89,12 +92,12 @@ def training_loop_body(loss_running_total, x, y):
     train_op = tf.train.AdamOptimizer(0.01).minimize(loss=loss)
 
     # The running total calculation is now moved to the IPU
-    return([loss_running_total + loss, train_op])
+    return [loss_running_total + loss, train_op]
 ```
 
 
 
-Now we can create the loop itself. There are two functions for forming loops available: 
+Now we can create the loop itself. There are two functions for forming loops available:
 - `ipu.loops.repeat`, which executes the loop body a fixed number of times
 - `ipu.loops.while`, which executes the loop body until some condition is met
 
@@ -104,7 +107,7 @@ Both take the following arguments:
 - `inputs`, a list of initial values for the "previous output" inputs
 - `infeed_queue`, an infeed queue from which to take inputs
 
-For both types of loop, `inputs` and `infeed_queue` are optional arguments (that is, there is no requirement for a loop to carry variables or take data from an infeed queue). 
+For both types of loop, `inputs` and `infeed_queue` are optional arguments (that is, there is no requirement for a loop to carry variables or take data from an infeed queue).
 
 Each has one more important argument, specific to the kind of loop they execute:
 
@@ -116,24 +119,22 @@ Here's how that works out for our example, with comments briefly explaining each
 ```python
 # SNIPPET 4
 
+
 def train_one_epoch():
 
     total_loss = ipu.loops.repeat(
-
         # Repeat same number of times as before
         n=batches_per_epoch,
-
         # The training loop body we defined in the previous snippet
         body=training_loop_body,
-
         # Set initial value of running total to 0
         inputs=[0.0],
-
         # We use our infeed queue from the previous section
-        infeed_queue=mnist_infeed_queue)
+        infeed_queue=mnist_infeed_queue,
+    )
 
     return total_loss
-```  
+```
 
 ## Configure, prepare and run
 
@@ -149,11 +150,11 @@ ipu_configuration.auto_select_ipus = 1
 
 ipu_configuration.configure_ipu_system()
 
-with ipu.scopes.ipu_scope('/device:IPU:0'):
+with ipu.scopes.ipu_scope("/device:IPU:0"):
     train_one_epoch_on_ipu = ipu.ipu_compiler.compile(train_one_epoch)
 ```
 
-The only change that needs to be made to the code apart from removing the inner loop is to initialise the infeed queue in place of initialising the dataset iterator as we did in Part 1. 
+The only change that needs to be made to the code apart from removing the inner loop is to initialise the infeed queue in place of initialising the dataset iterator as we did in Part 1.
 
 Here's the final part of the example:
 
@@ -174,8 +175,8 @@ with tf.Session() as sess:
         total_loss = sess.run(train_one_epoch_on_ipu)
 
         # Print average loss and time taken for epoch
-        print('\n', end='')
-        print("Loss:", total_loss[0]/batches_per_epoch)
+        print("\n", end="")
+        print("Loss:", total_loss[0] / batches_per_epoch)
         print("Time:", time.time() - epoch_start_time)
 
 print("Program ran successfully")
@@ -189,4 +190,4 @@ When the `ipu.loops` API is not used, the program that executes the training loo
 ![PopVision System Analyser trace without `ipu.loops`](system_trace_without_ipu_loops.png)
 ![PopVision System Analyser trace with `ipu.loops`](system_trace_with_ipu_loops.png)
 
-For more information on the PopVision System Analyser, head to the [PopVision System Analyser User Guide](https://docs.graphcore.ai/projects/system-analyser-userguide/en/latest/).
+For more information on the PopVision System Analyser, head to the [PopVision System Analyser User Guide](https://docs.graphcore.ai/projects/system-analyser-userguide/en/2.11.2/).

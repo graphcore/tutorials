@@ -1,9 +1,10 @@
+<!-- Copyright (c) 2020 Graphcore Ltd. All rights reserved. -->
 # BERT inference using PopTorch
 
 ## Overview
 
 This example shows how to use PopTorch to run inference on a pre-trained BERT model.
-The pre-trained model is downloaded from Hugging Face (https://huggingface.co/transformers/model_doc/bert.html) and compiled to run on the IPU.
+The pre-trained model is downloaded from Hugging Face (<https://huggingface.co/transformers/model_doc/bert.html>) and compiled to run on the IPU.
 The model has been already been fine tuned on the SQuADv2 corpus and is configured for a question-answering task.
 
 Two text files are used to provide inputs to the network:
@@ -21,5 +22,3 @@ The example can be run from the command line:
 ```:bash
 python3 bert_inference.py
 ```
-
-

@@ -1,3 +1,4 @@
+<!-- Copyright (c) 2021 Graphcore Ltd. All rights reserved. -->
 # Introduction to TensorFlow 1 on the IPU
 
 This series of tutorials covers the basics of porting a TensorFlow 1 model to run efficiently on Graphcore IPUs using the Python API. It uses TensorFlow 1.15, the version of TensorFlow 1 included with the Poplar SDK. It assumes familiarity with basic machine learning concepts and TensorFlow 1, including the `tf.data` API used for building data pipelines. There are currently two tutorials:

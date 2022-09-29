@@ -1,24 +1,35 @@
+<!-- Copyright (c) 2020 Graphcore Ltd. All rights reserved. -->
 # IPUEstimator CNN example
 
 
 This README describes how to run the IPUEstimator to train and evaluate a simple CNN.
 ## Overview
 
-TensorFlow Estimators use a high-level TensorFlow API, which automatically handles most of the implementation details when training/evaluating a model. They are designed to be "hardware agnostic"; you do not have to change your model when running on CPUs, GPUs, TPUs or over single devices versus distributed devices. For more information about Estimators, please see https://www.tensorflow.org/guide/estimator.
+TensorFlow Estimators use a high-level TensorFlow API, which automatically handles most of the implementation details when training/evaluating a model. They are designed to be "hardware agnostic"; you do not have to change your model when running on CPUs, GPUs, TPUs or over single devices versus distributed devices. For more information about Estimators, please see <https://www.tensorflow.org/guide/estimator>.
 
 ## IPUEstimator
 
 The IPUEstimator is the IPU implementation of the TensorFlow Estimator. It handles several parts of running a TensorFlow program on the IPU for you, including:
 
-1. Scoping the model inside the `ipu.scopes.ipu_scope('/device:IPU:0')` scope;
-2. Compiling the model with XLA via `ipu.ipu_compiler.compile` with an `ipu.loops.repeat` loop;
-3. Creating infeeds from the datasets and, if enabled, outfeeds;
-4. Configuring the IPU system;
-5. Incrementing the global step counter;
-6. If requested, turning replication and sharding on;
-7. Generating compilation/execution reports, etc.
+* Scoping the model inside the `ipu.scopes.ipu_scope('/device:IPU:0')` scope;
+* Compiling the model with XLA via `ipu.ipu_compiler.compile` with an `ipu.loops.repeat` loop;
+* Creating infeeds from the datasets and, if enabled, outfeeds;
+* Configuring the IPU system;
+* Incrementing the global step counter;
+* If requested, turning replication and sharding on;
+* Generating compilation/execution reports, etc.
 
 Normally, you give an Estimator a RunConfig to tell the Estimator how to train/evaluate the model. We extend the RunConfig class to accept an IPURunConfig, which additionally accepts an IPU config, to allow you to express the IPU-specific options you would like, while still being able to use that RunConfig with another Estimator. In these configs, you can define things such as the iterations per loop on the IPU, the replication factor, autosharding, whether or not to generate a compilation report etc.
+
+> ### A note on TensorFlow 1 `IPULoggingTensorHook`
+> [`tensorflow.python.ipu.ipu_session_run_hooks.IPULoggingTensorHook`](https://docs.graphcore.ai/projects/tensorflow1-user-guide/en/3.0.0/tensorflow/api.html?highlight=estimator#session-run-hooks) has a different interface to the native TensorFlow function `tf.estimator.LoggingTensorHook` and requires some changes when porting to the IPU.
+>
+>The primary change is that `IPULoggingTensorHook` does not take a dictionary of tensors to log. It simply initialises the hook. The tensors to log must be added to the `IPULoggingTensorHook` object *after* declaration, using the method `.log(<tensor>)`. These tensors are then printed to the log with the pre-defined `INFO` severity.
+>
+>It is necessary to ensure that the logging targets are not removed from the graph. This is done by adding them to the training op target with `tf.group( ... )`, which ensures they are part of the graph's control flow.
+>
+> `LoggingMode` can be used to specify whether to log tensors at each device loop, or just the final loop.
+>
 
 In this example, the IPUEstimator is used to train and evaluate a simple CNN based on this [Keras CIFAR-10 example](https://github.com/keras-team/keras/blob/1a3ee8441933fc007be6b2beb47af67998d50737/examples/cifar10_cnn.py)
 ## Dataset
@@ -36,9 +47,9 @@ This model uses the standard CIFAR10 Keras dataset with contains 60,000 32x32 co
 
 1. Prepare the TensorFlow environment.
    Install the Poplar SDK following the Getting Started guide for your IPU system.
-   Make sure to source the `enable.sh` script for Poplar and activate a Python virtualenv with 
+   Make sure to source the `enable.sh` script for Poplar and activate a Python virtualenv with
    a TensorFlow 1 wheel from the Poplar SDK installed (use the version appropriate to your operating system and processor).
-   
+
 2. Train and test the model:
 
        python ipu_estimator_cnn.py
@@ -68,7 +79,7 @@ This example is licensed under the MIT license - see the LICENSE file at the top
 
 It includes derived work from:
 
-Keras, https://github.com/keras-team/keras/tree/1a3ee8441933fc007be6b2beb47af67998d50737
+Keras, <https://github.com/keras-team/keras/tree/1a3ee8441933fc007be6b2beb47af67998d50737>
 (Source file has been deleted from the master branch)
 
 All contributions by François Chollet:

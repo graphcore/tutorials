@@ -1,5 +1,5 @@
 """
-Copyright (c) 2021 Graphcore Ltd. All rights reserved.
+Copyright (c) 2022 Graphcore Ltd. All rights reserved.
 """
 """
 # TensorFlow 1 Pipelining
@@ -9,12 +9,12 @@ Copyright (c) 2021 Graphcore Ltd. All rights reserved.
 If a model is too big to fit on one IPU, you will need to distribute it over
 multiple IPUs. This is called model parallelism. Documentation for model
 parallelism on IPU with TensorFlow can be found here: [TensorFlow Model
-Parallelism](https://docs.graphcore.ai/projects/tf-model-parallelism/en/latest/model.html#model-parallelism)
+Parallelism](https://docs.graphcore.ai/projects/tf-model-parallelism/en/3.0.0/model.html#model-parallelism)
 
 Pipelining can also be a way to improve model performance. More information on
 splitting models for pipelining is available in the [memory and performance
 optimisation
-guide](https://docs.graphcore.ai/projects/memory-performance-optimisation/en/2.6.0/optimising-performance.html#pipeline-execution-scheme).
+guide](https://docs.graphcore.ai/projects/memory-performance-optimisation/en/3.0.0/optimising-performance.html#pipeline-execution-scheme).
 
 This tutorial first provides an overview of the key concepts from this document.
 It then provides a walkthrough of how pipelining can be applied to an existing
@@ -31,7 +31,7 @@ In order to run this tutorial on the IPU you will need to have:
 - A Poplar SDK environment enabled (see the
 [Getting Started](https://docs.graphcore.ai/en/latest/getting-started.html) guide for your IPU system).
 - The Graphcore port of TensorFlow 1 set up for the IPU (see the
-[Setup Instructions](https://docs.graphcore.ai/projects/ipu-pod-getting-started/en/latest/installation.html#setting-up-tensorflow-for-the-ipu))
+[Setup Instructions](https://docs.graphcore.ai/projects/ipu-pod-getting-started/en/3.0.0/installation.html#setting-up-tensorflow-for-the-ipu))
 """
 """
 To run the Jupyter notebook version of this tutorial:
@@ -64,7 +64,7 @@ With model sharding, the model is split into stages where each stage can fit and
 ![Sharding outline](images/sharding_outline.png)
 
 > Refer to the technical note on TensorFlow Model Parallelism for full details:
-[TensorFlow Model Parallelism - Sharding](https://docs.graphcore.ai/projects/tf-model-parallelism/en/latest/sharding.html#sharding)
+[TensorFlow Model Parallelism - Sharding](https://docs.graphcore.ai/projects/tf-model-parallelism/en/3.0.0/sharding.html#sharding)
 
 Model sharding provides a method to run larger models that is conceptually straightforward and might be useful for initial development or debugging. However, it does not offer good utilisation of the allocated IPU resource and, for this reason, sharding is not recommended for production models where performance is critical.
 
@@ -74,7 +74,7 @@ With pipelining, as with sharding, the model is split into stages where each sta
 
 ![Pipelining outline](images/pipelining_outline.png)
 
-> Refer to the technical note on TensorFlow Model Parallelism for full details: [TensorFlow Model Parallelism - Pipelining](https://docs.graphcore.ai/projects/tf-model-parallelism/en/latest/pipelining.html#pipelining)
+> Refer to the technical note on TensorFlow Model Parallelism for full details: [TensorFlow Model Parallelism - Pipelining](https://docs.graphcore.ai/projects/tf-model-parallelism/en/3.0.0/pipelining.html#pipelining)
 
 Pipelining provides a method to run larger models that is conceptually less straightforward compared to sharding. However, it offers better utilisation of the allocated IPU resource and, for this reason, pipelining is recommended where performance is critical.
 
@@ -113,7 +113,7 @@ Here is the pipeline outline extended to show the progress of 16 mini-batches fo
 ![Execution Phases](images/execution_phases.png)
 """
 """
-# Tutorial Walkthrough
+## Tutorial Walkthrough
 
 This tutorial starts with a simple multi-stage model that trains on the MNIST dataset.
 
@@ -128,7 +128,7 @@ Note:
   c) enable synthetic data to remove host IO from the execution trace.
 """
 """
-## Tutorial Step 1: The Existing Single IPU Application
+### Tutorial Step 1: The Existing Single IPU Application
 
 See [`step1_single_ipu.py`](step1_single_ipu.py)
 This is our starting point. Take a look at the code and familiarise yourself with it. The model is running on a single IPU without pipelining.
@@ -159,24 +159,45 @@ sys.argv = ["tutorial"]
 def parse_args():
     # Handle command line arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument("--batch-size", type=int, default=32,
-                        help="The batch size.")
-    parser.add_argument("--repeat-count", type=int, default=10,
-                        help="The number of times the pipeline will be executed for each step.")
-    parser.add_argument("--epochs", type=float, default=50,
-                        help="Total number of epochs to train for.")
-    parser.add_argument("--steps", type=int, default=None,
-                        help="Total number of steps to train for (overrides epochs).")
-    parser.add_argument("--learning-rate", type=float, default=0.01,
-                        help="The learning rate used with stochastic gradient descent.")
-    parser.add_argument("--batches-to-accumulate", type=int, default=16,
-                        help="How many batches to process before processing gradients and updating weights.")
-    parser.add_argument("--splits", nargs="+", help="Specify splits. " +
-                        "Each split specifies the layer that will be assigned to the *next* stage. " +
-                        "The layers are: ",
-                        default=["dense32"])
+    parser.add_argument("--batch-size", type=int, default=32, help="The batch size.")
+    parser.add_argument(
+        "--repeat-count",
+        type=int,
+        default=10,
+        help="The number of times the pipeline will be executed for each step.",
+    )
+    parser.add_argument(
+        "--epochs", type=float, default=50, help="Total number of epochs to train for."
+    )
+    parser.add_argument(
+        "--steps",
+        type=int,
+        default=None,
+        help="Total number of steps to train for (overrides epochs).",
+    )
+    parser.add_argument(
+        "--learning-rate",
+        type=float,
+        default=0.01,
+        help="The learning rate used with stochastic gradient descent.",
+    )
+    parser.add_argument(
+        "--batches-to-accumulate",
+        type=int,
+        default=16,
+        help="How many batches to process before processing gradients and updating weights.",
+    )
+    parser.add_argument(
+        "--splits",
+        nargs="+",
+        help="Specify splits. "
+        + "Each split specifies the layer that will be assigned to the *next* stage. "
+        + "The layers are: ",
+        default=["dense32"],
+    )
     args = parser.parse_args()
     return args
+
 
 args = parse_args()
 """
@@ -209,6 +230,7 @@ def create_dataset(args):
 
     return num_examples, dataset
 
+
 num_examples, dataset = create_dataset(args)
 num_train_examples = int(args.epochs * num_examples)
 """
@@ -232,18 +254,20 @@ def model(learning_rate, images, labels):
         logits = layers.Dense(10)(activations)
     with tf.variable_scope("softmax_ce"):
         cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(
-            labels=labels, logits=logits)
+            labels=labels, logits=logits
+        )
     with tf.variable_scope("mean"):
         loss = tf.reduce_mean(cross_entropy)
     with tf.variable_scope("optimizer"):
         optimizer = tf.train.GradientDescentOptimizer(learning_rate=learning_rate)
         if args.batches_to_accumulate > 1:
-            optimizer = ipu.optimizers. \
-                GradientAccumulationOptimizerV2(
-                    optimizer,
-                    num_mini_batches=args.batches_to_accumulate)
+            optimizer = ipu.optimizers.GradientAccumulationOptimizerV2(
+                optimizer, num_mini_batches=args.batches_to_accumulate
+            )
         train_op = optimizer.minimize(loss=loss)
     return learning_rate, train_op, outfeed_queue.enqueue(loss)
+
+
 """
 The training will step `args.repeat_count` times by iterating the model in an IPU repeat loop.
 """
@@ -253,6 +277,8 @@ The training will step `args.repeat_count` times by iterating the model in an IP
 def loop_repeat_model(learning_rate):
     r = ipu.loops.repeat(args.repeat_count, model, [learning_rate], infeed_queue)
     return r
+
+
 """
 Create the data queues to/from IPU:
 """
@@ -270,8 +296,10 @@ With batch size BS and repeat count RPT, at every step n = (BS * RPT) examples a
 remainder = args.repeat_count % args.batches_to_accumulate
 if remainder > 0:
     args.repeat_count += args.batches_to_accumulate - remainder
-    print(f'Rounding up repeat count to whole multiple of '
-          f'batches-to-accumulate (== {args.repeat_count})')
+    print(
+        f"Rounding up repeat count to whole multiple of "
+        f"batches-to-accumulate (== {args.repeat_count})"
+    )
 
 """
 In order to evaluate at least N total examples, do `floor(num_train_examples / examples_per_step)` to calculate how many steps we need to run
@@ -280,19 +308,24 @@ In order to evaluate at least N total examples, do `floor(num_train_examples / e
 
 
 examples_per_step = args.batch_size * args.repeat_count
-steps = args.steps if args.steps is not None else \
-    (num_train_examples + examples_per_step - 1) // examples_per_step
+steps = (
+    args.steps
+    if args.steps is not None
+    else (num_train_examples + examples_per_step - 1) // examples_per_step
+)
 training_samples = steps * examples_per_step
-print(f'Steps {steps} x examples per step {examples_per_step} '
-      f'(== {training_samples} training examples, {training_samples/num_examples} '
-      f'epochs of {num_examples} examples)')
+print(
+    f"Steps {steps} x examples per step {examples_per_step} "
+    f"(== {training_samples} training examples, {training_samples/num_examples} "
+    f"epochs of {num_examples} examples)"
+)
 """
 Compile the model:
 """
 # sst_hide_output
 
 
-with tf.device('cpu'):
+with tf.device("cpu"):
     learning_rate = tf.placeholder(np.float32, [])
 
 with ipu.scopes.ipu_scope("/device:IPU:0"):
@@ -329,12 +362,13 @@ with tf.Session() as sess:
         losses = sess.run(outfeed_op)
         if losses is not None and len(losses):
             epoch = float(examples_per_step * step / num_examples)
-            if (step == (steps-1) or (step % 10) == 0):
-                print("Step {}, Epoch {:.1f}, Mean loss: {:.3f}".format(
-                    step, epoch, np.mean(losses)))
+            if step == (steps - 1) or (step % 10) == 0:
+                print(
+                    f"Step {step}, Epoch {epoch:.1f}, Mean loss: {np.mean(losses):.3f}"
+                )
     end = time.time()
     elapsed = end - begin
-    samples_per_second = training_samples/elapsed
+    samples_per_second = training_samples / elapsed
 """
 This is the model outline:
 
@@ -346,13 +380,14 @@ The loss is optimized using `GradientDescentOptimizer` and `GradientAccumulation
 optimizer = tf.train.GradientDescentOptimizer(learning_rate=learning_rate)
 if args.batches_to_accumulate > 1:
     optimizer = ipu.optimizers.GradientAccumulationOptimizerV2(
-                optimizer, num_mini_batches=args.batches_to_accumulate)
+        optimizer, num_mini_batches=args.batches_to_accumulate
+    )
 train_op = optimizer.minimize(loss=loss)
 ```
 
 The `GradientAccumulationOptimizerV2` is a wrapper for an optimizer where instead of performing the weight update for every batch, gradients across multiple batches are accumulated. After multiple batches have been processed, their accumulated gradients are used to compute the weight update. The effective batch size is the product of the model batch size and the gradient accumulation count. The `GradientAccumulationOptimizerV2` optimizer can be used to wrap any other TensorFlow optimizer. In this case it is wrapping a `GradientDescentOptimizer`.
 
-See the TensorFlow 1 API documentation for details: [GradientAccumulationOptimizerV2](<https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/tensorflow/api.html#tensorflow.python.ipu.optimizers.GradientAccumulationOptimizerV2>)
+See the TensorFlow 1 API documentation for details: [GradientAccumulationOptimizerV2](<https://docs.graphcore.ai/projects/tensorflow-user-guide/en/3.0.0/tensorflow/api.html#tensorflow.python.ipu.optimizers.GradientAccumulationOptimizerV2>)
 
 Generate a profile report into directory `./profile_step1_single_ipu` with:
 
@@ -361,7 +396,7 @@ Generate a profile report into directory `./profile_step1_single_ipu` with:
 Use PopVision Graph Analyser to view the execution trace.
 Remember that the `profile.sh` script limits the execution to a single batch.
 
-If this is your first time using the PopVision Graph Analyser, then see the user guide: [PopVision Graph Analyser User Guide](<https://docs.graphcore.ai/projects/graph-analyser-userguide/en/latest/>)
+If this is your first time using the PopVision Graph Analyser, then see the user guide: [PopVision Graph Analyser User Guide](<https://docs.graphcore.ai/projects/graph-analyser-userguide/en/3.11.2/>)
 
 You should see something like this (zoomed in to show a single mini-batch):
 
@@ -378,7 +413,7 @@ Scroll to the far right in Graph Analyser to see the gradient descent step:
 ![Execution trace - Gradient Descent](images/step1_single_ipu_execution_trace_gradient_descent.png)
 """
 """
-## Tutorial Step 2: Running The Model On Multiple IPUs Using Sharding
+### Tutorial Step 2: Running The Model On Multiple IPUs Using Sharding
 
 Let's look at how we can shard a model to run it on multiple IPUs without pipelining.
 
@@ -416,20 +451,23 @@ def model(learning_rate, images, labels):
             logits = layers.Dense(10)(activations)
         with tf.variable_scope("softmax_ce"):
             cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(
-                labels=labels, logits=logits)
+                labels=labels, logits=logits
+            )
         with tf.variable_scope("mean"):
             loss = tf.reduce_mean(cross_entropy)
         with tf.variable_scope("optimizer"):
             optimizer = tf.train.GradientDescentOptimizer(learning_rate=learning_rate)
             if args.batches_to_accumulate > 1:
                 optimizer = ipu.optimizers.GradientAccumulationOptimizerV2(
-                        optimizer,
-                        num_mini_batches=args.batches_to_accumulate)
+                    optimizer, num_mini_batches=args.batches_to_accumulate
+                )
             train_op = optimizer.minimize(loss=loss)
         # A control dependency is used here to ensure that
         # the train_op is not removed.
         with tf.control_dependencies([train_op]):
             return learning_rate, outfeed_queue.enqueue(loss)
+
+
 """
 Recompile our model:
 """
@@ -470,15 +508,16 @@ with tf.Session() as sess:
         losses = sess.run(outfeed_op)
         if losses is not None and len(losses):
             epoch = float(examples_per_step * step / num_examples)
-            if (step == (steps-1) or (step % 10) == 0):
-                print("Step {}, Epoch {:.1f}, Mean loss: {:.3f}".format(
-                    step, epoch, np.mean(losses)))
+            if step == (steps - 1) or (step % 10) == 0:
+                print(
+                    f"Step {step}, Epoch {epoch:.1f}, Mean loss: {np.mean(losses):.3f}"
+                )
     end = time.time()
     elapsed = end - begin
-    samples_per_second = training_samples/elapsed
-    print("Elapsed {}, {} samples/sec".format(elapsed, samples_per_second))
+    samples_per_second = training_samples / elapsed
+    print(f"Elapsed {elapsed}, {samples_per_second} samples/sec")
 """
-Use the [PopVision Graph Analyser](https://docs.graphcore.ai/projects/graph-analyser-userguide/en/latest/index.html) to view the execution trace.
+Use the [PopVision Graph Analyser](https://docs.graphcore.ai/projects/graph-analyser-userguide/en/3.11.2/index.html) to view the execution trace.
 
 You should see something like this (zoomed in to show a single mini-batch):
 
@@ -496,7 +535,7 @@ Also, note that for a small model such as this one, that fits on a single IPU, s
 The completed code for this step can be found here: [answers/`step2_sharding.py`](answers/step2_sharding.py)
 """
 """
-## Tutorial Step 3: Using pipelining for better IPU utilization
+### Tutorial Step 3: Using pipelining for better IPU utilization
 
 Let's look at how we can modify the application to run the model on multiple IPUs with pipelining.
 
@@ -506,12 +545,13 @@ This model outline shows how the operations will be defined as layers and alloca
 
 First, let's take a look at the TensorFlow 1 pipelining API.
 
-### The TensorFlow 1 Pipelining API
+#### The TensorFlow 1 Pipelining API
 
 Here is an example of how the pipelining API can be used. The parameters used here are for illustrative purposes only.
 
 ```python
 from tensorflow.python.ipu.ops import pipelining_ops
+
 ...
 pipeline_op = pipelining_ops.pipeline(
     computational_stages=[stage1, stage2, stage3, stage4],
@@ -523,7 +563,8 @@ pipeline_op = pipelining_ops.pipeline(
     optimizer_function=optimizer_function,
     pipeline_schedule=PipelineSchedule.Grouped,
     outfeed_loss=True,
-    name="Pipeline")
+    name="Pipeline",
+)
 ...
 ```
 
@@ -539,27 +580,27 @@ For convenience, the key parameters are described here inline:
 `pipeline_schedule`: which scheduling algorithm to use for pipeline lowering. Defaults to PipelineSchedule.Grouped (See [the Scheduling section](#scheduling).).
 `outfeed_loss`: if True, the loss given by the optimizer_function will be enqueued on the outfeed, instead of the outputs from the last computational stage.
 
-See the TensorFlow 1 API documentation for details: [TensorFlow 1 Pipeline Operator](https://docs.graphcore.ai/projects/tensorflow1-user-guide/en/latest/tensorflow/api.html#tensorflow.python.ipu.pipelining_ops.pipeline)
+See the TensorFlow 1 API documentation for details: [TensorFlow 1 Pipeline Operator](https://docs.graphcore.ai/projects/tensorflow1-user-guide/en/3.0.0/tensorflow/api.html#tensorflow.python.ipu.pipelining_ops.pipeline)
 
-## Scheduling
+### Scheduling
 
 The precise sequencing of forward and backward passes for the mini-batches can be adjusted using the scheduling parameter pipeline_schedule. The differences are most significant when training and you may need to experiment to find which method works best for your model.
 
-Refer to the technical note on TensorFlow Model Parallelism for full details: [TensorFlow Model Parallelism - Pipeline Scheduling](https://docs.graphcore.ai/projects/tf-model-parallelism/en/latest/pipelining.html#pipeline-scheduling)
+Refer to the technical note on TensorFlow Model Parallelism for full details: [TensorFlow Model Parallelism - Pipeline Scheduling](https://docs.graphcore.ai/projects/tf-model-parallelism/en/3.0.0/pipelining.html#pipeline-scheduling)
 
-### Sequential Scheduling
+#### Sequential Scheduling
 
 When sequential scheduling is used, the pipelined stages are serialised so only one stage is being executed at any given point in time. This removes the overlapped execution and so reduces IPU utilisation in the same way that sharded parallelism does. It can be used during debugging of the model.
 
 ![Sequential Scheduling](images/sequential_scheduling.png)
 
-### Interleaved Scheduling
+#### Interleaved Scheduling
 
 When interleaved scheduling is used, the pipelined stages run forward and backward passes in an alternating pattern. IPU utilisation may not be as optimal since a forward pass usually requires fewer cycles than a backwards pass.
 
 ![Interleaved Scheduling](images/interleaved_scheduling.png)
 
-### Grouped Scheduling
+#### Grouped Scheduling
 
 When grouped scheduling is used, then at any given point in time, the pipelined stages are either all running their forward pass or all running their backward pass. IPU utilisation is more likely to be balanced compared to interleaved scheduling since all IPUs are running either forward pass compute or backward pass compute. Memory requirements may go up when compared to interleaved scheduling to cover an increase in 'in-flight' mini-batches.
 
@@ -582,7 +623,7 @@ Follow the first mini-batch from time step 1 through the pipeline. Observe that 
 This demonstrates the inherent increase of in-flight mini-batches and therefore memory when using Grouped Scheduling.
 """
 """
-## Tutorial Step 3: Code Changes
+### Tutorial Step 3: Code Changes
 
 Break down the single model definition `model` into a series of layer definitions; the first layer is `layer1_flatten`.
 
@@ -595,6 +636,8 @@ def layer1_flatten(learning_rate, images, labels):
     with tf.variable_scope("flatten"):
         activations = layers.Flatten()(images)
         return learning_rate, activations, labels
+
+
 """
 Add the next layer definition, `layer_dense256`.
 
@@ -607,6 +650,8 @@ def layer2_dense256(learning_rate, activations, labels):
     with tf.variable_scope("dense256"):
         activations = layers.Dense(256, activation=tf.nn.relu)(activations)
         return learning_rate, activations, labels
+
+
 """
 Continue similarly for layers 3,4,5 (`layer3_dense128`, `layer4_dense64`, `layer5_dense32`).
 """
@@ -629,6 +674,8 @@ def layer5_dense32(learning_rate, activations, labels):
     with tf.variable_scope("dense32"):
         activations = layers.Dense(32, activation=tf.nn.relu)(activations)
         return learning_rate, activations, labels
+
+
 """
 Add layer 6 `layer6_logits`.
 
@@ -641,6 +688,8 @@ def layer6_logits(learning_rate, activations, labels):
     with tf.variable_scope("logits"):
         logits = layers.Dense(10)(activations)
         return learning_rate, logits, labels
+
+
 """
 For the cross entropy loss and mean, let's combine these into a single cross-entropy loss layer, `layer7_cel`.
 
@@ -652,10 +701,13 @@ This layer must take the outputs from `layer6_logits` as arguments. It should re
 def layer7_cel(learning_rate, logits, labels):
     with tf.variable_scope("softmax_ce"):
         cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(
-            labels=labels, logits=logits)
+            labels=labels, logits=logits
+        )
     with tf.variable_scope("mean"):
         loss = tf.reduce_mean(cross_entropy)
         return learning_rate, loss
+
+
 """
 Add an optimizer function, optimizer_function.
 
@@ -669,6 +721,8 @@ def optimizer_function(learning_rate, loss):
     # the gradient accumulation and weight update steps
     optimizer = tf.train.GradientDescentOptimizer(learning_rate=learning_rate)
     return ipu.pipelining_ops.OptimizerFunctionOutput(optimizer, loss)
+
+
 """
 Remove the definition for loop_repeat_model; add a definition for pipelined_model.
 
@@ -711,22 +765,25 @@ def pipelined_model(learning_rate):
         return r
 
     pipeline_op = ipu.pipelining_ops.pipeline(
-        computational_stages = [stage1, stage2],
-        gradient_accumulation_count = args.batches_to_accumulate,
-        repeat_count = args.repeat_count,
-        inputs = [learning_rate],
-        infeed_queue = infeed_queue,
-        outfeed_queue = outfeed_queue,
-        optimizer_function = optimizer_function,
-        pipeline_schedule = ipu.pipelining_ops.PipelineSchedule.Grouped,
+        computational_stages=[stage1, stage2],
+        gradient_accumulation_count=args.batches_to_accumulate,
+        repeat_count=args.repeat_count,
+        inputs=[learning_rate],
+        infeed_queue=infeed_queue,
+        outfeed_queue=outfeed_queue,
+        optimizer_function=optimizer_function,
+        pipeline_schedule=ipu.pipelining_ops.PipelineSchedule.Grouped,
         outfeed_loss=True,
-        name = "Pipeline")
+        name="Pipeline",
+    )
     return pipeline_op
+
+
 """
 Notes:
 
 The computational stages, which are executed in sequence, define the points at which the model is split across IPUs. All model variables which are used in multiple stages must be passed between IPUs. Consider this detail when deciding where to put the split points for more complex pipelined models.
-Infeeds and outfeeds are introduced here: [Targeting the IPU from TensorFlow 1](https://docs.graphcore.ai/projects/tensorflow1-user-guide/en/latest/tensorflow/perf_training.html#training-loops-data-sets-and-feed-queues)
+Infeeds and outfeeds are introduced here: [Targeting the IPU from TensorFlow 1](https://docs.graphcore.ai/projects/tensorflow1-user-guide/en/3.0.0/tensorflow/perf_training.html#training-loops-data-sets-and-feed-queues)
 This tutorial demonstrates how an input, learning_rate, can be passed into the pipeline and propagated through all layers/stages to where it is needed, in this case, the optimizer. In reality, for this simple application, learning rate is effectively static and could be removed and hardcoded.
 
 The pipeline API encapsulates the repeat count and gradient accumulation count. With gradient accumulation count GAC and repeat count RPT, each session.run() will process GAC*RPT batches.
@@ -760,7 +817,7 @@ ipu_configuration.configure_ipu_system()
 """
 This configures the logical IPU indexing so that logically adjacent IPUs are physically linked. This makes the exchange of data between these IPUs (pipeline stages) more efficient. The default selection_order is AUTO which automatically tries to select the best selection order given the model. You can override it, as we do in this tutorial, if you have a specific requirement and want to be sure it is used.
 
-For details, including other options, see the [TensorFlow 1 User Guide - Selection Order](https://docs.graphcore.ai/projects/tensorflow1-user-guide/en/latest/tensorflow/api.html#tensorflow.python.ipu.config.SelectionOrder)
+For details, including other options, see the [TensorFlow 1 User Guide - Selection Order](https://docs.graphcore.ai/projects/tensorflow1-user-guide/en/3.0.0/tensorflow/api.html#tensorflow.python.ipu.config.SelectionOrder)
 """
 """
 Run the training loop using the pipelined model:
@@ -778,19 +835,20 @@ with tf.Session() as sess:
         losses = sess.run(outfeed_op)
         if losses is not None and len(losses):
             epoch = float(examples_per_step * step / num_examples)
-            if (step == (steps-1) or (step % 10) == 0):
-                print("Step {}, Epoch {:.1f}, Mean loss: {:.3f}".format(
-                    step, epoch, np.mean(losses)))
+            if step == (steps - 1) or (step % 10) == 0:
+                print(
+                    f"Step {step}, Epoch {epoch:.1f}, Mean loss: {np.mean(losses):.3f}"
+                )
     end = time.time()
     elapsed = end - begin
-    samples_per_second = training_samples/elapsed
-    print("Elapsed {}, {} samples/sec".format(elapsed, samples_per_second))
+    samples_per_second = training_samples / elapsed
+    print(f"Elapsed {elapsed}, {samples_per_second} samples/sec")
 """
 Generate a profile report into directory `./profile_step3_pipelining` with:
 
 `$ scripts/profile.sh step3_pipelining.py`
 
-Use the [PopVision Graph Analyser](https://docs.graphcore.ai/projects/graph-analyser-userguide/en/latest/index.html) to view the execution trace.
+Use the [PopVision Graph Analyser](https://docs.graphcore.ai/projects/graph-analyser-userguide/en/3.11.2/index.html) to view the execution trace.
 
 You should see something like this:
 
@@ -823,24 +881,24 @@ During the development and tuning of your pipelined model, the general aim is to
 
 """
 """
-## Tutorial Step 3 : Extension
+### Tutorial Step 3 : Extension
 
-### Pipeline Schedule
+#### Pipeline Schedule
 
 Try changing `pipeline_schedule` to `PipelineSchedule.Interleaved` or `PipelineSchedule.Sequential`. Recapture the profile reports and see how the execution trace changes in each case compared to the original version.
 
-### Repeat count
+#### Repeat count
 
 Run with different values of `--repeat-count` and observe how that changes performance.
 
-### Stages
+#### Stages
 
 Try modifying the layers assigned to each stage. Try splitting the layers up over more stages. Recapture the profile reports and see how the execution trace changes in each case compared to the original version.
 
 The code changes for this step can be found here: [answers/step3_pipelining.py](answers/step3_pipelining.py)
 """
 """
-## Tutorial Step 4: Run-time Configurable Stages
+### Tutorial Step 4: Run-time Configurable Stages
 
 During the development and tuning of more complex models there are often multiple hyperparameters that can be adjusted. Even in this tutorial's simple pipelining application, we can adjust the batch size, the gradient accumulation count and the stages. It is easier to experiment with these options if they can be configured from the command line.
 
@@ -849,7 +907,7 @@ Batch size and gradient accumulation count are already configurable from the com
 In this next step we will add code to support run-time configurable stages. There are many ways this could be implemented, but we only demonstrate one method here.
 """
 """
-## Tutorial Step 4: Code Changes
+### Tutorial Step 4: Code Changes
 
 Add a new argument splits with which the user can specify the points to 'split' the model.
 
@@ -881,10 +939,11 @@ def discover_layers():
     layer_funcs = [key for key in global_symbols if key.startswith(prefix)]
     for layer_func in layer_funcs:
         try:
-            idx_id = layer_func[len(prefix):]
+            idx_id = layer_func[len(prefix) :]
             idx, id = idx_id.split("_")
-            layers.append({"func": global_symbols[layer_func],
-                           "id": id, "idx": int(idx)})
+            layers.append(
+                {"func": global_symbols[layer_func], "id": id, "idx": int(idx)}
+            )
         except:
             pass
 
@@ -893,6 +952,8 @@ def discover_layers():
 
     layers.sort(key=use_idx)
     return layers
+
+
 """
 Add a function that will take the layer list and `splits` argument and return a list of stages.
 
@@ -912,7 +973,7 @@ def move_layers_to_stages(layers, splits):
         try:
             return next(layer for layer in layers if (layer["id"] == split))
         except:
-            print("Failed to match split layer with id \"{}\"".format(split))
+            print(f"Failed to match split layer with id: {split}")
             return None
 
     stages = [[]]
@@ -927,6 +988,8 @@ def move_layers_to_stages(layers, splits):
             next_split = next_split_layer()
         stages[stage].append(ly)
     return stages
+
+
 """
 Stop using the hard coded stage definitions from `pipelined_model` and build a list of dynamically generated stages.
 
@@ -940,10 +1003,13 @@ def pipelined_model(learning_rate):
     def make_pipeline_stage(idx, stage):
         def _stage(*args):
             for layer in stage:
-                with tf.variable_scope("stage"+str(idx)+"_"+layer["id"], use_resource=True):
-                    print("Issuing stage {} layer {}".format(idx, layer["id"]))
+                with tf.variable_scope(
+                    "stage" + str(idx) + "_" + layer["id"], use_resource=True
+                ):
+                    print(f"Issuing stage {idx} layer {layer['id']}")
                     args = layer["func"](*args)
             return args
+
         return _stage
 
     # Make each stage (function) and add it to the computational stages
@@ -953,17 +1019,20 @@ def pipelined_model(learning_rate):
         computational_stages.append(f)
 
     pipeline_op = ipu.pipelining_ops.pipeline(
-        computational_stages = computational_stages,
-        gradient_accumulation_count = args.batches_to_accumulate,
-        repeat_count = args.repeat_count,
-        inputs = [learning_rate],
-        infeed_queue = infeed_queue,
-        outfeed_queue = outfeed_queue,
-        optimizer_function = optimizer_function,
-        pipeline_schedule = ipu.pipelining_ops.PipelineSchedule.Grouped,
+        computational_stages=computational_stages,
+        gradient_accumulation_count=args.batches_to_accumulate,
+        repeat_count=args.repeat_count,
+        inputs=[learning_rate],
+        infeed_queue=infeed_queue,
+        outfeed_queue=outfeed_queue,
+        optimizer_function=optimizer_function,
+        pipeline_schedule=ipu.pipelining_ops.PipelineSchedule.Grouped,
         outfeed_loss=True,
-        name = "Pipeline")
+        name="Pipeline",
+    )
     return pipeline_op
+
+
 """
 Call `discover_layers`. Do this before we parse_args so that the available layers can be reported for the new `--splits` argument. Add a line to call `move_layers_to_stages`; return as stages. The following example also includes some additional logging and error reporting.
 """
@@ -972,7 +1041,7 @@ model_layers = discover_layers()
 
 # Show final list of layers
 layer_list = [layer["id"] for layer in model_layers]
-print(" "+(", ".join(layer_list)))
+print(" " + (", ".join(layer_list)))
 """
 Set the `splits` on the args object before we move the layers to stages:
 """
@@ -982,7 +1051,7 @@ args = parse_args()
 
 # Sequence layers into stage-groups
 stages = move_layers_to_stages(model_layers, args.splits)
-if (len(stages) != len(args.splits)+1):
+if len(stages) != len(args.splits) + 1:
     print("Unexpected stage count - check splits are valid")
     exit(-1)
 
@@ -990,7 +1059,7 @@ if (len(stages) != len(args.splits)+1):
 print("Stages:")
 for idx, stage in enumerate(stages):
     layer_list = [layer["id"] for layer in stage]
-    print(" "+str(idx)+". "+("-".join(layer_list)))
+    print(" " + str(idx) + ". " + ("-".join(layer_list)))
     if len(layer_list) == 0:
         print("Unexpected empty stage - check splits are valid")
         exit(-1)
@@ -1005,7 +1074,7 @@ model_to_compile = pipelined_model
 outfeed_queue = ipu.ipu_outfeed_queue.IPUOutfeedQueue()
 infeed_queue = ipu.ipu_infeed_queue.IPUInfeedQueue(dataset)
 
-with tf.device('cpu'):
+with tf.device("cpu"):
     learning_rate = tf.placeholder(np.float32, [])
 
 with ipu.scopes.ipu_scope("/device:IPU:0"):
@@ -1022,7 +1091,7 @@ Use the `splits` argument to set IPU count:
 """
 # sst_hide_output
 ipu_configuration = ipu.config.IPUConfig()
-ipu_configuration.auto_select_ipus = len(layer_list)+1
+ipu_configuration.auto_select_ipus = len(layer_list) + 1
 ipu_configuration.configure_ipu_system()
 """
 Re-run the training loop using our configurable pipelined model:
@@ -1040,33 +1109,34 @@ with tf.Session() as sess:
         losses = sess.run(outfeed_op)
         if losses is not None and len(losses):
             epoch = float(examples_per_step * step / num_examples)
-            if (step == (steps-1) or (step % 10) == 0):
-                print("Step {}, Epoch {:.1f}, Mean loss: {:.3f}".format(
-                    step, epoch, np.mean(losses)))
+            if step == (steps - 1) or (step % 10) == 0:
+                print(
+                    f"Step {step}, Epoch {epoch:.1f}, Mean loss: {np.mean(losses):.3f}"
+                )
     end = time.time()
     elapsed = end - begin
-    samples_per_second = training_samples/elapsed
-    print("Elapsed {}, {} samples/sec".format(elapsed, samples_per_second))
+    samples_per_second = training_samples / elapsed
+    print(f"Elapsed {elapsed}, {samples_per_second} samples/sec")
 """
-# Further Considerations
+## Further Considerations
 
 This section calls out some additional features and parameters that can affect performance when pipelining.
 
-Always refer to the technical note on TensorFlow pipelining for the most up-to-date and detailed information: [TensorFlow Model Parallelism - Pipelining](https://docs.graphcore.ai/projects/tf-model-parallelism/en/latest/pipelining.html#pipelining)
+Always refer to the technical note on TensorFlow pipelining for the most up-to-date and detailed information: [TensorFlow Model Parallelism - Pipelining](https://docs.graphcore.ai/projects/tf-model-parallelism/en/3.0.0/pipelining.html#pipelining)
 
-## Recomputation
+### Recomputation
 
 When pipelining, the forward activations of each operation will be saved so that they are available to compute the gradients in the backwards pass. This may require significant memory. If IPU memory is limited, then _recomputation_ can be used to reduce the memory used to store activations. With recomputation enabled, activations are only saved for a selected subset of the forward operations. The activations which were not saved will be recomputed as part of the backwards pass. This saves IPU memory at the expense of requiring more compute. Pipelining can be used with a single IPU in order to use recomputation, where using recomputation allows a model and mini-batch size to fit that would otherwise be out-of-memory on the IPU.
 
-Refer to the technical note on TensorFlow Model Parallelism for full details: [TensorFlow Model Parallelism - Pipelining Recomputation](<https://docs.graphcore.ai/projects/tf-model-parallelism/en/latest/pipelining.html#recomputation>)
+Refer to the technical note on TensorFlow Model Parallelism for full details: [TensorFlow Model Parallelism - Pipelining Recomputation](<https://docs.graphcore.ai/projects/tf-model-parallelism/en/3.0.0/pipelining.html#recomputation>)
 
-## Variable Offloading
+### Variable Offloading
 
 If IPU memory is limited, then variable offloading can be used. This will store some variables and activations in Streaming Memory. This saves IPU memory at the expense of time to swap the data on and off the IPU.
 
-Refer to the technical note on TensorFlow Model Parallelism for full details: [TensorFlow Model Parallelism - Pipelining Variable Offloading](<https://docs.graphcore.ai/projects/tf-model-parallelism/en/latest/pipelining.html#variable-offloading>)
+Refer to the technical note on TensorFlow Model Parallelism for full details: [TensorFlow Model Parallelism - Pipelining Variable Offloading](<https://docs.graphcore.ai/projects/tf-model-parallelism/en/3.0.0/pipelining.html#variable-offloading>)
 
-## Gradient Accumulation Buffer Data Type
+### Gradient Accumulation Buffer Data Type
 
 Gradients will be accumulated in a buffer when pipelining. The datatype of this buffer can be controlled using the API's `gradient_accumulation_dtype` argument:
 
@@ -1076,30 +1146,30 @@ Gradients will be accumulated in a buffer when pipelining. The datatype of this 
 
 The default is `None` (use an accumulator buffer of the same `DType` as each variable). You may want to override this if you are training in float16 and you want to use a float32 accumulator buffer.
 
-See the TensorFlow 1 API documentation for details: [TensorFlow1 Pipelining API](<https://docs.graphcore.ai/projects/tensorflow1-user-guide/en/latest/tensorflow/api.html#tensorflow.python.ipu.pipelining_ops.pipeline>)
+See the TensorFlow 1 API documentation for details: [TensorFlow1 Pipelining API](<https://docs.graphcore.ai/projects/tensorflow1-user-guide/en/3.0.0/tensorflow/api.html#tensorflow.python.ipu.pipelining_ops.pipeline>)
 
-## Data Parallelism
+### Data Parallelism
 
 It is possible to combine data parallelism with model parallelism by using the standard `CrossReplicaOptimizer`, which is used for training replicated models, in the pipeline optimiser function. In this case:
 
 `effective batch size` = `replication factor` * `mini-batch size` * `gradient accumulation count`
 
-## IPUPipelineEstimator
+### IPUPipelineEstimator
 
 `IPUPipelineEstimator` is a version of `IPUEstimator` that supports pipelining. These APIs handle many of the details of running on IPUs, such as placement of operations and tensors, graph compilation and usage of data feeds. The model function provided to the `IPUEstimator` API must return an instance of `IPUPipelineEstimatorSpec` that contains the information needed for execution including pipelining specific details such as the computational stages and the gradient accumulation count.
 
 ```python
 ipu_estimator = ipu.ipu_pipeline_estimator.IPUPipelineEstimator(
-    config = config,
-    model_fn = model_fn,
-    params = {
+    config=config,
+    model_fn=model_fn,
+    params={
         "learning_rate": args.learning_rate,
-        "gradient_accumulation_count": args.batches_to_accumulate
+        "gradient_accumulation_count": args.batches_to_accumulate,
     },
 )
 
 
-ipu_estimator.train(input_fn = input_fn, steps = steps)
+ipu_estimator.train(input_fn=input_fn, steps=steps)
 ```
 
 Where `input_fn` provides the dataset and `model_fn` provides the model definition. The `model_fn` might look like this:
@@ -1127,14 +1197,17 @@ def model_fn(mode, params):
     def optimizer_function(loss):
         # Optimizer function used by the pipeline to automatically set up
         # the gradient accumulation and weight update steps
-        optimizer = tf.train.GradientDescentOptimizer(learning_rate=params["learning_rate"])
+        optimizer = tf.train.GradientDescentOptimizer(
+            learning_rate=params["learning_rate"]
+        )
         return ipu.pipelining_ops.OptimizerFunctionOutput(optimizer, loss)
 
     return ipu.ipu_pipeline_estimator.IPUPipelineEstimatorSpec(
         mode,
         computational_stages=[stage1, stage2],
         optimizer_function=optimizer_function,
-        gradient_accumulation_count=params["gradient_accumulation_count"])
+        gradient_accumulation_count=params["gradient_accumulation_count"],
+    )
 ```
 
 A complete example is provided here : [`answers/ipu_pipeline_estimator.py`](answers/ipu_pipeline_estimator.py)
@@ -1142,7 +1215,7 @@ A complete example is provided here : [`answers/ipu_pipeline_estimator.py`](answ
 Run it with `$ python3 answers/ipu_pipeline_estimator.py`
 
 See the TensorFlow 1 API documentation for details:
-[TensorFlow IPUPipelineEstimator API](<https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/tensorflow/api.html#ipupipelineestimator>)
-[TensorFlow IPUPipelineEstimatorSpec](<https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/tensorflow/api.html#tensorflow.python.ipu.ipu_pipeline_estimator.IPUPipelineEstimatorSpec>)
-[TensorFlow IPUPipelineEstimator Example](<https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/tensorflow/ipu_pipeline_estimator_example.html>)
+[TensorFlow IPUPipelineEstimator API](<https://docs.graphcore.ai/projects/tensorflow-user-guide/en/3.0.0/tensorflow/api.html#ipupipelineestimator>)
+[TensorFlow IPUPipelineEstimatorSpec](<https://docs.graphcore.ai/projects/tensorflow-user-guide/en/3.0.0/tensorflow/api.html#tensorflow.python.ipu.ipu_pipeline_estimator.IPUPipelineEstimatorSpec>)
+[TensorFlow IPUPipelineEstimator Example](<https://docs.graphcore.ai/projects/tensorflow-user-guide/en/3.0.0/tensorflow/ipu_pipeline_estimator_example.html>)
 """

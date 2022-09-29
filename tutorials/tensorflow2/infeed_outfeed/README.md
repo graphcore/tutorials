@@ -1,3 +1,4 @@
+<!-- Copyright (c) 2021 Graphcore Ltd. All rights reserved. -->
 # Using Infeed and Outfeed Queues in TensorFlow 2
 
 In this tutorial, you will write code for training a simple fully connected network on the MNIST dataset to illustrate how to use infeed and outfeed queues with a custom training function.
@@ -44,7 +45,7 @@ Normally when TensorFlow runs, operations which are not inside a loop will take 
 You need to do the following in order to construct a system that trains in a loop:
 
 * Create a TensorFlow dataset to provide data to the input queue
-* Create a model 
+* Create a model
 * Create a custom training loop
 * Create an `IPUInfeedQueue` to feed the data to the loop
 * Create an `IPUOutfeedQueue` to take results out of the loop
@@ -92,11 +93,11 @@ def create_dataset():
     train_ds = tf.data.Dataset.from_tensor_slices((x_train, y_train))
     train_ds = train_ds.cache()
     train_ds = train_ds.shuffle(len(x_train)).batch(32, drop_remainder=True)
-    train_ds = train_ds.map(lambda d, l:
-                            (tf.cast(d, tf.float32), tf.cast(l, tf.int32)))
+    train_ds = train_ds.map(lambda d, l: (tf.cast(d, tf.float32), tf.cast(l, tf.int32)))
     train_ds = train_ds.prefetch(tf.data.experimental.AUTOTUNE)
 
     return train_ds.repeat()
+
 
 ds = create_dataset()
 ```
@@ -111,12 +112,15 @@ Now you need to define your model. The code example provided uses this simple fu
 ```python
 # A simple fully-connected network model using the standard Keras Sequential API.
 def create_model():
-    m = keras.Sequential([
-        keras.layers.Flatten(),
-        keras.layers.Dense(128, activation='relu'),
-        keras.layers.Dense(10, activation='softmax')
-    ])
+    m = keras.Sequential(
+        [
+            keras.layers.Flatten(),
+            keras.layers.Dense(128, activation="relu"),
+            keras.layers.Dense(10, activation="softmax"),
+        ]
+    )
     return m
+
 
 model = create_model()
 ```
@@ -135,7 +139,9 @@ def training_loop(iterator, outfeed_queue, model, optimizer, num_iterations):
         # Perform the training step.
         with tf.GradientTape() as tape:
             predictions = model(features, training=True)
-            prediction_loss = keras.losses.sparse_categorical_crossentropy(labels, predictions)
+            prediction_loss = keras.losses.sparse_categorical_crossentropy(
+                labels, predictions
+            )
             loss = tf.reduce_mean(prediction_loss)
 
         grads = tape.gradient(loss, model.trainable_variables)
@@ -166,11 +172,11 @@ Creating variables within the scope of the `IPUStrategy` will ensure that they a
 
 Before you execute the training loop, you need to create a data pipeline from the dataset into a training or inference loop on the IPU. This is done by creating an infeed queue and an outfeed queue.
 
-You may notice that `IPUInfeedQueue` is not explicitly declared like `IPUOutfeedQueue`. This is because calling `iter` on a dataset inside an `IPUStrategy` creates an infeed queue internally. 
+You may notice that `IPUInfeedQueue` is not explicitly declared like `IPUOutfeedQueue`. This is because calling `iter` on a dataset inside an `IPUStrategy` creates an infeed queue internally.
 
 An `IPUOutfeedQueue` is used to generate and add outfeed enqueue/dequeue operations to the graph. The infeed and outfeed queues together manage the transfer of data between the IPU graph and the host.
 
-`IPUOutfeedQueue` objects have extra options to control how they collect and output the data sent to them. These options are not used in this example. Refer to the [IPUOutfeedQueue](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/tensorflow/api.html#tensorflow.python.ipu.ipu_outfeed_queue.IPUOutfeedQueue) documentation for details. 
+`IPUOutfeedQueue` objects have extra options to control how they collect and output the data sent to them. These options are not used in this example. Refer to the [IPUOutfeedQueue](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/3.0.0/tensorflow/api.html#tensorflow.python.ipu.ipu_outfeed_queue.IPUOutfeedQueue) documentation for details.
 
 To execute the training loop, you should do so within the scope of an `ipu_strategy.IPUStrategy` using `run` like so:
 
@@ -195,13 +201,17 @@ with strategy.scope():
     for _ in range(0, step_count, steps_per_execution):
 
         # Run `steps_per_execution` at a time.
-        strategy.run(training_loop,
-                     args=[iterator, outfeed_queue, model, opt, steps_per_execution])
+        strategy.run(
+            training_loop,
+            args=[iterator, outfeed_queue, model, opt, steps_per_execution],
+        )
     result = outfeed_queue.dequeue()
-    print('Time taken using infeed/outfeed queues:', time.time() - start_time, "seconds")
+    print(
+        "Time taken using infeed/outfeed queues:", time.time() - start_time, "seconds"
+    )
 ```
 
-`steps_per_execution` refers to the total number of batches of data processed by each replica (if replication is enabled) each time an engine is executed. Usually, it is passed as an argument when compiling a model in TF2 (see [Keras with IPUs documentation](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/tensorflow/keras_tf2.html#using-steps-per-execution)). In this example, `steps_per_execution` is used here to simulate the same behaviour with a custom training loop -- it essentially plays the same role as the known `steps_per_execution` parameter that is passed to `model.compile`. 
+`steps_per_execution` refers to the total number of batches of data processed by each replica (if replication is enabled) each time an engine is executed. Usually, it is passed as an argument when compiling a model in TF2 (see [Keras with IPUs documentation](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/3.0.0/tensorflow/keras_tf2.html#using-steps-per-execution)). In this example, `steps_per_execution` is used here to simulate the same behaviour with a custom training loop -- it essentially plays the same role as the known `steps_per_execution` parameter that is passed to `model.compile`.
 
 
 ## Additional notes
@@ -210,7 +220,7 @@ You can also use more than one outfeed queue. This can be useful for diagnosing 
 
 The same model without infeed or outfeed queues is used to train the model on the MNIST dataset in [mnist_without_feeds.py](completed_code/mnist_without_feeds.py), so you can run both examples and compare the difference in efficiency.
 
-Both models are trained on 10,000 batches so that the difference in time efficiency is apparent. 
+Both models are trained on 10,000 batches so that the difference in time efficiency is apparent.
 
 Run the model that uses the infeed and outfeed queues:
 
@@ -236,7 +246,7 @@ Example output:
 Time taken without infeed/outfeed: 23.766914129257202 seconds
 ```
 
-You can see that training the model with infeed and outfeed queues is much more efficient. The difference in time is even larger when more epochs are needed to train a model. 
+You can see that training the model with infeed and outfeed queues is much more efficient. The difference in time is even larger when more epochs are needed to train a model.
 
 Moreover, you can visualise the execution traces of both models with the PopVision Graph Analyser. You can run the following command to enable graph profiling while executing the program:
 
@@ -246,7 +256,7 @@ POPLAR_ENGINE_OPTIONS='{"autoReport.all":"true", "autoReport.directory":"with_fe
 
 The engine option `autoReport.directory` specifies where you would like to save the profile. You can download the PopVision Graph Analyser from the Graphcore [Downloads portal](https://downloads.graphcore.ai/) and view the profile you have saved with it. Similarly, you can save the profile of [mnist_without_feeds.py](completed_code/mnist_without_feeds.py) in a different folder for comparison.
 
-The engine option `autoReport.executionProfileProgramRunCount` specifies how many runs of the Poplar program you would like to capture. If you increase the number of runs to be captured, the execution report gets larger and so takes longer to generate. For the purpose of illustration, this option is set to 10 in this case. The default value is 2. For more information on the available options, please visit [PopVision Graph Analyser User Guide](https://docs.graphcore.ai/projects/graph-analyser-userguide/en/latest/user-guide.html#capturing-ipu-reports). 
+The engine option `autoReport.executionProfileProgramRunCount` specifies how many runs of the Poplar program you would like to capture. If you increase the number of runs to be captured, the execution report gets larger and so takes longer to generate. For the purpose of illustration, this option is set to 10 in this case. The default value is 2. For more information on the available options, please visit [PopVision Graph Analyser User Guide](https://docs.graphcore.ai/projects/graph-analyser-userguide/en/3.11.2/user-guide.html#capturing-ipu-reports).
 
 The execution traces for both [mnist_with_feeds.py](completed_code/mnist_with_feeds.py) and [mnist_without_feeds.py](completed_code/mnist_without_feeds.py) are shown below and can be found in the `execution_trace` folder as well. PopVision Graph Analyser 2.4.2 is used here to generate the images.
 

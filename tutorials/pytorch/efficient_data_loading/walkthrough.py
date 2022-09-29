@@ -21,7 +21,7 @@ Requirements:
   Started](https://docs.graphcore.ai/en/latest/software.html#getting-started)
   guide for your IPU system)
 - The PopTorch Python library installed (see
-  [Installation](https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/installation.html)
+  [Installation](https://docs.graphcore.ai/projects/poptorch-user-guide/en/3.0.0/installation.html)
   of the PopTorch User Guide)
 """
 """
@@ -48,7 +48,7 @@ If you are familiar with PyTorch you may have used
 [torch.utils.data.DataLoader](https://pytorch.org/docs/stable/data.html#torch.utils.data.DataLoader).
 
 PopTorch provides [its own
-DataLoader](https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/batching.html#poptorch-dataloader)
+DataLoader](https://docs.graphcore.ai/projects/poptorch-user-guide/en/3.0.0/batching.html#poptorch-dataloader)
 which is a wrapper around `torch.utils.data.DataLoader`. It accepts the same
 arguments as PyTorch's DataLoader with some extra features specific to the IPU:
 
@@ -58,7 +58,7 @@ arguments as PyTorch's DataLoader with some extra features specific to the IPU:
 - It enables asynchronous data loading.
 
 See the
-[documentation](https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/batching.html#poptorch-asynchronousdataaccessor)
+[documentation](https://docs.graphcore.ai/projects/poptorch-user-guide/en/3.0.0/batching.html#poptorch-asynchronousdataaccessor)
 for more information about asynchronous mode.
 """
 """
@@ -70,7 +70,7 @@ for more information about asynchronous mode.
 > ```
 >
 > This is necessary to avoid [issues with asynchronous
-> DataLoader](https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/batching.html#poptorch-asynchronousdataaccessor).
+> DataLoader](https://docs.graphcore.ai/projects/poptorch-user-guide/en/3.0.0/batching.html#poptorch-asynchronousdataaccessor).
 > The asynchronous dataloader calls the spawn method, which creates a new
 > python interpreter. This interpreter will import the main module of the
 > application. Therefore, we need protection against infinite spawning of new
@@ -93,14 +93,18 @@ for more information about asynchronous mode.
 
 def is_interactive():
     import __main__ as main
-    return not hasattr(main, '__file__')
+
+    return not hasattr(main, "__file__")
+
 
 if __name__ == "__main__" and not is_interactive():
-    print("This tutorial has been designed to run in a Jupyter notebook. "
-          "If you would like to run it as a Python script, please "
-          "process spawning issues when using asynchronous data loading, "
-          "use tuto_data_loading.py instead. This is required due to Python "
-          "as detailed in the README.")
+    print(
+        "This tutorial has been designed to run in a Jupyter notebook. "
+        "If you would like to run it as a Python script, please "
+        "process spawning issues when using asynchronous data loading, "
+        "use tuto_data_loading.py instead. This is required due to Python "
+        "as detailed in the README."
+    )
     exit(0)
 
 """
@@ -116,6 +120,7 @@ from sys import exit
 import poptorch
 import torch
 import torch.nn as nn
+
 # sst_hide_output
 
 """
@@ -166,9 +171,8 @@ model.train()  # Switch the model to training mode
 # have no effect. Its purpose is to show how the mode can be set explicitly.
 
 training_model = poptorch.trainingModel(
-    model,
-    opts,
-    torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9))
+    model, opts, torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
+)
 
 """
 Now we will create a sample random dataset, which we will later use to
@@ -193,7 +197,7 @@ training_data = poptorch.DataLoader(
     shuffle=True,
     drop_last=True,
     num_workers=num_workers,
-    mode=poptorch.DataLoaderMode.Async
+    mode=poptorch.DataLoaderMode.Async,
 )
 
 """
@@ -242,7 +246,7 @@ The number of batches of data returned to the host depends on the option
 all the output tensors when you use a `inferenceModel()` while you will often
 not need to receive all or any of the output tensors when you use a
 `trainingModel`. See the
-[documentation](https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/reference.html?highlight=anchormode#poptorch.Options.outputMode)
+[documentation](https://docs.graphcore.ai/projects/poptorch-user-guide/en/3.0.0/reference.html?highlight=anchormode#poptorch.Options.outputMode)
 for more information about `poptorch.Options.outputMode`.
 
 In this case presented above, we are using a `trainingModel` and
@@ -288,7 +292,7 @@ Then, for one device iteration with pipeline we have multiplied the number of
 samples processed by ***K***.
 
 More information about gradient accumulation can be found [in the PopTorch User
-Guide](https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/batching.html#poptorch-options-training-gradientaccumulation).
+Guide](https://docs.graphcore.ai/projects/poptorch-user-guide/en/3.0.0/batching.html#poptorch-options-training-gradientaccumulation).
 """
 """
 ### Replication
@@ -371,6 +375,8 @@ class catchtime:
 
     def __exit__(self, type, value, traceback):
         self.seconds = time.time() - self.seconds
+
+
 """
 
 2. Evaluate the asynchronous DataLoader throughput without the IPU.
@@ -412,6 +418,7 @@ opts = poptorch.Options()
 opts.deviceIterations(device_iterations)
 opts.replicationFactor(replicas)
 opts.enableSyntheticData(True)
+opts.enableExecutableCaching(".graphcore")
 # sst_hide_output
 """
 
@@ -444,7 +451,9 @@ model = ClassificationModel()
 training_model = poptorch.trainingModel(
     model,
     opts,
-    poptorch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9, use_combined_accum=False)
+    poptorch.optim.SGD(
+        model.parameters(), lr=0.001, momentum=0.9, use_combined_accum=False
+    ),
 )
 training_data = poptorch.DataLoader(
     opts,
@@ -454,7 +463,7 @@ training_data = poptorch.DataLoader(
     drop_last=True,
     num_workers=num_workers,
     mode=poptorch.DataLoaderMode.Async,
-    async_options={"early_preload": True}
+    async_options={"early_preload": True},
 )
 steps = len(training_data)
 data_batch, labels_batch = next(iter(training_data))
@@ -578,21 +587,44 @@ performance of our model:
 """
 
 
-def validate_model_performance(dataset, device_iterations=50,
-                               batch_size=16, replicas=4, num_workers=4,
-                               synthetic_data=False):
+def validate_model_performance(
+    dataset,
+    device_iterations=50,
+    batch_size=16,
+    replicas=4,
+    num_workers=4,
+    synthetic_data=False,
+):
     opts = poptorch.Options()
     opts.deviceIterations(device_iterations)
     opts.replicationFactor(replicas)
+    opts.enableExecutableCaching(".graphcore")
+
     if synthetic_data:
         opts.enableSyntheticData(True)
 
-    training_data = poptorch.DataLoader(opts, dataset=dataset, batch_size=batch_size,
-                                        shuffle=True, drop_last=True,
-                                        num_workers=num_workers,
-                                        mode=poptorch.DataLoaderMode.Async,
-                                        async_options={"early_preload": True})
+    model = ClassificationModel()
+    training_model = poptorch.trainingModel(
+        model,
+        opts,
+        poptorch.optim.SGD(
+            model.parameters(), lr=0.001, momentum=0.9, use_combined_accum=False
+        ),
+    )
+
+    training_data = poptorch.DataLoader(
+        opts,
+        dataset=dataset,
+        batch_size=batch_size,
+        shuffle=True,
+        drop_last=True,
+        num_workers=num_workers,
+        mode=poptorch.DataLoaderMode.Async,
+        async_options={"early_preload": True},
+    )
     steps = len(training_data)
+    data_batch, labels_batch = next(iter(training_data))
+    training_model.compile(data_batch, labels_batch)
     with catchtime() as t:
         for data_batch, labels_batch in training_data:
             pass
@@ -633,15 +665,25 @@ Now we are ready to conduct experiments:
 
 => Global batch size 16 with synthetic data
 """
-validate_model_performance(dataset, batch_size=16, replicas=1,
-                           device_iterations=50, num_workers=4,
-                           synthetic_data=True)
+validate_model_performance(
+    dataset,
+    batch_size=16,
+    replicas=1,
+    device_iterations=50,
+    num_workers=4,
+    synthetic_data=True,
+)
 """
 => Global batch size 16 with real data
 """
-validate_model_performance(dataset, batch_size=16, replicas=1,
-                           device_iterations=50, num_workers=4,
-                           synthetic_data=False)
+validate_model_performance(
+    dataset,
+    batch_size=16,
+    replicas=1,
+    device_iterations=50,
+    num_workers=4,
+    synthetic_data=False,
+)
 
 """
 From the tests you should be able to see that the throughput with processing
@@ -669,15 +711,25 @@ more data at a time on a single IPU.
 
 => Global batch size 64 with synthetic data
 """
-validate_model_performance(dataset, batch_size=16, replicas=4,
-                           device_iterations=50, num_workers=4,
-                           synthetic_data=True)
+validate_model_performance(
+    dataset,
+    batch_size=16,
+    replicas=4,
+    device_iterations=50,
+    num_workers=4,
+    synthetic_data=True,
+)
 """
 => Global batch size 64 with real data
 """
-validate_model_performance(dataset, batch_size=16, replicas=4,
-                           device_iterations=50, num_workers=4,
-                           synthetic_data=False)
+validate_model_performance(
+    dataset,
+    batch_size=16,
+    replicas=4,
+    device_iterations=50,
+    num_workers=4,
+    synthetic_data=False,
+)
 """
 Throughput of dataloader for synthetic and real data should be roughly the
 same. However, given the small number of steps (3 steps) and the very short
@@ -708,5 +760,5 @@ file: `tuto_data_loading.py`. Helpful arguments:
 
 Further information on Host-IPU IO optimisation can be found in our [memory and
 performance optimisation
-guide](https://docs.graphcore.ai/projects/memory-performance-optimisation/en/2.6.0/optimising-performance.html#host-ipu-io-optimisation).
+guide](https://docs.graphcore.ai/projects/memory-performance-optimisation/en/3.0.0/optimising-performance.html#host-ipu-io-optimisation).
 """

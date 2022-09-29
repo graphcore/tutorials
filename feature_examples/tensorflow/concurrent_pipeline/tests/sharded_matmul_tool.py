@@ -7,6 +7,7 @@ import jax_utils
 from utils import ClosureInitializer
 import sys
 import pathlib
+
 # We need to add the parent directory to our PYTHONPATH in order to import ops from custom_ops.
 custom_ops_parent = pathlib.Path(__file__).parents[1].resolve()
 if str(custom_ops_parent) not in sys.path:
@@ -29,11 +30,10 @@ def take_last_axis(logits, labels):
 
 
 def ipu_computation(input, labels, weight_shape, weight_initialiser):
-    opts = {
-        "availableMemoryProportion": "0.3",
-        "partialsType": "half"
-    }
-    weights = tf.get_variable('weights', shape=weight_shape, trainable=True, initializer=weight_initialiser)
+    opts = {"availableMemoryProportion": "0.3", "partialsType": "half"}
+    weights = tf.get_variable(
+        "weights", shape=weight_shape, trainable=True, initializer=weight_initialiser
+    )
     inputSharded = sharded.to_all(input, args.ipus)
     labelsSharded = sharded.to_all(labels, args.ipus)
     output = sharded.matmul(inputSharded, weights, opts, name="custom_matmul")
@@ -56,15 +56,20 @@ outfeed_queue = ipu.ipu_outfeed_queue.IPUOutfeedQueue()
 
 
 def pipelined_test(lhs, label_indices):
-
     def bound_ipu_computation(input, labels):
         rhs_init = ClosureInitializer(lambda: tf.constant(rhs))
-        return ipu_computation(input, labels, weight_shape=rhs.shape, weight_initialiser=rhs_init)
+        return ipu_computation(
+            input, labels, weight_shape=rhs.shape, weight_initialiser=rhs_init
+        )
 
     with tf.variable_scope("Test", use_resource=True):
         pipeline_op = ipu.pipelining_ops.pipeline(
             computational_stages=[identity_stage, bound_ipu_computation, loss_fn],
-            device_mapping=[0, ipu.pipelining_ops._ALL_DEVICES, args.ipus - 1],  # Need to reference last IPU
+            device_mapping=[
+                0,
+                ipu.pipelining_ops._ALL_DEVICES,
+                args.ipus - 1,
+            ],  # Need to reference last IPU
             gradient_accumulation_count=1,
             repeat_count=1,
             inputs=[lhs, label_indices],
@@ -73,20 +78,24 @@ def pipelined_test(lhs, label_indices):
             optimizer_function=None,
             pipeline_schedule=ipu.pipelining_ops.PipelineSchedule.Sequential,
             outfeed_loss=False,
-            name="Pipeline")
+            name="Pipeline",
+        )
         return pipeline_op
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--rows", type=int, default=32,
-                        help="Rows in LHS matrix.")
-    parser.add_argument("--cols", type=int, default=512,
-                        help="Columns in LHS matrix.")
-    parser.add_argument("--outsize", type=int, default=100,
-                        help="Output size (columns in RHS matrix).")
-    parser.add_argument("--ipus", type=int, default=2,
-                        help="Number of IPUs (number of shards for matmul).")
+    parser.add_argument("--rows", type=int, default=32, help="Rows in LHS matrix.")
+    parser.add_argument("--cols", type=int, default=512, help="Columns in LHS matrix.")
+    parser.add_argument(
+        "--outsize", type=int, default=100, help="Output size (columns in RHS matrix)."
+    )
+    parser.add_argument(
+        "--ipus",
+        type=int,
+        default=2,
+        help="Number of IPUs (number of shards for matmul).",
+    )
     args = parser.parse_args()
     return args
 
@@ -108,7 +117,9 @@ if __name__ == "__main__":
     rhs = rng.uniform(-limit, limit, size=rhs_shape).astype(np.float32)
     labels = rng.uniform(0, args.outsize, size=args.rows).astype(np.int32)
     labels = np.expand_dims(labels, axis=1)
-    jax_logits, jax_loss, jax_dLhs, jax_dRhs = calc_reference_result_and_grad(lhs, rhs, labels)
+    jax_logits, jax_loss, jax_dLhs, jax_dRhs = calc_reference_result_and_grad(
+        lhs, rhs, labels
+    )
 
     cfg = ipu.config.IPUConfig()
     cfg.auto_select_ipus = args.ipus

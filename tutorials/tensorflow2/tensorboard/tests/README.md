@@ -1,3 +1,4 @@
+<!-- Copyright (c) 2021 Graphcore Ltd. All rights reserved. -->
 This directory contains tests for the `demo.py` and `main.py` files in the `completed_example` directory.
 
 The tests use `pytest` and helper utilities in the `utils` directory in the root of this repository.

@@ -10,14 +10,16 @@ from tensorflow.python import ipu
 import tensorflow as tf
 
 # default data_format is 'channels_last'
-dataset = Dataset.from_tensor_slices(np.random.uniform(size=(2, 128, 128, 3)).astype(np.float32))
+dataset = Dataset.from_tensor_slices(
+    np.random.uniform(size=(2, 128, 128, 3)).astype(np.float32)
+)
 dataset = dataset.batch(batch_size=2, drop_remainder=True)
 dataset = dataset.cache()
 dataset = dataset.repeat()
 dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)
 
 
-# Create a pipelined model which is split accross two stages.
+# Create a pipelined model which is split across two stages.
 def my_model():
     input_layer = layers.Input(shape=(128, 128, 3), dtype=tf.float32, batch_size=2)
 

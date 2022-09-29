@@ -7,12 +7,12 @@
 int main(int, char *[]) {
   auto report = pva::openReport("./profile.pop");
 
-  std::cout << "Example information from profile:"
-            << "\nNumber of compute sets: "
-            << report.compilation().graph().numComputeSets()
-            << "\nNumber of tiles on target: "
-            << report.compilation().target().numTiles()
-            << "\nVersion of Poplar used: " << report.poplarVersion().string()
+  std::cout << "Example information from profile:\n"
+            << "Number of compute sets: "
+            << report.compilation().graph().numComputeSets() << "\n"
+            << "Number of tiles on target: "
+            << report.compilation().target().numTiles() << "\n"
+            << "Version of Poplar used: " << report.poplarVersion().string()
             << "\n";
 
   return EXIT_SUCCESS;

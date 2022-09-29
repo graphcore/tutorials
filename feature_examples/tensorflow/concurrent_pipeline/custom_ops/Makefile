@@ -1,6 +1,6 @@
 CC = g++ -std=c++17 -O2 -Werror -Wno-error=deprecated-declarations
 
-POPLAR_LIBS = -lpoplar -lpoputil -lpopops -lpoplin -lpopnn -lgcl_ct
+POPLAR_LIBS = -lpoplar -lpoputil -lpopops -lpoplin -lpopnn -lgcl
 OBJECTS = utils.o common.o sharded_matmul.o sharded_losses.o sharded_utils.o sharded_embedding.o
 
 all: libconcurrent_ops.so

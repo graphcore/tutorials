@@ -1,3 +1,4 @@
+<!-- Copyright (c) 2022 Graphcore Ltd. All rights reserved. -->
 # Data parallelism
 
 This tutorial on Data parallelism in PopXL is available as a jupyter notebook.

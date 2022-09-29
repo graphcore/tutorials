@@ -16,18 +16,34 @@ tf.disable_v2_behavior()
 def parse_args():
     # Handle command line arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument("--batch-size", type=int, default=32,
-                        help="The batch size.")
-    parser.add_argument("--repeat-count", type=int, default=10,
-                        help="The number of times the pipeline will be executed for each step.")
-    parser.add_argument("--epochs", type=float, default=50,
-                        help="Total number of epochs to train for.")
-    parser.add_argument("--steps", type=int, default=None,
-                        help="Total number of steps to train for (overrides epochs).")
-    parser.add_argument("--learning-rate", type=float, default=0.01,
-                        help="The learning rate used with stochastic gradient descent.")
-    parser.add_argument("--batches-to-accumulate", type=int, default=16,
-                        help="How many batches to process before processing gradients and updating weights.")
+    parser.add_argument("--batch-size", type=int, default=32, help="The batch size.")
+    parser.add_argument(
+        "--repeat-count",
+        type=int,
+        default=10,
+        help="The number of times the pipeline will be executed for each step.",
+    )
+    parser.add_argument(
+        "--epochs", type=float, default=50, help="Total number of epochs to train for."
+    )
+    parser.add_argument(
+        "--steps",
+        type=int,
+        default=None,
+        help="Total number of steps to train for (overrides epochs).",
+    )
+    parser.add_argument(
+        "--learning-rate",
+        type=float,
+        default=0.01,
+        help="The learning rate used with stochastic gradient descent.",
+    )
+    parser.add_argument(
+        "--batches-to-accumulate",
+        type=int,
+        default=16,
+        help="How many batches to process before processing gradients and updating weights.",
+    )
     args = parser.parse_args()
     return args
 
@@ -101,7 +117,8 @@ def layer6_logits(learning_rate, activations, labels):
 def layer7_cel(learning_rate, logits, labels):
     with tf.variable_scope("softmax_ce"):
         cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(
-            labels=labels, logits=logits)
+            labels=labels, logits=logits
+        )
     with tf.variable_scope("mean"):
         loss = tf.reduce_mean(cross_entropy)
         return learning_rate, loss
@@ -115,7 +132,7 @@ def optimizer_function(learning_rate, loss):
 
 
 def pipelined_model(learning_rate):
-    # Defines a pipelined model which is split accross two stages
+    # Defines a pipelined model which is split across two stages
     def stage1(learning_rate, images, labels):
         r = layer1_flatten(learning_rate, images, labels)
         r = layer2_dense256(*r)
@@ -130,16 +147,17 @@ def pipelined_model(learning_rate):
         return r
 
     pipeline_op = ipu.pipelining_ops.pipeline(
-        computational_stages = [stage1, stage2],
-        gradient_accumulation_count = args.batches_to_accumulate,
-        repeat_count = args.repeat_count,
-        inputs = [learning_rate],
-        infeed_queue = infeed_queue,
-        outfeed_queue = outfeed_queue,
-        optimizer_function = optimizer_function,
-        pipeline_schedule = ipu.pipelining_ops.PipelineSchedule.Grouped,
+        computational_stages=[stage1, stage2],
+        gradient_accumulation_count=args.batches_to_accumulate,
+        repeat_count=args.repeat_count,
+        inputs=[learning_rate],
+        infeed_queue=infeed_queue,
+        outfeed_queue=outfeed_queue,
+        optimizer_function=optimizer_function,
+        pipeline_schedule=ipu.pipelining_ops.PipelineSchedule.Grouped,
         outfeed_loss=True,
-        name = "Pipeline")
+        name="Pipeline",
+    )
     return pipeline_op
 
 
@@ -158,18 +176,25 @@ if __name__ == "__main__":
     examples_per_step = args.batch_size * args.batches_to_accumulate * args.repeat_count
 
     # In order to evaluate at least N total examples, do ceil(N / n) steps
-    steps = args.steps if args.steps is not None else \
-        (num_train_examples + examples_per_step - 1) // examples_per_step
+    steps = (
+        args.steps
+        if args.steps is not None
+        else (num_train_examples + examples_per_step - 1) // examples_per_step
+    )
     training_samples = steps * examples_per_step
-    print(f'Steps {steps} x examples per step {examples_per_step} '
-          f'(== {training_samples} training examples, {training_samples/num_examples} '
-          f'epochs of {num_examples} examples)')
+    print(
+        f"Steps {steps} x examples per step {examples_per_step} "
+        f"(== {training_samples} training examples, {training_samples/num_examples} "
+        f"epochs of {num_examples} examples)"
+    )
 
-    with tf.device('cpu'):
+    with tf.device("cpu"):
         learning_rate = tf.placeholder(np.float32, [])
 
     with ipu.scopes.ipu_scope("/device:IPU:0"):
-        compiled_model = ipu.ipu_compiler.compile(pipelined_model, inputs=[learning_rate])
+        compiled_model = ipu.ipu_compiler.compile(
+            pipelined_model, inputs=[learning_rate]
+        )
 
     outfeed_op = outfeed_queue.dequeue()
 
@@ -194,12 +219,14 @@ if __name__ == "__main__":
             losses = sess.run(outfeed_op)
             if losses is not None and len(losses):
                 epoch = float(examples_per_step * step / num_examples)
-                if (step == (steps-1) or (step % 10) == 0):
-                    print("Step {}, Epoch {:.1f}, Mean loss: {:.3f}".format(
-                        step, epoch, np.mean(losses)))
+                if step == (steps - 1) or (step % 10) == 0:
+                    print(
+                        f"Step {step}, Epoch {epoch:.1f}, Mean loss:"
+                        f" {np.mean(losses):.3f}"
+                    )
         end = time.time()
         elapsed = end - begin
-        samples_per_second = training_samples/elapsed
-        print("Elapsed {}, {} samples/sec".format(elapsed, samples_per_second))
+        samples_per_second = training_samples / elapsed
+        print(f"Elapsed {elapsed}, {samples_per_second} samples/sec")
 
     print("Program ran successfully")

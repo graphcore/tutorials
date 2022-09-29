@@ -7,7 +7,7 @@ import tutorials_tests.testing_util as testing_util
 
 def run_cifar10(file_name):
     cwd = os.path.dirname(os.path.abspath(__file__))
-    cmd = ["python3", "cifar10_{0}.py".format(file_name)]
+    cmd = ["python3", f"cifar10_{file_name}.py"]
     out = testing_util.run_command_fail_explicitly(cmd, cwd)
 
     parse_results_for_accuracy(out, [81.0], 6.0)

@@ -1,10 +1,9 @@
+<!-- Copyright (c) 2021 Graphcore Ltd. All rights reserved. -->
 
-TensorFlow 1 on the IPU: training a model using half- and mixed-precision
-=========================================================================
+# TensorFlow 1 on the IPU: training a model using half- and mixed-precision
 
+## Table of Contents
 
-Table of Contents
-=================
 * [Introduction](#introduction)
 * [Using FP16 on the IPU in practice](#using-fp16-on-the-ipu-in-practice)
     + [Support for FP16 in TensorFlow](#support-for-fp16-in-tensorflow)
@@ -28,7 +27,7 @@ Table of Contents
     + [Optional command line arguments](#optional-command-line-arguments)
     + [Other examples](#other-examples)
 
-# Introduction
+## Introduction
 
 On computing devices, real numbers are represented by using one of several floating point formats, which vary in how many bits they use to represent each number. Using more bits allows for greater precision and a wider range of representable numbers, whereas using fewer bits allows for faster calculations and reduces memory and power usage. In deep learning applications, where less precise calculations are acceptable and throughput is critical, using a lower precision format can provide substantial gains in performance.
 
@@ -49,9 +48,9 @@ In this tutorial, we will discuss how to use FP16 and stochastic rounding using 
 
 If you are not familiar with how to run TensorFlow 1 models on the IPU, you may wish to read our [introductory tutorials](../basics) on the subject.
 
-# Using FP16 on the IPU in practice
+## Using FP16 on the IPU in practice
 
-## Support for FP16 in TensorFlow
+### Support for FP16 in TensorFlow
 
 TensorFlow provides the native data type `tf.float16`, which corresponds to the IEEE half-precision type supported by the IPU. There are a number of ways you can use this. For example, you can pass a `dtype` argument to `tf.constant` to create a constant tensor with a particular type. Further, you can use `tf.cast` to convert tensors between numerical types.
 
@@ -69,7 +68,7 @@ When using the `IPUEstimator` API to train a model, you do not need to make any 
 
 For many models, it is sufficient to perform all computations in FP16, without making any modifications for stability. However, there are a number of numerical issues that can arise when using FP16, which may affect your model. In the remainder of this tutorial, we will discuss some common issues that can occur and how you can address them.
 
-## Review of common numerical issues
+### Review of common numerical issues
 
 Two well-known issues that can arise when using floating-point numbers are overflow and underflow. Overflow occurs when a number of large magnitude exceeds the range that can be represented. Underflow occurs when a number of small magnitude is too small to be represented, and so is approximated as 0. Both of these are more likely to occur in FP16: the maximum representable value in FP16 is 65504 and the minimum representable positive value in FP16 is approximately `6.0e-08`, compared to approximately `1.7e+38` and `1.7e-38` respectively in FP32.
 
@@ -81,7 +80,7 @@ import numpy as np
 x_in_float16 = np.array([0.0004]).astype(np.float16)
 x_in_float16 += 0.25
 x_in_float16 -= 0.25
-print('0.0004 + 0.25 - 0.25 = ', x_in_float16[0])
+print("0.0004 + 0.25 - 0.25 = ", x_in_float16[0])
 ```
 
 The output of this is:
@@ -97,14 +96,16 @@ Generally speaking, the greater the difference in magnitude between the addends,
 ```python
 import numpy as np
 
-big_number = .25
+big_number = 0.25
 
 for small_number in [0.2, 0.02, 0.002, 0.0002]:
     x_in_float16 = np.array([small_number]).astype(np.float16)
     x_in_float16 += big_number
     x_in_float16 -= big_number
-    print(f'{small_number:.4f} + {big_number} - {big_number} = {x_in_float16[0]:.7f}, '
-          f'relative error: {(x_in_float16[0] - small_number)/small_number:+.1%}')
+    print(
+        f"{small_number:.4f} + {big_number} - {big_number} = {x_in_float16[0]:.7f}, "
+        f"relative error: {(x_in_float16[0] - small_number)/small_number:+.1%}"
+    )
 ```
 
 The output of this is:
@@ -124,7 +125,7 @@ import numpy as np
 x_in_float16 = np.array([0.0001]).astype(np.float16)
 x_in_float16 += 0.25
 x_in_float16 -= 0.25
-print('0.0001 + 0.25 - 0.25 = ', x_in_float16[0])
+print("0.0001 + 0.25 - 0.25 = ", x_in_float16[0])
 ```
 
 The output of this is:
@@ -143,7 +144,7 @@ import numpy as np
 x_in_float16 = np.array([0.0]).astype(np.float16)
 for _ in range(10000):
     x_in_float16 += 0.0001
-print('Sum: ', x_in_float16[0])
+print("Sum: ", x_in_float16[0])
 ```
 
 The correct result would be `0.0001 * 10000 = 1.0`, but when we run this code we get:
@@ -155,7 +156,7 @@ Sum: 0.25
 This is because once the running total reaches `0.25`, the `0.0001` addend is always rounded off entirely, so we never progress beyond this value, giving a highly inaccurate result.
 
 
-## Inaccuracies in parameter updates
+### Inaccuracies in parameter updates
 
 When training a neural network, the product of the gradients and the learning rate is often many orders of magnitude smaller than the parameters. This can lead to inaccuracies as described in the previous section, which can lead to poorer results. In some cases, swamping can occur, and parts of the network or even the entire network will completely fail to train.
 
@@ -165,13 +166,13 @@ When training a model in FP16 on the IPU, there are two main techniques we can u
 - Storing and updating the parameters in FP32
 
 
-### Method 1: Using stochastic rounding
+#### Method 1: Using stochastic rounding
 
 The IPU has native support for stochastic rounding, a technique which makes some operations in FP16 more accurate on average by making the rounding operation statistically unbiased. The idea of stochastic rounding is that instead of always rounding to the nearest representable number, we round up or down with a probability such that the expected value after rounding is equal to the value before rounding. Since the expected value of an addition after rounding is equal to the exact result of the addition, the expected value of a sum is also its exact value.
 
 This means that on average, the values of the parameters of a network will be close to the values they would have had if a higher-precision format had been used. The added bonus of using stochastic rounding is that the parameters can be stored in FP16, which means the parameters can be stored using half as much memory. This can be especially helpful when training with small batch sizes, where the memory used to store the parameters is proportionally greater than the memory used to store parameters when training with large batch sizes.
 
-To use stochastic rounding, you must enable it when you configure your IPU or IPUs. There are three modes of operation defined by the [StoachsticRoundingBehaviour enum](https://docs.graphcore.ai/projects/tensorflow1-user-guide/en/latest/tensorflow/api.html?highlight=StochasticRoundingBehaviour#tensorflow.python.ipu.config.StochasticRoundingBehaviour): `OFF`, `ON` or `REPLICA_IDENTICAL_ONLY`. We will use the `ON` option here.
+To use stochastic rounding, you must enable it when you configure your IPU or IPUs. There are three modes of operation defined by the [StochasticRoundingBehaviour enum](https://docs.graphcore.ai/projects/tensorflow1-user-guide/en/3.0.0/tensorflow/api.html?highlight=StochasticRoundingBehaviour#tensorflow.python.ipu.config.StochasticRoundingBehaviour): `OFF`, `ON` or `REPLICA_IDENTICAL_ONLY`. We will use the `ON` option here.
 
 While using stochastic rounding can help with the convergence of neural networks trained entirely in FP16, it may still be necessary to do some computations in FP32 for stability.
 
@@ -186,29 +187,35 @@ ipu_configuration = ipu.config.IPUConfig()
 ipu_configuration.auto_select_ipus = 1
 
 # Enable stochastic rounding
-ipu_configuration.floating_point_behaviour.esr = ipu.config.StochasticRoundingBehaviour.ON
+ipu_configuration.floating_point_behaviour.esr = (
+    ipu.config.StochasticRoundingBehaviour.ON
+)
 
 ipu_configuration.configure_ipu_system()
 
 # Define addition function and compile it for IPU
 
+
 def add_two_numbers(x, y):
     return x + y
+
 
 x = tf.placeholder(tf.float16, [20])
 y = tf.placeholder(tf.float16, [20])
 
-with ipu.scopes.ipu_scope('/device:IPU:0'):
+with ipu.scopes.ipu_scope("/device:IPU:0"):
     add_on_ipu = ipu.ipu_compiler.compile(add_two_numbers, [x, y])
 
 with tf.Session() as sess:
 
-    running_total = [0. for _ in range(20)]
+    running_total = [0.0 for _ in range(20)]
     small_numbers = [0.0001 for _ in range(20)]
 
     for _ in range(10000):
 
-        running_total = sess.run(add_on_ipu, feed_dict={x: running_total, y: small_numbers})[0]
+        running_total = sess.run(
+            add_on_ipu, feed_dict={x: running_total, y: small_numbers}
+        )[0]
 
     print(running_total)
 ```
@@ -225,7 +232,7 @@ All of the results are reasonably close to the correct result of `1.0`, and are 
 An example of training ResNet models on CIFAR-10 in FP16 using stochastic rounding is provided in `stochastic_rounding.py`.
 
 
-### Method 2: Store and update the parameters in FP32
+#### Method 2: Store and update the parameters in FP32
 
 An alternative approach to dealing with inaccuracies in the parameter update step is to store and update the parameters in FP32. This means we can still benefit from faster matrix multiplications and convolutions in the forward and backward passes while worrying less about inaccurate parameter updates. Also, the additional type conversions come with little computational overhead, and there is much less randomness involved than there is when using stochastic rounding.
 
@@ -247,10 +254,7 @@ def method_2_dense(inputs_float16, units_out):
 
     # Create weights in FP32
     weights = tf.get_variable(
-        name="weights",
-        shape=[units_out, units_in],
-        dtype=tf.float32,
-        trainable=True
+        name="weights", shape=[units_out, units_in], dtype=tf.float32, trainable=True
     )
 
     # Cast to FP16 before doing the compute
@@ -258,10 +262,7 @@ def method_2_dense(inputs_float16, units_out):
 
     # Do the same for the biases
     biases = tf.get_variable(
-        name="biases",
-        shape=[units_out, 1],
-        dtype=tf.float32,
-        trainable=True
+        name="biases", shape=[units_out, 1], dtype=tf.float32, trainable=True
     )
 
     biases_float16 = tf.cast(biases, tf.float16)
@@ -289,14 +290,19 @@ To use this method, we first define a custom getter. As stated above, this will 
 # FP32 parameter getter
 # This function creates FP32 weights no matter what the compute dtype is
 
+
 def fp32_parameter_getter(getter, name, dtype, trainable, shape=None, *args, **kwargs):
 
     if trainable and dtype != tf.float32:
-        parameter_variable = getter(name, shape, tf.float32, *args, trainable=trainable, **kwargs)
+        parameter_variable = getter(
+            name, shape, tf.float32, *args, trainable=trainable, **kwargs
+        )
         return tf.cast(parameter_variable, dtype=dtype, name=name + "_cast")
 
     else:
-        parameter_variable = getter(name, shape, dtype, *args, trainable=trainable, **kwargs)
+        parameter_variable = getter(
+            name, shape, dtype, *args, trainable=trainable, **kwargs
+        )
         return parameter_variable
 ```
 
@@ -306,7 +312,7 @@ We then define the layers of our model using `tf.get_variable` to create the var
 
 ```python
 # Define a convolution that uses tf.get_variable to create the kernel
-def conv(feature_map, kernel_size, stride, filters_out, padding='SAME', op_name):
+def conv(feature_map, kernel_size, stride, filters_out, padding="SAME", op_name):
 
     # We use NHWC format
     filters_in = feature_map.get_shape().as_list()[-1]
@@ -318,7 +324,7 @@ def conv(feature_map, kernel_size, stride, filters_out, padding='SAME', op_name)
             name="conv2d/kernel",
             shape=[kernel_size, kernel_size, filters_in, filters_out],
             dtype=feature_map.dtype,
-            trainable=True
+            trainable=True,
         )
 
         return tf.nn.conv2d(
@@ -342,8 +348,9 @@ def training_loop_body(loss_running_total, x, y):
 
     # Apply the model function to the inputs
     # Using the chosen variable getter as our custom getter
-    with tf.variable_scope('all_vars', use_resource=True,
-                           custom_getter=fp32_parameter_getter):
+    with tf.variable_scope(
+        "all_vars", use_resource=True, custom_getter=fp32_parameter_getter
+    ):
         logits = model_function(x)
 
     loss = loss_function(logits, labels)
@@ -358,7 +365,7 @@ Since custom getters change the functionality of a standard TensorFlow function,
 A full example of using this method to train a simple convolutional model on the Fashion-MNIST dataset is provided in `float32_parameter_updates.py`.
 
 
-## Underflowing gradients and loss scaling
+### Underflowing gradients and loss scaling
 
 Another numerical issue that can occur when training a model in half-precision is that the gradients can underflow. This can be difficult to debug because the model will simply appear to not be training, and can be especially damaging because any gradients which underflow will propagate a value of 0 backwards to other gradient calculations.
 
@@ -379,7 +386,7 @@ This is the method implemented in the training loop in `float32_parameter_update
 def training_loop_body(loss_running_total, x, y):
 
     # We use the chosen variable getter as our custom getter
-    with tf.variable_scope('all_vars', use_resource=True, custom_getter=chosen_getter):
+    with tf.variable_scope("all_vars", use_resource=True, custom_getter=chosen_getter):
         logits = model_function(x)
 
     logits = tf.cast(logits, tf.float32)
@@ -398,8 +405,10 @@ def training_loop_body(loss_running_total, x, y):
     grads_and_vars = optimizer.compute_gradients(loss=loss)
 
     # Rescale gradients to correct values
-    grads_and_vars = [(gradient/LOSS_SCALING_FACTOR, variable)
-                      for gradient, variable in grads_and_vars]
+    grads_and_vars = [
+        (gradient / LOSS_SCALING_FACTOR, variable)
+        for gradient, variable in grads_and_vars
+    ]
 
     # Apply gradients
     train_op = optimizer.apply_gradients(grads_and_vars=grads_and_vars)
@@ -407,15 +416,15 @@ def training_loop_body(loss_running_total, x, y):
     # Return loss to original value before reporting it
     loss /= LOSS_SCALING_FACTOR
 
-    return([loss_running_total + loss, train_op])
+    return [loss_running_total + loss, train_op]
 ```
 
 
-### Numerical concerns with loss scaling
+#### Numerical concerns with loss scaling
 
 If you are doing all computations in FP16, the gradients may underflow after they have been divided by the loss scaling factor. Dividing gradients by the loss scaling factor can only be done completely safely when the parameters are stored and updated in FP32, in which case the gradients are cast to FP32 before the parameter update, as described [in Method 2](#method-2-store-and-update-the-parameters-in-fp32).
 
-### Techniques for specific optimisers
+#### Techniques for specific optimisers
 
 If the relationship between the gradients and the size of the parameter update step is linear, as in stochastic gradient descent (with or without momentum), we can instead choose to divide the learning rate by the loss scaling factor to make the parameter update step correct. This is demonstrated in the training loop of the `stochastic_rounding.py` example included with this tutorial:
 
@@ -431,21 +440,23 @@ def training_loop_body(loss_running_total, x, y):
 
     # Divide learning rate by loss scaling factor
     #     so the parameter update step is correct
-    optimizer = tf.train.MomentumOptimizer(LEARNING_RATE/LOSS_SCALING_FACTOR, momentum=0.9)
+    optimizer = tf.train.MomentumOptimizer(
+        LEARNING_RATE / LOSS_SCALING_FACTOR, momentum=0.9
+    )
 
     train_op = optimizer.minimize(loss=loss)
 
     # Return loss to original value before reporting it
     loss /= LOSS_SCALING_FACTOR
 
-    return([loss_running_total + loss, train_op])
+    return [loss_running_total + loss, train_op]
 ```
 
 This saves some compute, but can lead to some problems, such as causing the learning rate to underflow in FP16.
 
 In some optimisers, such as RMSProp and Adam, a rolling average of the square of the gradients is taken, and the gradients are scaled down by the square root of this average. If we ignore the small value added to the denominator to avoid division by 0 (usually called "epsilon"), this means that scaling the gradients has no effect on the weight update step. As long as you either scale the value of epsilon accordingly or you are happy to ignore its effects, you can use these optimisers without scaling the gradients back down after loss scaling.
 
-## Diagnosing numerical issues
+### Diagnosing numerical issues
 
 If your model is not performing as you would expect, you may find it useful to
 inspect the outputs of some of the intermediate calculations. This can be done
@@ -454,9 +465,9 @@ or by using an outfeed queue. A [code
 example](../../../feature_examples/tensorflow/inspecting_tensors) is available
 which demonstrates how to use outfeed queues to inspect tensors. You may also
 wish to refer to the API reference for details on how to [print
-tensors](https://docs.graphcore.ai/projects/tensorflow1-user-guide/en/latest/tensorflow/api.html#tensorflow.python.ipu.internal_ops.print_tensor)
+tensors](https://docs.graphcore.ai/projects/tensorflow1-user-guide/en/3.0.0/tensorflow/api.html#tensorflow.python.ipu.internal_ops.print_tensor)
 and how to use an [outfeed
-queue](https://docs.graphcore.ai/projects/tensorflow1-user-guide/en/latest/tensorflow/api.html#tensorflow.python.ipu.ipu_outfeed_queue.IPUOutfeedQueue).
+queue](https://docs.graphcore.ai/projects/tensorflow1-user-guide/en/3.0.0/tensorflow/api.html#tensorflow.python.ipu.ipu_outfeed_queue.IPUOutfeedQueue).
 
 You can also configure how the floating-point unit should respond to floating-point exceptions. This can be done by setting the attributes in the `floating_point_behaviour` namespace of your `IPUConfig` object. Setting the `nanoo` attribute to `True` will enable "NaN on overflow" mode, in which case operations that overflow return `NaN`. If you set the `nanoo` attribute to `False`, overflowing operations will "saturate", which means that they will return the highest representable number in FP16, which may give unusual results. Setting the `oflo`, `div0`, and `inv` attributes to `True` will cause the floating-point unit to raise exceptions and stop execution on overflows, divisions by 0, and invalid operations, respectively. For example:
 
@@ -475,27 +486,27 @@ ipu_configuration.floating_point_behaviour.div0 = True
 
 if args.use_float16_partials:
 
-    ipu_configuration.matmul.poplar_options = {'partialsType': 'half'}
+    ipu_configuration.matmul.poplar_options = {"partialsType": "half"}
 
-    ipu_configuration.convolutions.poplar_options = {'partialsType': 'half'}
+    ipu_configuration.convolutions.poplar_options = {"partialsType": "half"}
 
 ipu_configuration.configure_ipu_system()
 ```
 
-A more complete description of when these exceptions are raised can be found in the [Poplar documentation](https://docs.graphcore.ai/projects/poplar-api/en/latest/poplar_api.html#_CPPv4N6poplar22FloatingPointBehaviourE).
+A more complete description of when these exceptions are raised can be found in the [Poplar documentation](https://docs.graphcore.ai/projects/poplar-api/en/3.0.0/poplar_api.html#_CPPv4N6poplar22FloatingPointBehaviourE).
 
 When the floating-point unit raises an exception, a large amount of information about the internal state of the IPU at the moment the exception occurred is printed before the program exits. The important piece of information to look for is the contents of the floating-point status register `$FP_STS`, which has three fields `OFLO`, `DIV0` and `INV` corresponding to overflows, divisions by 0 and invalid operations respectively. A value of `0x1` in a field indicates that that particular exception was raised, while a value of `0x0` indicates that that exception was not raised.
 
 For Poplar SDK releases before 2.1, it was necessary to also explicitly enable or disable stochastic rounding when enabling or disabling floating-point exceptions. With the new configuration API, this is no longer necessary.
 
 
-## Avoiding numerical issues
+### Avoiding numerical issues
 
-### Avoiding underflow
+#### Avoiding underflow
 
 The smallest positive number representable in half-precision is approximately `6.0e-08`, which means that any number smaller than half this number (approximately `3.0e-08`) will underflow. It is worth confirming that, for example, the learning rate and any optimiser parameters do not underflow. For example, the default value of `epsilon` in some implementations of the Adam optimiser is `1e-8`, which will underflow in half-precision and potentially cause numerical issues.
 
-### Avoiding overflow
+#### Avoiding overflow
 
 Some operations are especially prone to overflow in FP16. Examples of these include exponentials, squaring, cubing, taking sums of many values, and taking sums of squares. Any such calculations should ideally be performed in FP32. Some optimisers, such as RMSProp and Adam, use large sums of squares as part of their computations and are therefore especially prone to instability in FP16. You should take great care if you plan on using these optimisers in FP16, and strongly consider using a different optimiser such as plain stochastic gradient descent.
 
@@ -505,21 +516,21 @@ Sometimes, overflows can occur in the calculation of the variance in a normalisa
 ipu_configuration.norms.use_stable_statistics = True
 ```
 
-### Unstable operations
+#### Unstable operations
 
 There are some operations which are common in neural networks, such as group/layer normalisation and softmax, which contain sub-steps which are especially prone to numerical errors. However, these sub-steps are actually implemented in FP32 internally in the Graphcore port of TensorFlow, so you can freely use these operations in FP16 at the TensorFlow level. If you are using a somewhat unconventional activation function or normalisation operation and are concerned about numerical issues, you may wish to cast to and from FP32 before and after performing these operations.
 
-It is strongly recommended that you use the versions of operations specialised for the IPU where available, especially those containing potentially unstable sub-steps. See the sections of the API reference on [specialised Keras layers](https://docs.graphcore.ai/projects/tensorflow1-user-guide/en/latest/tensorflow/api.html#keras-layers) and [operators](https://docs.graphcore.ai/projects/tensorflow1-user-guide/en/latest/tensorflow/api.html#operators) for information on what operations have versions specialised for the IPU.
+It is strongly recommended that you use the versions of operations specialised for the IPU where available, especially those containing potentially unstable sub-steps. See the sections of the API reference on [specialised Keras layers](https://docs.graphcore.ai/projects/tensorflow1-user-guide/en/3.0.0/tensorflow/api.html#keras-layers) and [operators](https://docs.graphcore.ai/projects/tensorflow1-user-guide/en/3.0.0/tensorflow/api.html#operators) for information on what operations have versions specialised for the IPU.
 
 There is empirical evidence that stochastic gradient descent with momentum is more effective than plain SGD when training in FP16 with stochastic rounding, because the effects of numerical inaccuracies in the gradient calculations are mitigated by taking an exponential rolling average of the gradients. If you are unsure what optimizer you should use when training in FP16 with stochastic rounding, you should try using stochastic gradient descent with momentum.
 
 You should always make sure the inputs to your network are normalised. Non-normalised inputs have been known to cause numerical issues.
 
 
-## Other considerations
+### Other considerations
 
 
-### Setting the partials type for convolutions and matrix multiplications
+#### Setting the partials type for convolutions and matrix multiplications
 
 The IPU performs convolutions internally by performing many multiply-accumulate operations. For computations in FP16, you can configure what data type is used for intermediate calculations in convolutions by changing the `poplar_options` attribute in the `convolutions` namespace of your `IPUConfig` object. This attribute is a dictionary with option names as keys and their settings as values.
 
@@ -530,30 +541,30 @@ For example, from `stochastic_rounding.py`:
 ```python
 if args.use_float16_partials:
 
-    ipu_configuration.matmuls.poplar_options = {'partialsType': 'half'}
+    ipu_configuration.matmuls.poplar_options = {"partialsType": "half"}
 
-    ipu_configuration.convolutions.poplar_options = {'partialsType': 'half'}
+    ipu_configuration.convolutions.poplar_options = {"partialsType": "half"}
 ```
 
-In the documentation, you can see [the full list of options for matrix multiplications](https://docs.graphcore.ai/projects/poplar-api/en/latest/poplibs_api.html#_CPPv4N6poplin6matMulERN6poplar5GraphERKN6poplar6TensorERKN6poplar6TensorERN6poplar7program8SequenceERKN6poplar4TypeERKN6poplar12DebugContextERKN6poplar11OptionFlagsEPN6matmul13PlanningCacheE) and [the full list of options for convolutions](https://docs.graphcore.ai/projects/poplar-api/en/latest/poplibs_api.html#_CPPv4N6poplin13createWeightsERN6poplar5GraphERK10ConvParamsRKN6poplar12DebugContextERKN6poplar11OptionFlagsEP13PlanningCache). However, configuring options other than the partials type is beyond the scope of this tutorial.
+In the documentation, you can see [the full list of options for matrix multiplications](https://docs.graphcore.ai/projects/poplar-api/en/3.0.0/poplibs_api.html#_CPPv4N6poplin6matMulERN6poplar5GraphERKN6poplar6TensorERKN6poplar6TensorERN6poplar7program8SequenceERKN6poplar4TypeERKN6poplar12DebugContextERKN6poplar11OptionFlagsEPN6matmul13PlanningCacheE) and [the full list of options for convolutions](https://docs.graphcore.ai/projects/poplar-api/en/3.0.0/poplibs_api.html#_CPPv4N6poplin13createWeightsERN6poplar5GraphERK10ConvParamsRKN6poplar12DebugContextERKN6poplar11OptionFlagsEP13PlanningCache). However, configuring options other than the partials type is beyond the scope of this tutorial.
 
-### Data type arguments for specialised IPU ops
+#### Data type arguments for specialised IPU ops
 
-Many of the functions included with the Graphcore port of TensorFlow allow you to specify the data type used for certain variables, such as the trainable weights, the values of partial calculations, or the values used to accumulate the gradients when using gradient accumulation. Be sure to check the [API reference](https://docs.graphcore.ai/projects/tensorflow1-user-guide/en/latest/tensorflow/api.html) for full details.
+Many of the functions included with the Graphcore port of TensorFlow allow you to specify the data type used for certain variables, such as the trainable weights, the values of partial calculations, or the values used to accumulate the gradients when using gradient accumulation. Be sure to check the [API reference](https://docs.graphcore.ai/projects/tensorflow1-user-guide/en/3.0.0/tensorflow/api.html) for full details.
 
 
-# Code examples
+## Code examples
 
 Three code examples are provided to demonstrate the programming techniques discussed in this tutorial: `stochastic_rounding.py`, `float32_parameter_updates.py` and `ipuestimator_fp16.py`. These demonstrate different approaches to training a model in FP16. All of the code examples train a convolutional model to classify images from a standard dataset and report loss values. All examples are based on `example_2.py` from [Part 2](../basics/tut2_loops_data_pipeline) of the TensorFlow 1 introductory tutorial.
 
 The datasets are downloaded using the TensorFlow API. See the TensorFlow API documentation for the details of the license of the [Fashion-MNIST](https://www.tensorflow.org/versions/r1.15/api_docs/python/tf/keras/datasets/fashion_mnist/load_data) dataset. The CIFAR-10 dataset was introduced in [this technical report](https://www.cs.toronto.edu/~kriz/learning-features-2009-TR.pdf), which was published in 2009 by Alex Krizhevsky.
 
-## Running the examples
+### Running the examples
 
 To run the code examples, you will need access to IPU hardware and the latest Poplar SDK. You will need to run the examples in a virtual environment with the Graphcore port of TensorFlow 1 installed. For software installation and setup details, please see the [Getting Started guide](https://docs.graphcore.ai/en/latest/hardware.html#getting-started) for your hardware setup.
 
 
-## Stochastic rounding example
+### Stochastic rounding example
 
 In `stochastic_rounding.py`, we train a ResNet model of a given depth on the CIFAR-10 image classification dataset using stochastic rounding. The program can be run at the command line with the command
 ```
@@ -574,7 +585,7 @@ python stochastic_rounding.py float16 14
 The source code for this example is available in [stochastic_rounding.py](stochastic_rounding.py). The ResNet CNN architecture was introduced by Kaiming He et al. in a 2015 research paper, titled [_Deep Residual Learning for Image Recognition_](https://arxiv.org/abs/1512.03385).
 
 
-## FP32 parameter updates example
+### FP32 parameter updates example
 
 In `float32_parameter_updates.py`, we train a simple convolutional model on the Fashion-MNIST dataset. The parameters are stored and updated in FP32, regardless of what precision is used for the compute. This is done using the "custom getter" method described above.
 
@@ -596,7 +607,7 @@ python float32_parameter_updates.py mixed
 The source code for this example is available in th file [float32_parameter_updates.py](float32_parameter_updates.py).
 
 
-## IPUEstimator example
+### IPUEstimator example
 
 The example provided in `ipuestimator_fp16.py` is a port of `float32_parameter_updates.py` that uses the `IPUEstimator` API instead of training the model directly.
 
@@ -617,7 +628,7 @@ python ipuestimator_fp16.py mixed
 
 The source code for this example is available [ipuestimator_fp16.py](ipuestimator_fp16.py).
 
-## Optional command line arguments
+### Optional command line arguments
 
 All code examples also accept the following optional command line arguments:
 
@@ -639,6 +650,6 @@ python stochastic_rounding.py float16 14 --batch-size 64 --epochs 10
 
 The `stochastic_rounding.py` code example also offers a `--disable-stochastic-rounding` flag which disables stochastic rounding.
 
-## Other examples
+### Other examples
 
 Further examples of how FP16 can be used on the IPU are available in our [examples repository](https://github.com/graphcore/examples) on GitHub, including our TensorFlow 1 convolutional network applications for [training](https://github.com/graphcore/examples/tree/v2.6.0/vision/cnns/tensorflow1/training) and [inference](https://github.com/graphcore/examples/tree/v2.6.0/vision/cnns/tensorflow1/inference).

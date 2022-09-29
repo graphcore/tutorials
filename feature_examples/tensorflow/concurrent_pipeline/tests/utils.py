@@ -8,6 +8,7 @@ class ClosureInitializer(tf.keras.initializers.Initializer):
     shape and dtype args passed into __call__ in favour of any
     bound into the closure.
     """
+
     def __init__(self, closure):
         self.func = closure
 

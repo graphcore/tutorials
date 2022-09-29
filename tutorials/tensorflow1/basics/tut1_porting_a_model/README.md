@@ -1,3 +1,4 @@
+<!-- Copyright (c) 2021 Graphcore Ltd. All rights reserved. -->
 # Tutorial 1: Porting a simple example
 
 ## Introduction
@@ -33,8 +34,8 @@ fashion_mnist = tf.keras.datasets.fashion_mnist
 (x_train, y_train), _ = fashion_mnist.load_data()
 
 # Cast and normalize the training data
-x_train = x_train.astype('float32') / 255
-y_train = y_train.astype('int32')
+x_train = x_train.astype("float32") / 255
+y_train = y_train.astype("int32")
 
 # Build iterator over the data
 dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train))
@@ -46,12 +47,14 @@ dataset_iterator = dataset.make_initializable_iterator()
 # Fashion-MNIST images are greyscale, so we add a channels dimension
 expand_dims = tf.keras.layers.Reshape((28, 28, 1))
 
-conv = (tf.keras.layers.Conv2D(filters=8,
-                               kernel_size=(3, 3),
-                               strides=(1, 1),
-                               padding='same',
-                               activation=tf.nn.relu,
-                               data_format="channels_last"))
+conv = tf.keras.layers.Conv2D(
+    filters=8,
+    kernel_size=(3, 3),
+    strides=(1, 1),
+    padding="same",
+    activation=tf.nn.relu,
+    data_format="channels_last",
+)
 
 flatten = tf.keras.layers.Flatten()
 
@@ -65,7 +68,7 @@ model = tf.keras.Sequential([expand_dims, conv, conv, flatten, final_dense])
 batches_per_epoch = len(x_train) // BATCHSIZE
 ```
 
-We make two small IPU-specific adjustments here. Since the features are originally of type `uint8`, which is not supported on the IPU (see the relevant part of the [documentation](https://docs.graphcore.ai/projects/tensorflow1-user-guide/en/latest/tensorflow/device_selection.html#supported-types), we cast them to `float32`. Also, we use `drop_remainder=True` when batching the data. This is because the dimensions of the tensors in a computational graph which is run on the IPU must be fixed.
+We make two small IPU-specific adjustments here. Since the features are originally of type `uint8`, which is not supported on the IPU (see the relevant part of the [documentation](https://docs.graphcore.ai/projects/tensorflow1-user-guide/en/3.0.0/tensorflow/device_selection.html#supported-types), we cast them to `float32`. Also, we use `drop_remainder=True` when batching the data. This is because the dimensions of the tensors in a computational graph which is run on the IPU must be fixed.
 
 ## IPU Configuration
 
@@ -86,7 +89,7 @@ ipu_configuration.configure_ipu_system()
 
 This will create one TensorFlow virtual device which we can refer to later as `/device:IPU:0`. This virtual device will be able to use 1 IPU. We can create multiple TensorFlow virtual devices, each with multiple IPUs, by passing a Python list of sizes to `auto_select_ipus`. However, working effectively with multiple IPUs is a subject that requires separate treatment and will be covered in a further tutorial.
 
-For many small applications, this is enough to get a model up and running, but there are still plenty of useful options. For example, we can target a specific IPU or multi-IPU device by setting `select_ipus` on our IPUConfig object instead of `auto_select_ipus`. The full list of options is documented in the relevant part of the [API reference](https://docs.graphcore.ai/projects/tensorflow1-user-guide/en/latest/tensorflow/api.html#tensorflow.python.ipu.config.IPUConfig).
+For many small applications, this is enough to get a model up and running, but there are still plenty of useful options. For example, we can target a specific IPU or multi-IPU device by setting `select_ipus` on our IPUConfig object instead of `auto_select_ipus`. The full list of options is documented in the relevant part of the [API reference](https://docs.graphcore.ai/projects/tensorflow1-user-guide/en/3.0.0/tensorflow/api.html#tensorflow.python.ipu.config.IPUConfig).
 
 ## Preparing the model for the IPU
 
@@ -95,13 +98,14 @@ The next step is to prepare the model for running on the IPU. This is handled by
 ```python
 # SNIPPET 4
 
+
 def training_loop_body(x, y):
 
     logits = model(x, training=True)
     loss = tf.losses.sparse_softmax_cross_entropy(labels=y, logits=logits)
     train_op = tf.train.AdamOptimizer(learning_rate=0.01).minimize(loss=loss)
 
-    return([loss, train_op])
+    return [loss, train_op]
 ```
 
 Remember that one of our objectives is to report the average loss after each epoch, so we need our function to output the loss at each step. Because TensorFlow 1 uses lazy evaluation, we return `train_op` (the actual value of which is `None`) as well to ensure the training step is executed.
@@ -118,10 +122,12 @@ When operations are built, they must be placed on a particular IPU device, as cr
 (x, y) = dataset_iterator.get_next()
 
 # We build the operation within the scope of a particular device
-with ipu.scopes.ipu_scope('/device:IPU:0'):
+with ipu.scopes.ipu_scope("/device:IPU:0"):
 
     # Pass the training loop function and list of inputs to ipu.ipu_compiler.compile
-    training_loop_body_on_ipu = ipu.ipu_compiler.compile(computation=training_loop_body, inputs=[x, y])
+    training_loop_body_on_ipu = ipu.ipu_compiler.compile(
+        computation=training_loop_body, inputs=[x, y]
+    )
 ```
 
 ## Running the model
@@ -151,8 +157,8 @@ with tf.Session() as sess:
             loss_running_total += loss[0]
 
         # Print average loss and time taken for epoch
-        print('\n', end='')
-        print("Loss:", loss_running_total/batches_per_epoch)
+        print("\n", end="")
+        print("Loss:", loss_running_total / batches_per_epoch)
         print("Time:", time.time() - epoch_start_time)
 
 print("Program ran successfully")

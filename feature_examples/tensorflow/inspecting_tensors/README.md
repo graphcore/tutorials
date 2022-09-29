@@ -1,3 +1,4 @@
+<!-- Copyright (c) 2021 Graphcore Ltd. All rights reserved. -->
 # Inspecting tensors using outfeed queues and a custom optimizer
 
 In this example we train simple pipelined and non-pipelined models on the MNIST numeral dataset

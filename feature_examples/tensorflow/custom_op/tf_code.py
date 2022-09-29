@@ -5,6 +5,7 @@ import numpy as np
 import tensorflow.compat.v1 as tf
 
 from tensorflow.python import ipu
+
 tf.disable_v2_behavior()
 
 SIZE = 5
@@ -20,13 +21,10 @@ def add_op(x, y):
     lib_path = os.path.join(base_path, "libcustom_op.so")
     gp_path = os.path.join(base_path, "custom_codelet.gp")
 
-    return ipu.custom_ops.precompiled_user_op([x, y],
-                                              lib_path,
-                                              gp_path,
-                                              outs=outputs)
+    return ipu.custom_ops.precompiled_user_op([x, y], lib_path, gp_path, outs=outputs)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     cfg = ipu.config.IPUConfig()
     cfg.auto_select_ipus = 1
     cfg.configure_ipu_system()

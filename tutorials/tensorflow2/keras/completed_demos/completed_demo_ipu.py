@@ -90,20 +90,20 @@ ipu_config.configure_ipu_system()
 # Specify IPU strategy
 strategy = ipu.ipu_strategy.IPUStrategy()
 
-print('Keras MNIST example, running on IPU')
+print("Keras MNIST example, running on IPU")
 with strategy.scope():
     # Model.__init__ takes two required arguments, inputs and outputs.
     model = keras.Model(*model_fn())
 
     # Compile our model with Stochastic Gradient Descent as an optimizer
     # and Categorical Cross Entropy as a loss.
-    model.compile('sgd', 'categorical_crossentropy', metrics=["accuracy"])
+    model.compile("sgd", "categorical_crossentropy", metrics=["accuracy"])
     model.summary()
 
-    print('\nTraining')
+    print("\nTraining")
     model.fit(x_train, y_train, epochs=3, batch_size=batch_size)
 
-    print('\nEvaluation')
+    print("\nEvaluation")
     model.evaluate(x_test, y_test, batch_size=batch_size)
 
 print("Program ran successfully")

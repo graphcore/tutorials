@@ -9,7 +9,7 @@ import tutorials_tests.testing_util as testing_util
 
 build_dir = Path(__file__).parent.parent.resolve()
 
-"""Tests of the example Popart cube custom operator"""
+"""Tests of the example PopART cube custom operator"""
 
 
 @pytest.fixture(autouse=True)

@@ -2,16 +2,16 @@
 
 #pragma once
 
-#include <poplar/Graph.hpp>
-#include <poplar/Engine.hpp>
-#include <poplar/IPUModel.hpp>
 #include <poplar/DeviceManager.hpp>
+#include <poplar/Engine.hpp>
+#include <poplar/Graph.hpp>
+#include <poplar/IPUModel.hpp>
 
 #include <boost/program_options.hpp>
 
 #include <algorithm>
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <string>
 namespace utils {
 
@@ -25,45 +25,32 @@ struct Options {
   bool profile;
 };
 
-Options parseOptions(int argc, char** argv) {
+Options parseOptions(int argc, char **argv) {
   Options options;
   std::string modeString;
 
   namespace po = boost::program_options;
   po::options_description desc("Options");
-  desc.add_options()
-  ("help", "Show command help.")
-  ("model",
-   po::bool_switch(&options.useIpuModel)->default_value(false),
-   "If set then use IPU model instead of hardware."
-  )
-  ("ipus",
-   po::value<std::size_t>(&options.numIpus)->default_value(1),
-   "Number of IPUs to use."
-  )
-  ("exe-name",
-   po::value<std::string>(&options.exeName)->default_value(""),
-   "Save the graph executable under a file name with this prefix. "
-   "This option is required when loading/saving executables."
-  )
-  ("save-exe",
-   po::bool_switch(&options.saveExe)->default_value(false),
-   "Save the Poplar graph executable after compilation. "
-   "You must also set 'exe-name'."
-  )
-  ("load-exe",
-   po::bool_switch(&options.loadExe)->default_value(false),
-   "Load a previosuly saved executable and skip graph and program construction. "
-   "You must also set 'exe-name'."
-  )
-  ("profile",
-   po::bool_switch(&options.profile)->default_value(false),
-   "Enable profile output."
-  )
-  ("profile-name",
-   po::value<std::string>(&options.profileName)->default_value("profile.txt"),
-   "Name of profile output file."
-  );
+  desc.add_options()("help", "Show command help.")(
+      "model", po::bool_switch(&options.useIpuModel)->default_value(false),
+      "If set then use IPU model instead of hardware.")(
+      "ipus", po::value<std::size_t>(&options.numIpus)->default_value(1),
+      "Number of IPUs to use.")(
+      "exe-name", po::value<std::string>(&options.exeName)->default_value(""),
+      "Save the graph executable under a file name with this prefix. "
+      "This option is required when loading/saving executables.")(
+      "save-exe", po::bool_switch(&options.saveExe)->default_value(false),
+      "Save the Poplar graph executable after compilation. "
+      "You must also set 'exe-name'.")(
+      "load-exe", po::bool_switch(&options.loadExe)->default_value(false),
+      "Load a previously saved executable and skip graph and program "
+      "construction. "
+      "You must also set 'exe-name'.")(
+      "profile", po::bool_switch(&options.profile)->default_value(false),
+      "Enable profile output.")("profile-name",
+                                po::value<std::string>(&options.profileName)
+                                    ->default_value("profile.txt"),
+                                "Name of profile output file.");
 
   po::variables_map vm;
   po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -76,11 +63,13 @@ Options parseOptions(int argc, char** argv) {
 
   // Check options are set correctly:
   if ((options.saveExe || options.loadExe) && options.exeName.empty()) {
-    throw std::logic_error("To save/load an executable you must set 'exe-name'");
+    throw std::logic_error(
+        "To save/load an executable you must set 'exe-name'");
   }
 
   if (options.loadExe && options.profile) {
-    throw std::logic_error("It is not possible to run profiling on a loaded executable.");
+    throw std::logic_error(
+        "It is not possible to run profiling on a loaded executable.");
   }
 
   return options;
@@ -90,16 +79,16 @@ std::string getExeFileName(const Options &options) {
   return options.exeName + ".poplar";
 }
 
-poplar::Executable compileOrLoadExe(
-    poplar::Graph &graph,
-    const std::vector<poplar::program::Program> &progs,
-    const Options &options) {
+poplar::Executable
+compileOrLoadExe(poplar::Graph &graph,
+                 const std::vector<poplar::program::Program> &progs,
+                 const Options &options) {
   if (options.loadExe) {
     const auto exeName = getExeFileName(options);
     try {
       auto inf = std::ifstream(exeName);
       return poplar::Executable::deserialize(inf);
-    } catch (const poplar::poplar_error& e) {
+    } catch (const poplar::poplar_error &e) {
       std::cerr << "Error: Failed to load executable '" << exeName << "'\n";
       throw;
     }
@@ -114,9 +103,9 @@ poplar::Executable compileOrLoadExe(
 poplar::Device getIpuHwDevice(std::size_t numIpus) {
   auto dm = poplar::DeviceManager::createDeviceManager();
   auto hwDevices = dm.getDevices(poplar::TargetType::IPU, numIpus);
-  auto it = std::find_if(hwDevices.begin(), hwDevices.end(), [](poplar::Device &device) {
-     return device.attach();
-  });
+  auto it =
+      std::find_if(hwDevices.begin(), hwDevices.end(),
+                   [](poplar::Device &device) { return device.attach(); });
 
   if (it != hwDevices.end()) {
     return std::move(*it);
@@ -132,16 +121,16 @@ poplar::Device getIpuModelDevice(std::size_t numIpus) {
   return ipuModel.createDevice();
 }
 
-poplar::Device getDeviceFromOptions(const Options& options) {
-    poplar::Device device;
-    if(options.useIpuModel) {
-      device = getIpuModelDevice(options.numIpus);
-      std::cerr << "Using IPU model\n";
-    } else {
-      device = getIpuHwDevice(options.numIpus);
-      std::cerr << "Using HW device ID: " << device.getId() << "\n";
-    }
-    return device;
+poplar::Device getDeviceFromOptions(const Options &options) {
+  poplar::Device device;
+  if (options.useIpuModel) {
+    device = getIpuModelDevice(options.numIpus);
+    std::cerr << "Using IPU model\n";
+  } else {
+    device = getIpuHwDevice(options.numIpus);
+    std::cerr << "Using HW device ID: " << device.getId() << "\n";
+  }
+  return device;
 }
 
 } // end namespace utils

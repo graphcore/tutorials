@@ -21,8 +21,8 @@ fashion_mnist = tf.keras.datasets.fashion_mnist
 (x_train, y_train), _ = fashion_mnist.load_data()
 
 # Cast and normalize the training data
-x_train = x_train.astype('float32') / 255
-y_train = y_train.astype('int32')
+x_train = x_train.astype("float32") / 255
+y_train = y_train.astype("int32")
 
 # Build iterator over the data
 dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train))
@@ -34,12 +34,14 @@ dataset_iterator = dataset.make_initializable_iterator()
 # Fashion-MNIST images are greyscale, so we add a channels dimension
 expand_dims = tf.keras.layers.Reshape((28, 28, 1))
 
-conv = (tf.keras.layers.Conv2D(filters=8,
-                               kernel_size=(3, 3),
-                               strides=(1, 1),
-                               padding='same',
-                               activation=tf.nn.relu,
-                               data_format="channels_last"))
+conv = tf.keras.layers.Conv2D(
+    filters=8,
+    kernel_size=(3, 3),
+    strides=(1, 1),
+    padding="same",
+    activation=tf.nn.relu,
+    data_format="channels_last",
+)
 
 flatten = tf.keras.layers.Flatten()
 
@@ -67,13 +69,14 @@ ipu_configuration.configure_ipu_system()
 
 # SNIPPET 4
 
+
 def training_loop_body(x, y):
 
     logits = model(x, training=True)
     loss = tf.losses.sparse_softmax_cross_entropy(labels=y, logits=logits)
     train_op = tf.train.AdamOptimizer(learning_rate=0.01).minimize(loss=loss)
 
-    return([loss, train_op])
+    return [loss, train_op]
 
 
 # SNIPPET 5
@@ -82,10 +85,12 @@ def training_loop_body(x, y):
 (x, y) = dataset_iterator.get_next()
 
 # We build the operation within the scope of a particular device
-with ipu.scopes.ipu_scope('/device:IPU:0'):
+with ipu.scopes.ipu_scope("/device:IPU:0"):
 
     # Pass the training loop function and list of inputs to ipu.ipu_compiler.compile
-    training_loop_body_on_ipu = ipu.ipu_compiler.compile(computation=training_loop_body, inputs=[x, y])
+    training_loop_body_on_ipu = ipu.ipu_compiler.compile(
+        computation=training_loop_body, inputs=[x, y]
+    )
 
 
 # SNIPPET 6
@@ -109,8 +114,8 @@ with tf.Session() as sess:
             loss_running_total += loss[0]
 
         # Print average loss and time taken for epoch
-        print('\n', end='')
-        print("Loss:", loss_running_total/batches_per_epoch)
+        print("\n", end="")
+        print("Loss:", loss_running_total / batches_per_epoch)
         print("Time:", time.time() - epoch_start_time)
 
 print("Program ran successfully")

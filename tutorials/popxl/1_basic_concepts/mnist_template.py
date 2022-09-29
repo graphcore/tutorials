@@ -100,31 +100,31 @@ def train(train_session, training_data, opts, input_streams, loss_stream):
     nr_batches = len(training_data)
     with train_session:
         for epoch in range(1, opts.epochs + 1):
-            print("Epoch {0}/{1}".format(epoch, opts.epochs))
+            print(f"Epoch {epoch}/{opts.epochs}")
             bar = tqdm(training_data, total=nr_batches)
             for data, labels in bar:
                 inputs: Mapping[popxl.HostToDeviceStream, np.ndarray] = dict(
                     zip(input_streams, [data.squeeze().float(), labels.int()])
                 )
                 loss = train_session.run(inputs)
-                bar.set_description("Loss:{:0.4f}".format(loss[loss_stream]))
+                bar.set_description(f"Loss:{loss[loss_stream]:0.4f}")
 
 
 def test(test_session, test_data, input_streams, out_stream):
     nr_batches = len(test_data)
     sum_acc = 0.0
-    with torch.no_grad(), test_session:
+    with test_session:
         for data, labels in tqdm(test_data, total=nr_batches):
             inputs: Mapping[popxl.HostToDeviceStream, np.ndarray] = dict(
                 zip(input_streams, [data.squeeze().float(), labels.int()])
             )
             output = test_session.run(inputs)
             sum_acc += accuracy(output[out_stream], labels)
-    print("Accuracy on test set: {:0.2f}%".format(sum_acc / len(test_data)))
+    print(f"Accuracy on test set: {sum_acc / len(test_data):0.2f}%")
 
 
 def train_program(opts):
-    ir = popxl.Ir(replication = 1)
+    ir = popxl.Ir(replication=1)
 
     with ir.main_graph:
         # Create input streams from host to device
@@ -176,7 +176,7 @@ def train_program(opts):
 
 
 def test_program(opts):
-    ir = popxl.Ir(replication = 1)
+    ir = popxl.Ir(replication=1)
     with ir.main_graph:
         # Inputs
         in_stream = popxl.h2d_stream(
@@ -200,7 +200,7 @@ def test_program(opts):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="MNIST training in PopXL-addons")
+    parser = argparse.ArgumentParser(description="MNIST training in popxl.addons")
     parser.add_argument(
         "--batch-size", type=int, default=8, help="batch size for training (default: 8)"
     )

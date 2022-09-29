@@ -1,3 +1,4 @@
+<!-- Copyright (c) 2020 Graphcore Ltd. All rights reserved. -->
 # `tut3_vertices` tests
 
 This directory contains tests for the Poplar tutorial 3

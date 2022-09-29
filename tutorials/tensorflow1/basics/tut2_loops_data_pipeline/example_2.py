@@ -17,8 +17,8 @@ fashion_mnist = tf.keras.datasets.fashion_mnist
 (x_train, y_train), _ = fashion_mnist.load_data()
 
 # Normalize and cast the data
-x_train = x_train.astype('float32') / 255
-y_train = y_train.astype('int32')
+x_train = x_train.astype("float32") / 255
+y_train = y_train.astype("int32")
 
 # Create and configure the dataset for iteration
 dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train))
@@ -29,12 +29,14 @@ dataset = dataset.repeat().batch(BATCHSIZE, drop_remainder=True)
 # Fashion-MNIST images are greyscale, so we add a channels dimension
 expand_dims = tf.keras.layers.Reshape((28, 28, 1))
 
-conv = (tf.keras.layers.Conv2D(filters=8,
-                               kernel_size=(3, 3),
-                               strides=(1, 1),
-                               padding='same',
-                               activation=tf.nn.relu,
-                               data_format="channels_last"))
+conv = tf.keras.layers.Conv2D(
+    filters=8,
+    kernel_size=(3, 3),
+    strides=(1, 1),
+    padding="same",
+    activation=tf.nn.relu,
+    data_format="channels_last",
+)
 
 flatten = tf.keras.layers.Flatten()
 
@@ -62,26 +64,24 @@ def training_loop_body(loss_running_total, x, y):
     train_op = tf.train.AdamOptimizer(0.01).minimize(loss=loss)
 
     # The running total calculation is now moved to the IPU
-    return([loss_running_total + loss, train_op])
+    return [loss_running_total + loss, train_op]
 
 
 # SNIPPET 4
 
+
 def train_one_epoch():
 
     total_loss = ipu.loops.repeat(
-
         # Repeat same number of times as before
         n=batches_per_epoch,
-
         # The training loop body we defined in the previous snippet
         body=training_loop_body,
-
         # Set initial value of running total to 0
         inputs=[0.0],
-
         # We use our infeed queue from the previous section
-        infeed_queue=mnist_infeed_queue)
+        infeed_queue=mnist_infeed_queue,
+    )
 
     return total_loss
 
@@ -94,7 +94,7 @@ ipu_configuration.auto_select_ipus = 1
 
 ipu_configuration.configure_ipu_system()
 
-with ipu.scopes.ipu_scope('/device:IPU:0'):
+with ipu.scopes.ipu_scope("/device:IPU:0"):
     train_one_epoch_on_ipu = ipu.ipu_compiler.compile(train_one_epoch)
 
 
@@ -114,8 +114,8 @@ with tf.Session() as sess:
         total_loss = sess.run(train_one_epoch_on_ipu)
 
         # Print average loss and time taken for epoch
-        print('\n', end='')
-        print("Loss:", total_loss[0]/batches_per_epoch)
+        print("\n", end="")
+        print("Loss:", total_loss[0] / batches_per_epoch)
         print("Time:", time.time() - epoch_start_time)
 
 print("Program ran successfully")

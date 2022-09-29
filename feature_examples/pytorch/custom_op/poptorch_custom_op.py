@@ -14,22 +14,32 @@ from pathlib import Path
 
 # Once you have implemented a custom op in C++ along with a Makefile, pathlib is used to verify
 # the path to the generated .so file, and the op is loaded into the code.
-custom_op_rel_path = Path(__file__).resolve().parent.parent.parent.joinpath("popart/custom_operators/leaky_relu_example/build/")
+custom_op_rel_path = (
+    Path(__file__)
+    .resolve()
+    .parent.parent.parent.joinpath("popart/custom_operators/leaky_relu_example/build/")
+)
 
-myso = pathlib.Path(os.path.join(custom_op_rel_path, 'custom_ops.so'))
-assert myso.exists(), 'Failed to find Leaky ReLU Custom op file: `custom_ops.so`. Have you run the `make` command to generate this file?'
+myso = pathlib.Path(os.path.join(custom_op_rel_path, "custom_ops.so"))
+assert (
+    myso.exists()
+), "Failed to find Leaky ReLU Custom op file: `custom_ops.so`. Have you run the `make` command to generate this file?"
 
 # Load the shared library file (.so) to allow the C++ functionalities
 # to be called from this Python file when using poptorch.custom_ops.
 torch.ops.load_library(myso)
 
 # Loading and preprocessing of the dataset
-transform = torchvision.transforms.Compose([
-    torchvision.transforms.ToTensor(),
-    torchvision.transforms.Normalize((0.5, ), (0.5, ))
-])
+transform = torchvision.transforms.Compose(
+    [
+        torchvision.transforms.ToTensor(),
+        torchvision.transforms.Normalize((0.5,), (0.5,)),
+    ]
+)
 
-train_data = torchvision.datasets.FashionMNIST("~/.torch/datasets", transform=transform, download=True, train=True)
+train_data = torchvision.datasets.FashionMNIST(
+    "~/.torch/datasets", transform=transform, download=True, train=True
+)
 
 
 # Load the custom op in as a function here for easy reusability. This function could also be defined
@@ -42,12 +52,14 @@ train_data = torchvision.datasets.FashionMNIST("~/.torch/datasets", transform=tr
 #    * An example output for the operation to know what format to return an output tensor as (in this case, it can just be a copy of the input)
 #    * The attributes for the custom op: specific parameters that may define it's operation. E.g. the alpha value for a LeakyReLU activation.
 def leakyrelu(inp, alpha=0.01):
-    return poptorch.custom_op([inp],
-                              "LeakyRelu",
-                              "custom.ops",
-                              1,
-                              example_outputs=[inp],
-                              attributes = {'alpha': alpha})[0]
+    return poptorch.custom_op(
+        [inp],
+        "LeakyRelu",
+        "custom.ops",
+        1,
+        example_outputs=[inp],
+        attributes={"alpha": alpha},
+    )[0]
 
 
 # Define the model class as in any PyTorch model.
@@ -84,7 +96,9 @@ model.train()  # Switch the model to training mode
 # Use PopTorch's dataloader for efficient data batching for the train stage
 opts = poptorch.Options()
 batch_size = 16
-train_dataloader = poptorch.DataLoader(opts, train_data, batch_size=batch_size, shuffle=True, num_workers=20)
+train_dataloader = poptorch.DataLoader(
+    opts, train_data, batch_size=batch_size, shuffle=True, num_workers=20
+)
 
 # Define the training parameters
 epochs = 5
@@ -102,9 +116,9 @@ for epoch in range(epochs):
         total_loss += loss
         total_acc += 100 * torch.sum(torch.eq(torch.max(preds, 1)[1], y)) / batch_size
         # Count batches processed directly
-        n_batches = n+1
+        n_batches = n + 1
 
-    mean_loss = (total_loss/n_batches).item()
-    mean_acc = (total_acc/n_batches).item()
+    mean_loss = (total_loss / n_batches).item()
+    mean_acc = (total_acc / n_batches).item()
 
-    print("Epoch %d" % epoch, "| Loss: %.2f" % mean_loss, "| Accuracy: %.2f" % mean_acc)
+    print(f"Epoch {epoch} | Loss: {mean_loss:.2f} | Accuracy: {mean_acc:.2f}")

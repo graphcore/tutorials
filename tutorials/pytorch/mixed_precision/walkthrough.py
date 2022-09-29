@@ -20,7 +20,7 @@ Requirements:
   your IPU system)
 - Other Python modules: `python -m pip install -r requirements.txt`
 """
-# %pip install -r requirements.txt
+# %pip install -q -r requirements.txt
 # sst_ignore_md
 # sst_ignore_code_only
 """
@@ -125,6 +125,7 @@ import torchvision
 import torchvision.transforms as transforms
 import poptorch
 from tqdm import tqdm
+
 """
 ### Build the model
 
@@ -160,6 +161,8 @@ class CustomModel(nn.Module):
         if self.training:
             return x, self.loss(x, labels)
         return x
+
+
 """
 > **NOTE**: The model inherits `self.training` from `torch.nn.Module` which
 > initialises its value to True. Use `model.eval()` to set it to False and
@@ -197,17 +200,33 @@ It will be automatically removed in the Jupyter and Markdown export formats.
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--model-half', dest='model_half', action='store_true',
-                    help='Cast the model parameters to FP16')
-parser.add_argument('--data-half', dest='data_half', action='store_true',
-                    help='Cast the data to FP16')
-parser.add_argument('--optimizer-half', dest='optimizer_half',
-                    action='store_true',
-                    help='Cast the accumulation type of the optimiser to FP16')
-parser.add_argument('--stochastic-rounding', dest='stochastic_rounding',
-                    action='store_true', help='Use stochastic rounding')
-parser.add_argument('--partials-half', dest='partials_half',
-                    action='store_true', help='Set partials data type to FP16')
+parser.add_argument(
+    "--model-half",
+    dest="model_half",
+    action="store_true",
+    help="Cast the model parameters to FP16",
+)
+parser.add_argument(
+    "--data-half", dest="data_half", action="store_true", help="Cast the data to FP16"
+)
+parser.add_argument(
+    "--optimizer-half",
+    dest="optimizer_half",
+    action="store_true",
+    help="Cast the accumulation type of the optimiser to FP16",
+)
+parser.add_argument(
+    "--stochastic-rounding",
+    dest="stochastic_rounding",
+    action="store_true",
+    help="Use stochastic rounding",
+)
+parser.add_argument(
+    "--partials-half",
+    dest="partials_half",
+    action="store_true",
+    help="Set partials data type to FP16",
+)
 args = parser.parse_args()
 
 model_half = args.model_half
@@ -261,9 +280,11 @@ representing the images to `torch.half` (equivalent to `torch.float16`) so that
 our input data is also in FP16. This has the advantage of reducing the
 bandwidth needed between the host and the IPU.
 """
-transform_list = [transforms.Resize(128),
-                  transforms.ToTensor(),
-                  transforms.Normalize((0.5,), (0.5,))]
+transform_list = [
+    transforms.Resize(128),
+    transforms.ToTensor(),
+    transforms.Normalize((0.5,), (0.5,)),
+]
 if data_half:
     transform_list.append(transforms.ConvertImageDtype(torch.half))
 
@@ -272,9 +293,11 @@ transform = transforms.Compose(transform_list)
 Pull the datasets if they are not available locally:
 """
 train_dataset = torchvision.datasets.FashionMNIST(
-    "~/.torch/datasets", transform=transform, download=True, train=True)
+    "~/.torch/datasets", transform=transform, download=True, train=True
+)
 test_dataset = torchvision.datasets.FashionMNIST(
-    "~/.torch/datasets", transform=transform, download=True, train=False)
+    "~/.torch/datasets", transform=transform, download=True, train=False
+)
 
 # sst_hide_output
 """
@@ -297,13 +320,11 @@ an AdamW optimizer. For all optimisers (except `poptorch.optim.SGD`),
 using a model in FP16 requires the argument `accum_type` to be set to
 `torch.float16` as well:
 """
-accum, loss_scaling = \
-    (torch.float16, 1024) if optimizer_half else (torch.float32, None)
+accum, loss_scaling = (torch.float16, 1024) if optimizer_half else (torch.float32, None)
 
-optimizer = poptorch.optim.AdamW(params=model.parameters(),
-                                 lr=0.001,
-                                 accum_type=accum,
-                                 loss_scaling=loss_scaling)
+optimizer = poptorch.optim.AdamW(
+    params=model.parameters(), lr=0.001, accum_type=accum, loss_scaling=loss_scaling
+)
 """
 While higher values of `loss_scaling` minimize underflows, values that are
 too high can also generate overflows as well as hurt convergence of the loss.
@@ -326,10 +347,10 @@ opts = poptorch.Options()
 """
 > **NOTE**: This tutorial has been designed to be run on a single IPU.
 > If you do not have access to an IPU, you can use the option
-> [`useIpuModel`](https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/overview.html#poptorch.Options.useIpuModel)
+> [`useIpuModel`](https://docs.graphcore.ai/projects/poptorch-user-guide/en/3.0.0/overview.html#poptorch.Options.useIpuModel)
 > to run a simulation on CPU instead. You can read more on the IPU Model and
 > its limitations
-> [here](https://docs.graphcore.ai/projects/poplar-user-guide/en/latest/poplar_programs.html#programming-with-poplar).
+> [here](https://docs.graphcore.ai/projects/poplar-user-guide/en/3.0.0/poplar_programs.html#programming-with-poplar).
 """
 """
 #### Stochastic rounding on IPU
@@ -365,7 +386,7 @@ else:
 """
 Further information on the Partials Type setting can be found in our [memory and
 performance optimisation
-guide](https://docs.graphcore.ai/projects/memory-performance-optimisation/en/2.6.0/common-memory-optimisations.html#partials-type).
+guide](https://docs.graphcore.ai/projects/memory-performance-optimisation/en/3.0.0/common-memory-optimisations.html#partials-type).
 """
 """
 ### Train the model
@@ -374,19 +395,15 @@ We can now train the model. After we have set all our options, we reuse
 our `poptorch.Options` instance for the training `poptorch.DataLoader`
 that we will be using:
 """
-train_dataloader = poptorch.DataLoader(opts,
-                                       train_dataset,
-                                       batch_size=12,
-                                       shuffle=True,
-                                       num_workers=40)
+train_dataloader = poptorch.DataLoader(
+    opts, train_dataset, batch_size=12, shuffle=True, num_workers=40
+)
 """
 We first make sure our model is in training mode, and then wrap it
 with `poptorch.trainingModel`:
 """
 model.train()  # Switch the model to training mode
-poptorch_model = poptorch.trainingModel(model,
-                                        options=opts,
-                                        optimizer=optimizer)
+poptorch_model = poptorch.trainingModel(model, options=opts, optimizer=optimizer)
 """
 Let's run the training loop for 10 epochs:
 """
@@ -413,10 +430,7 @@ using `poptorch.inferenceModel`:
 """
 model.eval()  # Switch the model to inference mode
 poptorch_model_inf = poptorch.inferenceModel(model, options=opts)
-test_dataloader = poptorch.DataLoader(opts,
-                                      test_dataset,
-                                      batch_size=32,
-                                      num_workers=40)
+test_dataloader = poptorch.DataLoader(opts, test_dataset, batch_size=32, num_workers=40)
 """
 Run inference on the labelled data:
 """
@@ -432,16 +446,18 @@ poptorch_model_inf.detachFromDevice()
 """
 We obtained an accuracy of approximately 84% on the test dataset.
 """
-print(f"""Eval accuracy on IPU: {100 *
+print(
+    f"""Eval accuracy on IPU: {100 *
                 (1 - torch.count_nonzero(torch.sub(torch.tensor(labels),
-                torch.tensor(predictions))) / len(labels)):.2f}%""")
+                torch.tensor(predictions))) / len(labels)):.2f}%"""
+)
 # sst_hide_output
 """
 ## Visualise the memory footprint
 
 We can visually compare the memory footprint on the IPU of the model trained
 in FP16 and FP32, thanks to Graphcore's [PopVision Graph
-Analyser](https://docs.graphcore.ai/projects/graph-analyser-userguide/en/latest/index.html).
+Analyser](https://docs.graphcore.ai/projects/graph-analyser-userguide/en/3.11.2/index.html).
 
 We generated memory reports of the same training session as covered in this
 tutorial for both cases: with and without downcasting the model with
@@ -464,69 +480,10 @@ For more detailed information on the issue we set
 the command you use to run your model:
 
 ```python
-POPLAR_ENGINE_OPTIONS='{"debug.floatPointOpException": "true"}'
+POPLAR_ENGINE_OPTIONS = '{"debug.floatPointOpException": "true"}'
 ```
 """
-"""
-## PopTorch tracing and casting
 
-Because PopTorch relies on the `torch.jit.trace` API, it is limited to tracing
-operations which run on the CPU. Many of these operations do not support FP16
-inputs due to numerical stability issues. To allow the full range
-of operations, PopTorch converts all FP16 inputs to FP32 before tracing and
-then restores them to FP16. This is because the model must always be traced
-with FP16 inputs converted to FP32.
-
-PopTorch’s default casting functionality is to output in FP16 if any input
-of the operation is FP16. This is opposite to PyTorch, which outputs in FP32
-if any input of the operations is in FP32. To achieve the same behaviour
-in PopTorch, one can use:
-`opts.Precision.halfFloatCasting(poptorch.HalfFloatCastingBehavior.HalfUpcastToFloat)`.
-
-Below you can see the difference between native PyTorch and
-PopTorch (with and without the option mentioned above):
-
-"""
-
-
-class Model(torch.nn.Module):
-    def forward(self, x, y):
-        return x + y
-
-native_model = Model()
-native_model.eval()  # Switch the model to inference mode
-float16_tensor = torch.tensor([1.0], dtype=torch.float16)
-float32_tensor = torch.tensor([1.0], dtype=torch.float32)
-
-"""
-Native PyTorch results in a FP32 tensor:
-"""
-assert native_model(float32_tensor, float16_tensor).dtype == torch.float32
-
-"""
-Let's instantiate default PopTorch `Options` for IPUs:
-"""
-opts = poptorch.Options()
-"""
-PopTorch results in a FP16 tensor:
-"""
-poptorch_model = poptorch.inferenceModel(native_model, opts)
-assert poptorch_model(float32_tensor, float16_tensor).dtype == torch.float16
-# sst_hide_output
-"""
-This option makes the same PopTorch example result in an FP32 tensor:
-"""
-opts = poptorch.Options()
-opts.Precision.halfFloatCasting(
-    poptorch.HalfFloatCastingBehavior.HalfUpcastToFloat)
-
-poptorch_model = poptorch.inferenceModel(native_model, opts)
-assert poptorch_model(float32_tensor, float16_tensor).dtype == torch.float32
-# sst_hide_output
-"""
-Release IPU resources:
-"""
-poptorch_model.detachFromDevice()
 """
 ## Summary
 
@@ -548,6 +505,6 @@ poptorch_model.detachFromDevice()
   - Upcast partials data types: `opts.Precision.setPartialsType(torch.float)`
 
 - The [PopVision Graph
-  Analyser](https://docs.graphcore.ai/projects/graph-analyser-userguide/en/latest/index.html)
+  Analyser](https://docs.graphcore.ai/projects/graph-analyser-userguide/en/3.11.2/index.html)
   can be used to inspect the memory usage of a model and to help debug issues.
 """

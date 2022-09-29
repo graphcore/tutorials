@@ -17,7 +17,9 @@ import tensorflow.compat.v1 as tf
 tf.disable_v2_behavior()
 
 # default data_format is 'channels_last'
-dataset = Dataset.from_tensor_slices(np.random.uniform(size=(2, 128, 128, 3)).astype(np.float32))
+dataset = Dataset.from_tensor_slices(
+    np.random.uniform(size=(2, 128, 128, 3)).astype(np.float32)
+)
 dataset = dataset.batch(batch_size=2, drop_remainder=True)
 dataset = dataset.cache()
 dataset = dataset.repeat()
@@ -28,7 +30,7 @@ infeed_queue = ipu_infeed_queue.IPUInfeedQueue(dataset)
 outfeed_queue = ipu_outfeed_queue.IPUOutfeedQueue()
 
 
-# Create a pipelined model which is split accross two stages.
+# Create a pipelined model which is split across two stages.
 def stage1(x):
     x = layers.Conv2D(128, 1)(x)
     return x
@@ -41,13 +43,14 @@ def stage2(x):
 
 def my_net():
     pipeline_op = pipelining_ops.pipeline(
-                        computational_stages=[stage1, stage2],
-                        gradient_accumulation_count=16,
-                        repeat_count=2,
-                        inputs=[],
-                        infeed_queue=infeed_queue,
-                        outfeed_queue=outfeed_queue,
-                        name="Pipeline")
+        computational_stages=[stage1, stage2],
+        gradient_accumulation_count=16,
+        repeat_count=2,
+        inputs=[],
+        infeed_queue=infeed_queue,
+        outfeed_queue=outfeed_queue,
+        name="Pipeline",
+    )
     return pipeline_op
 
 

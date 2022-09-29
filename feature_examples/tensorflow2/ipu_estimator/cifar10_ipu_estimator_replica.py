@@ -12,7 +12,11 @@ from utils import parse_params, create_ipu_run_config
 def estimator_model(features, labels, mode):
     model = get_model(logits_only=True)
     logits = model(features, training=mode == tf.estimator.ModeKeys.TRAIN)
-    loss = tf.reduce_mean(tf.keras.losses.sparse_categorical_crossentropy(labels, logits, from_logits=True))
+    loss = tf.reduce_mean(
+        tf.keras.losses.sparse_categorical_crossentropy(
+            labels, logits, from_logits=True
+        )
+    )
     preds = tf.argmax(input=logits, axis=-1)
     optimizer = tf.compat.v1.train.GradientDescentOptimizer(learning_rate=0.01)
     # Wrap the optimiser for sharding
@@ -21,10 +25,16 @@ def estimator_model(features, labels, mode):
     eval_accuracy, eval_op = tf.compat.v1.metrics.accuracy(labels, preds)
     metric_ops = {"accuracy": (eval_accuracy, eval_op)}
 
-    return tf.estimator.EstimatorSpec(mode=mode, predictions=preds, loss=loss, train_op=train_op, eval_metric_ops=metric_ops)
+    return tf.estimator.EstimatorSpec(
+        mode=mode,
+        predictions=preds,
+        loss=loss,
+        train_op=train_op,
+        eval_metric_ops=metric_ops,
+    )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     opts = parse_params(enable_multi_ipu=True)
     print("Loading the data...")
     data = CIFAR10_Data()
@@ -32,13 +42,22 @@ if __name__ == '__main__':
     print("Initialize the model")
     test_steps = len(data.y_test) // opts.batch_size
     training_steps = 5 * test_steps
-    run_config = create_ipu_run_config(training_steps, test_steps, num_replicas=opts.ipus)
-    ipu_estimator = ipu.ipu_estimator.IPUEstimator(config=run_config, model_fn=estimator_model)
+    run_config = create_ipu_run_config(
+        training_steps, test_steps, num_replicas=opts.ipus
+    )
+    ipu_estimator = ipu.ipu_estimator.IPUEstimator(
+        config=run_config, model_fn=estimator_model
+    )
 
     print("Training...")
-    ipu_estimator.train(partial(data.get_train_datagenerator, opts.batch_size), steps=training_steps*opts.epochs)
+    ipu_estimator.train(
+        partial(data.get_train_datagenerator, opts.batch_size),
+        steps=training_steps * opts.epochs,
+    )
 
     print("Check the result...")
-    result = ipu_estimator.evaluate(partial(data.get_test_datagenerator, opts.batch_size), steps=test_steps)
-    print("Validation accuracy: {}%".format(100.0 * result['accuracy']))
-    print("Validation loss: {}".format(result['loss']))
+    result = ipu_estimator.evaluate(
+        partial(data.get_test_datagenerator, opts.batch_size), steps=test_steps
+    )
+    print(f"Validation accuracy: {100.0 * result['accuracy']}%")
+    print(f"Validation loss: {result['loss']}")

@@ -1,3 +1,4 @@
+<!-- Copyright (c) 2022 Graphcore Ltd. All rights reserved. -->
 # Pipelining
 
 This tutorial on Pipelining in PopXL is available as a jupyter notebook.

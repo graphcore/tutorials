@@ -1,3 +1,4 @@
+<!-- Copyright (c) 2019 Graphcore Ltd. All rights reserved. -->
 # Graphcore
 
 ## PopART MNIST Training Demo

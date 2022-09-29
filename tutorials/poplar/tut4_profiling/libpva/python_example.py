@@ -2,7 +2,7 @@
 
 import pva
 
-report = pva.openReport('./profile.pop')
+report = pva.openReport("./profile.pop")
 
 print("Example information from profile:")
 print("Number of compute sets:", report.compilation.graph.numComputeSets)

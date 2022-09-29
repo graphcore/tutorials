@@ -7,10 +7,10 @@ BUILD_DIR = build
 SOURCES = cube_fn_custom_op.cpp
 TARGET = $(BUILD_DIR)/cube_fn_custom_op
 
-all: create_build_dir $(TARGET) 
+all: create_build_dir $(TARGET)
 
 .PHONY: create_build_dir
-create_build_dir: 
+create_build_dir:
 	mkdir -p $(BUILD_DIR)
 
 $(TARGET): cube_fn_custom_op.cpp

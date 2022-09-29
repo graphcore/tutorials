@@ -1,3 +1,4 @@
+<!-- Copyright (c) 2020 Graphcore Ltd. All rights reserved. -->
 # PopART Sharding example
 
 This example shows how to shard a model on multiple IPUs using PopART.

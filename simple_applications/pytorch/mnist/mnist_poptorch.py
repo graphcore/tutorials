@@ -6,7 +6,7 @@ Copyright (c) 2020 Graphcore Ltd. All rights reserved.
 # PyTorch (PopTorch) MNIST Training Demo
 
 This example demonstrates how to train a neural network for classification on the MNIST dataset using PopTorch.
-To learn more about PopTorch, see our [PyTorch for the IPU: User Guide](https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/index.html).
+To learn more about PopTorch, see our [PyTorch for the IPU: User Guide](https://docs.graphcore.ai/projects/poptorch-user-guide/en/3.0.0/index.html).
 """
 """
 ## How to use this demo
@@ -14,7 +14,7 @@ Requirements:
 - A Poplar SDK environment enabled, with PopTorch installed (see the [Getting Started](https://docs.graphcore.ai/en/latest/getting-started.html) guide for your IPU system)
 - Python packages installed with `python -m pip install -r requirements.txt`
 """
-# %pip install -r requirements.txt
+# %pip install -q -r requirements.txt
 # sst_ignore_md
 # sst_ignore_code_only
 """
@@ -39,6 +39,7 @@ import torch.nn as nn
 import torchvision
 import poptorch
 import torch.optim as optim
+
 # sst_hide_output
 """
 ### Setting hyperparameters
@@ -55,12 +56,26 @@ test_batch_size = 80
 # sst_ignore_jupyter
 # sst_ignore_md
 import argparse
-parser = argparse.ArgumentParser(description='MNIST training in PopTorch')
-parser.add_argument('--batch-size', type=int, default=8, help='batch size for training (default: 8)')
-parser.add_argument('--device-iterations', type=int, default=50, help='device iteration (default:50)')
-parser.add_argument('--test-batch-size', type=int, default=80, help='batch size for testing (default: 80)')
-parser.add_argument('--epochs', type=int, default=10, help='number of epochs to train (default: 10)')
-parser.add_argument('--lr', type=float, default=0.05, help='learning rate (default: 0.05)')
+
+parser = argparse.ArgumentParser(description="MNIST training in PopTorch")
+parser.add_argument(
+    "--batch-size", type=int, default=8, help="batch size for training (default: 8)"
+)
+parser.add_argument(
+    "--device-iterations", type=int, default=50, help="device iteration (default:50)"
+)
+parser.add_argument(
+    "--test-batch-size",
+    type=int,
+    default=80,
+    help="batch size for testing (default: 80)",
+)
+parser.add_argument(
+    "--epochs", type=int, default=10, help="number of epochs to train (default: 10)"
+)
+parser.add_argument(
+    "--lr", type=float, default=0.05, help="learning rate (default: 0.05)"
+)
 opts = parser.parse_args()
 
 learning_rate = opts.lr
@@ -83,31 +98,25 @@ We use the `torchvision` package to get the MNIST dataset and we create two data
 Source: [The MNIST Database](http://yann.lecun.com/exdb/mnist/).
 """
 
-local_dataset_path = '~/.torch/datasets'
+local_dataset_path = "~/.torch/datasets"
 
 transform_mnist = torchvision.transforms.Compose(
     [
         torchvision.transforms.ToTensor(),
-        torchvision.transforms.Normalize((0.1307, ), (0.3081, ))
+        torchvision.transforms.Normalize((0.1307,), (0.3081,)),
     ]
 )
 
 training_dataset = torchvision.datasets.MNIST(
-        local_dataset_path,
-        train=True,
-        download=True,
-        transform=transform_mnist
+    local_dataset_path, train=True, download=True, transform=transform_mnist
 )
 
 test_dataset = torchvision.datasets.MNIST(
-        local_dataset_path,
-        train=False,
-        download=True,
-        transform=transform_mnist
+    local_dataset_path, train=False, download=True, transform=transform_mnist
 )
 """
 We use the [data loader provided by
-PopTorch](https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/pytorch_to_poptorch.html#preparing-your-data).
+PopTorch](https://docs.graphcore.ai/projects/poptorch-user-guide/en/3.0.0/pytorch_to_poptorch.html#preparing-your-data).
 More information about the use of `poptorch.Dataloader` can be found in
 [PopTorch tutorial on efficient data
 loading](../../../tutorials/pytorch/efficient_data_loading).
@@ -116,7 +125,7 @@ loading](../../../tutorials/pytorch/efficient_data_loading).
 A `poptorch.Options()` instance contains a set of default hyperparameters and options for the IPU.
 This is used by the model and the PopTorch `DataLoader`.
 To accelerate the training here, we change the default value of
-[deviceIterations](https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/batching.html?highlight=deviceiteration#poptorch-options-deviceiterations)
+[deviceIterations](https://docs.graphcore.ai/projects/poptorch-user-guide/en/3.0.0/batching.html?highlight=deviceiteration#poptorch-options-deviceiterations)
 to 50.
 With that setting the data loader will pick 50 batches of data per step.
 """
@@ -128,7 +137,7 @@ training_data = poptorch.DataLoader(
     dataset=training_dataset,
     batch_size=batch_size,
     shuffle=True,
-    drop_last=True
+    drop_last=True,
 )
 """
 For the validation, we choose not to change `deviceIterations`, we will use a default `poptorch.Options()` instance.
@@ -138,7 +147,7 @@ test_data = poptorch.DataLoader(
     dataset=test_dataset,
     batch_size=test_batch_size,
     shuffle=True,
-    drop_last=True
+    drop_last=True,
 )
 # sst_hide_output
 """
@@ -151,9 +160,7 @@ This step is similar to what we would do if we were not using an IPU.
 class Block(nn.Module):
     def __init__(self, in_channels, num_filters, kernel_size, pool_size):
         super(Block, self).__init__()
-        self.conv = nn.Conv2d(in_channels,
-                              num_filters,
-                              kernel_size=kernel_size)
+        self.conv = nn.Conv2d(in_channels, num_filters, kernel_size=kernel_size)
         self.pool = nn.MaxPool2d(kernel_size=pool_size)
         self.relu = nn.ReLU()
 
@@ -184,6 +191,8 @@ class Network(nn.Module):
         x = self.layer4(self.layer3_dropout(x))
         x = self.softmax(x)
         return x
+
+
 """
 To ensure the loss computation is placed on the IPU, we need to set
 it in the `forward()` method of our `torch.nn.Module`.
@@ -209,6 +218,7 @@ class TrainingModelWithLoss(torch.nn.Module):
             loss = self.loss(output, labels)
             return output, loss
 
+
 """
 Let's initialise the neural network from our defined classes.
 """
@@ -216,7 +226,7 @@ model = Network()
 model_with_loss = TrainingModelWithLoss(model)
 
 """
-### From Pytorch to Poptorch
+### From PyTorch to PopTorch
 """
 """
 We start by initializing the training `Options` that will be used by the training model.
@@ -227,7 +237,7 @@ Therefore, from the host point of view, each step will consume 50 batches and pe
 training_opts = poptorch.Options().deviceIterations(device_iterations)
 
 """
-Now let's set the [`OutputMode`](https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/reference.html#poptorch.OutputMode)
+Now let's set the [`OutputMode`](https://docs.graphcore.ai/projects/poptorch-user-guide/en/3.0.0/reference.html#poptorch.OutputMode)
 for our training. By default, PopTorch will
 return to the host machine only a limited set of information for performance
 reasons. This is represented by having `OutputMode.Final` as the default, which
@@ -247,14 +257,14 @@ representation of the model object.
 print(model_with_loss)
 """
 Now we apply the model wrapping function, which will perform a shallow copy
-of the PyTorch model. To train the model, we will use [SGD](https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/reference.html#poptorch.optim.SGD),
+of the PyTorch model. To train the model, we will use [SGD](https://docs.graphcore.ai/projects/poptorch-user-guide/en/3.0.0/reference.html#poptorch.optim.SGD),
 the Stochastic Gradient Descent with no momentum.
 This is also where we pass the `training_opts` defined sooner.
 """
 training_model = poptorch.trainingModel(
     model_with_loss,
     training_opts,
-    optimizer=optim.SGD(model.parameters(), lr=learning_rate)
+    optimizer=optim.SGD(model.parameters(), lr=learning_rate),
 )
 """
 ### Training loop
@@ -265,16 +275,17 @@ will check accuracy for labels where prediction is available. This behaviour
 is controlled by setting `AnchorMode` in `poptorch.Options()`.
 """
 from metrics import accuracy
+
 """
 This code will perform the training over the requested amount of epochs
 and batches using the configured Graphcore IPUs.
-Since we set `device_iterations` to 50 and Poptorch `OutputMode` to `All`,
+Since we set `device_iterations` to 50 and PopTorch `OutputMode` to `All`,
 `losses` contains the losses of the 50 batches processed by the internal loop.
 The first call to `training_model` will compile the model for the IPU.
 """
 nr_steps = len(training_data)
 
-for epoch in tqdm(range(1, epochs+1), leave=True, desc="Epochs", total=epochs):
+for epoch in tqdm(range(1, epochs + 1), leave=True, desc="Epochs", total=epochs):
     with tqdm(training_data, total=nr_steps, leave=False) as bar:
         for data, labels in bar:
             preds, losses = training_model(data, labels)
@@ -282,9 +293,7 @@ for epoch in tqdm(range(1, epochs+1), leave=True, desc="Epochs", total=epochs):
             mean_loss = torch.mean(losses).item()
 
             acc = accuracy(preds, labels)
-            bar.set_description(
-                "Loss: {:0.4f} | Accuracy: {:05.2F}% ".format(mean_loss, acc)
-            )
+            bar.set_description(f"Loss: {mean_loss:0.4f} | Accuracy: {acc:05.2f}% ")
 # sst_hide_output
 """
 We could also do it separately by calling `training_model.compile()` in the first place.
@@ -313,4 +322,4 @@ with tqdm(test_data, total=nr_steps, leave=False) as bar:
 """
 Finally the accuracy on the test set is:
 """
-print("Accuracy on test set: {:0.2f}%".format(sum_acc / len(test_data)))
+print(f"Accuracy on test set: {sum_acc / len(test_data):0.2f}%")

@@ -125,7 +125,10 @@ class Adam(addons.Module):
     ):
         # Gradient estimator for the variable `weight` - same shape as the variable
         first_order = self.add_variable_input(
-            "first_order", partial(np.zeros, weight.shape), first_order_dtype, by_ref=True
+            "first_order",
+            partial(np.zeros, weight.shape),
+            first_order_dtype,
+            by_ref=True,
         )
         ops.var_updates.accumulate_moving_average_(first_order, grad, f=beta1)
 
@@ -199,7 +202,7 @@ def train(train_session, training_data, opts, input_streams, loss_stream):
 def test(test_session, test_data, input_streams, out_stream):
     nr_batches = len(test_data)
     sum_acc = 0.0
-    with torch.no_grad(), test_session:
+    with test_session:
         for data, labels in tqdm(test_data, total=nr_batches):
             inputs: Mapping[popxl.HostToDeviceStream, np.ndarray] = dict(
                 zip(input_streams, [data.squeeze().float(), labels.int()])

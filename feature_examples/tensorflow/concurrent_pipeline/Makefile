@@ -7,4 +7,3 @@ $(DIRS):
 	$(MAKE) -C $@ $(MAKECMDGOALS)
 
 .PHONY: $(TARGETS) $(DIRS)
-

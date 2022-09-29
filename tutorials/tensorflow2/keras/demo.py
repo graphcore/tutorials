@@ -3,14 +3,14 @@ Copyright (c) 2021 Graphcore Ltd. All rights reserved.
 
 This directory contains derived work from the following: Keras simple MNIST
 convnet example:
-https://github.com/keras-team/keras-io/blob/master/examples/vision/mnist_convnet.py
+<https://github.com/keras-team/keras-io/blob/master/examples/vision/mnist_convnet.py>
 Copyright holder unknown (author: François Chollet 2015)
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use
 this file except in compliance with the License. You may obtain a copy of the
 License at
 
-http://www.apache.org/licenses/LICENSE-2.0
+<http://www.apache.org/licenses/LICENSE-2.0>
 
 Unless required by applicable law or agreed to in writing, software distributed
 under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
@@ -26,15 +26,15 @@ This file has been modified by Graphcore Ltd.
 This tutorial provides an introduction on how to run Keras models on IPUs, and
 features that allow you to fully utilise the capability of the IPU. Please refer
 to the [TensorFlow 2 documentation - Keras with
-IPUs](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/tensorflow/keras_tf2.html)
+IPUs](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/3.0.0/tensorflow/keras_tf2.html)
 and the TensorFlow 2 Keras API reference sections on [IPU
-extensions](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/tensorflow/api.html#module-tensorflow.python.ipu.keras.extensions),
+extensions](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/3.0.0/tensorflow/api.html#module-tensorflow.python.ipu.keras.extensions),
 and IPU-specific [Keras
-layers](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/tensorflow/api.html#keras-layers),
+layers](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/3.0.0/tensorflow/api.html#keras-layers),
 [Keras
-losses](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/tensorflow/api.html#module-tensorflow.python.ipu.keras.losses)
+losses](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/3.0.0/tensorflow/api.html#module-tensorflow.python.ipu.keras.losses)
 and [Keras
-optimizers](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/tensorflow/api.html#module-tensorflow.python.ipu.keras.optimizers)
+optimizers](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/3.0.0/tensorflow/api.html#module-tensorflow.python.ipu.keras.optimizers)
 for full details of all available features.
 
 """
@@ -120,19 +120,19 @@ def model_fn():
 
 (x_train, y_train), (x_test, y_test) = load_data()
 
-print('Keras MNIST example, running on CPU')
+print("Keras MNIST example, running on CPU")
 # Model.__init__ takes two required arguments, inputs and outputs.
 model = keras.Model(*model_fn())
 
 # Compile our model with Stochastic Gradient Descent as an optimizer
 # and Categorical Cross Entropy as a loss.
-model.compile('sgd', 'categorical_crossentropy', metrics=["accuracy"])
+model.compile("sgd", "categorical_crossentropy", metrics=["accuracy"])
 model.summary()
 
-print('\nTraining')
+print("\nTraining")
 model.fit(x_train, y_train, epochs=3, batch_size=batch_size)
 
-print('\nEvaluation')
+print("\nEvaluation")
 model.evaluate(x_test, y_test, batch_size=batch_size)
 
 """
@@ -169,6 +169,7 @@ as we work through this tutorial.
 def make_divisible(number, divisor):
     return number - number % divisor
 
+
 """
 Using this utility function, we can then adjust dataset lengths to be divisible
 by the batch size as follows:
@@ -203,7 +204,9 @@ To use the IPU, you must create an IPU session configuration:
 """
 
 ipu_config = ipu.config.IPUConfig()
-ipu_config.device_connection.type = ipu.config.DeviceConnectionType.ON_DEMAND  # Optional - allows parallel execution
+ipu_config.device_connection.type = (
+    ipu.config.DeviceConnectionType.ON_DEMAND
+)  # Optional - allows parallel execution
 ipu_config.auto_select_ipus = 1
 ipu_config.configure_ipu_system()
 # sst_hide_output
@@ -211,7 +214,7 @@ ipu_config.configure_ipu_system()
 """
 This is all we need to get a small model up and running, though a full list of
 configuration options is available in the [API
-documentation](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/tensorflow/api.html#tensorflow.python.ipu.config.IPUConfig).
+documentation](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/3.0.0/tensorflow/api.html#tensorflow.python.ipu.config.IPUConfig).
 """
 """
 ##### 4. Specify IPU strategy
@@ -225,7 +228,7 @@ strategy = ipu.ipu_strategy.IPUStrategy()
 The `tf.distribute.Strategy` is an API to distribute training and inference
 across multiple devices. `IPUStrategy` is a subclass which targets a system
 with one or more IPUs attached. For a multi-system configuration, the
-[PopDistStrategy](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/tensorflow/api.html#tensorflow.python.ipu.horovod.popdist_strategy.PopDistStrategy)
+[PopDistStrategy](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/3.0.0/tensorflow/api.html#tensorflow.python.ipu.horovod.popdist_strategy.PopDistStrategy)
 should be used, in conjunction with our PopDist library.
 
 > To see an example of how to distribute training and inference over multiple
@@ -240,20 +243,20 @@ object will ensure that they are placed on the IPU. To do this, we create a
 `strategy.scope()` context manager and move all the model code inside it:
 """
 
-print('Keras MNIST example, running on IPU')
+print("Keras MNIST example, running on IPU")
 with strategy.scope():
     # Model.__init__ takes two required arguments, inputs and outputs.
     model = keras.Model(*model_fn())
 
     # Compile our model with Stochastic Gradient Descent as an optimizer
     # and Categorical Cross Entropy as a loss.
-    model.compile('sgd', 'categorical_crossentropy', metrics=["accuracy"])
+    model.compile("sgd", "categorical_crossentropy", metrics=["accuracy"])
     model.summary()
 
-    print('\nTraining')
+    print("\nTraining")
     model.fit(x_train, y_train, epochs=3, batch_size=batch_size)
 
-    print('\nEvaluation')
+    print("\nEvaluation")
     model.evaluate(x_test, y_test, batch_size=batch_size)
 
 """
@@ -280,7 +283,7 @@ compilation should be less significant.
 
 >To avoid recompiling the same code every time a TensorFlow process is started,
 >you can [turn on caching of the
->executable](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/tensorflow/compiling.html#compiling-and-pre-compiling-executables).
+>executable](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/3.0.0/tensorflow/compiling.html#compiling-and-pre-compiling-executables).
 
 When running the above code, you may also notice a warning regarding
 `steps_per_execution`. This will be addressed in the next section.
@@ -331,23 +334,31 @@ the program will still run successfully because Keras will truncate
 dataset you must update its value, as we do here.
 """
 
-print('Keras MNIST example, running on IPU with steps_per_execution')
+print("Keras MNIST example, running on IPU with steps_per_execution")
 with strategy.scope():
     # Model.__init__ takes two required arguments, inputs and outputs.
     model = keras.Model(*model_fn())
 
     # Compile our model with Stochastic Gradient Descent as an optimizer
     # and Categorical Cross Entropy as a loss.
-    model.compile('sgd', 'categorical_crossentropy', metrics=["accuracy"],
-                  steps_per_execution=train_steps_per_execution)
+    model.compile(
+        "sgd",
+        "categorical_crossentropy",
+        metrics=["accuracy"],
+        steps_per_execution=train_steps_per_execution,
+    )
     model.summary()
 
-    print('\nTraining')
+    print("\nTraining")
     model.fit(x_train, y_train, epochs=3, batch_size=64)
 
-    print('\nEvaluation')
-    model.compile('sgd', 'categorical_crossentropy', metrics=["accuracy"],
-                  steps_per_execution=test_steps_per_execution)
+    print("\nEvaluation")
+    model.compile(
+        "sgd",
+        "categorical_crossentropy",
+        metrics=["accuracy"],
+        steps_per_execution=test_steps_per_execution,
+    )
     model.evaluate(x_test, y_test, batch_size=batch_size)
 
 """
@@ -410,23 +421,31 @@ handled automatically, as long as we select multiple IPUs and create and use
 our model within the scope of an `IPUStrategy` object.
 """
 
-print('Keras MNIST example, running on IPU with replication')
+print("Keras MNIST example, running on IPU with replication")
 with strategy.scope():
     # Model.__init__ takes two required arguments, inputs and outputs.
     model = keras.Model(*model_fn())
 
     # Compile our model with Stochastic Gradient Descent as an optimizer
     # and Categorical Cross Entropy as a loss.
-    model.compile('sgd', 'categorical_crossentropy', metrics=["accuracy"],
-                  steps_per_execution=train_steps_per_execution)
+    model.compile(
+        "sgd",
+        "categorical_crossentropy",
+        metrics=["accuracy"],
+        steps_per_execution=train_steps_per_execution,
+    )
     model.summary()
 
-    print('\nTraining')
+    print("\nTraining")
     model.fit(x_train, y_train, epochs=3, batch_size=64)
 
-    print('\nEvaluation')
-    model.compile('sgd', 'categorical_crossentropy', metrics=["accuracy"],
-                  steps_per_execution=test_steps_per_execution)
+    print("\nEvaluation")
+    model.compile(
+        "sgd",
+        "categorical_crossentropy",
+        metrics=["accuracy"],
+        steps_per_execution=test_steps_per_execution,
+    )
     model.evaluate(x_test, y_test, batch_size=batch_size)
 
 """
@@ -461,7 +480,7 @@ the amount of time spent in the main execution phase, improving the utilisation
 of the IPUs and speeding up computation.
 
 Another technique to help pipelining efficiency on the IPU is
-[_gradient accumulation_](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/tensorflow/perf_training.html#id3).
+[_gradient accumulation_](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/3.0.0/tensorflow/perf_training.html#id3).
 With gradient accumulation, instead of updating the weights between each
 mini-batch, forward and backward passes are performed on several mini-batches,
 while keeping a cumulative sum of the gradients. A weight update is applied
@@ -480,9 +499,9 @@ models with batch sizes which would not fit directly in the memory of the IPU.
 
 To learn more about about pipelining you may want to read [the relevant section
 of the Technical Note on Model Parallelism in
-TensorFlow](https://docs.graphcore.ai/projects/tf-model-parallelism/en/latest/pipelining.html),
+TensorFlow](https://docs.graphcore.ai/projects/tf-model-parallelism/en/3.0.0/pipelining.html),
 our [pipelining documentation specific to
-TensorFlow](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/latest/tensorflow/perf_training.html#pipelined-training),
+TensorFlow](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/3.0.0/tensorflow/perf_training.html#pipelined-training),
 or complete [the TensorFlow 1 pipelining
 tutorial](../../tensorflow1/pipelining/README.md).
 
@@ -507,7 +526,7 @@ be divisible by `(number of pipeline stages) * 2`. When using the interleaved
 schedule, `gradient_accumulation_steps_per_replica` must be divisible by
 `(number of pipeline stages)`. You can read more about the specifics of the
 different pipeline schedules in [the relevant section of the technical note on
-Model parallelism with TensorFlow](https://docs.graphcore.ai/projects/tf-model-parallelism/en/latest/pipelining.html#pipeline-scheduling).
+Model parallelism with TensorFlow](https://docs.graphcore.ai/projects/tf-model-parallelism/en/3.0.0/pipelining.html#pipeline-scheduling).
 
 If we use more than two IPUs, the model will be automatically replicated to fill
 up the requested number of IPUs. For example, if we select 8 IPUs for our 2-IPU
@@ -524,14 +543,18 @@ dataset-adjusting code:
 train_data_len = x_train.shape[0]
 train_steps_per_execution = train_data_len // (batch_size * num_replicas)
 # `steps_per_execution` needs to be divisible by `gradient_accumulation_steps_per_replica`
-train_steps_per_execution = make_divisible(train_steps_per_execution, gradient_accumulation_steps_per_replica)
+train_steps_per_execution = make_divisible(
+    train_steps_per_execution, gradient_accumulation_steps_per_replica
+)
 train_data_len = make_divisible(train_data_len, train_steps_per_execution * batch_size)
 x_train, y_train = x_train[:train_data_len], y_train[:train_data_len]
 
 test_data_len = x_test.shape[0]
 test_steps_per_execution = test_data_len // (batch_size * num_replicas)
 # `steps_per_execution` needs to be divisible by `gradient_accumulation_steps_per_replica`
-test_steps_per_execution = make_divisible(test_steps_per_execution, gradient_accumulation_steps_per_replica)
+test_steps_per_execution = make_divisible(
+    test_steps_per_execution, gradient_accumulation_steps_per_replica
+)
 test_data_len = make_divisible(test_data_len, test_steps_per_execution * batch_size)
 x_test, y_test = x_test[:test_data_len], y_test[:test_data_len]
 
@@ -561,6 +584,7 @@ def model_fn():
 
     return input_layer, x
 
+
 """
 Any operations created inside a `PipelineStage(x)` context manager will be
 placed in the `x`th pipeline stage (where the stages are numbered starting from 0).
@@ -573,28 +597,36 @@ Now all we need to do is configure the pipelining-specific aspects of our model.
 Add a call to `model.set_pipelining_options` just before the first call to `model.compile()`:
 """
 
-print('Keras MNIST example, running on IPU with pipelining')
+print("Keras MNIST example, running on IPU with pipelining")
 with strategy.scope():
     # Model.__init__ takes two required arguments, inputs and outputs.
     model = keras.Model(*model_fn())
 
     model.set_pipelining_options(
         gradient_accumulation_steps_per_replica=gradient_accumulation_steps_per_replica,
-        pipeline_schedule=ipu.ops.pipelining_ops.PipelineSchedule.Grouped
+        pipeline_schedule=ipu.ops.pipelining_ops.PipelineSchedule.Grouped,
     )
 
     # Compile our model with Stochastic Gradient Descent as an optimizer
     # and Categorical Cross Entropy as a loss.
-    model.compile('sgd', 'categorical_crossentropy', metrics=["accuracy"],
-                  steps_per_execution=train_steps_per_execution)
+    model.compile(
+        "sgd",
+        "categorical_crossentropy",
+        metrics=["accuracy"],
+        steps_per_execution=train_steps_per_execution,
+    )
     model.summary()
 
-    print('\nTraining')
+    print("\nTraining")
     model.fit(x_train, y_train, epochs=3, batch_size=batch_size)
 
-    print('\nEvaluation')
-    model.compile('sgd', 'categorical_crossentropy', metrics=["accuracy"],
-                  steps_per_execution=test_steps_per_execution)
+    print("\nEvaluation")
+    model.compile(
+        "sgd",
+        "categorical_crossentropy",
+        metrics=["accuracy"],
+        steps_per_execution=test_steps_per_execution,
+    )
     model.evaluate(x_test, y_test, batch_size=batch_size)
 
 """

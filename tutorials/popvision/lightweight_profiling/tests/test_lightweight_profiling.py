@@ -1,23 +1,21 @@
 # Copyright (c) 2022 Graphcore Ltd. All rights reserved.
-from curses import echo
 import pathlib
-import os
-import pytest
 from shutil import copy
+
+import pytest
+from filelock import FileLock
 
 # NOTE: The import below is dependent on 'pytest.ini' in the root of
 # the repository
 import tutorials_tests.testing_util as testing_util
-from tutorials_tests.xdist_util import lock
-
 
 working_path = pathlib.Path(__file__).parent.absolute()
 
 
 @pytest.fixture(scope="session")
-@lock(os.path.join(working_path, "binary.lock"))
 def make_executable():
-    testing_util.run_command_fail_explicitly(["make", "all"], working_path)
+    with FileLock(__file__ + ".lock"):
+        testing_util.run_command_fail_explicitly(["make", "all"], working_path)
 
 
 def launch(tmp_path, executable):

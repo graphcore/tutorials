@@ -1,3 +1,4 @@
+<!-- Copyright (c) 2021 Graphcore Ltd. All rights reserved. -->
 
 # Simple applications
 
@@ -27,6 +28,6 @@ This directory contains a number of basic applications written in different fram
 
 - [Hugging Face's BERT](pytorch/bert) is a pre-trained BERT model made available by Hugging Face and which is implemented in PyTorch. This example consists of running one of the pre-trained BERT model on an IPU for an inference session.
 
-## Popart
+## PopART
 
 - [Simple MNIST Examples](popart/mnist): Contains 2 simple models, 1 linear and 1 using convolutions trained on the MNIST dataset.

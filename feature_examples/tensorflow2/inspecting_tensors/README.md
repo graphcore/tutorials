@@ -1,3 +1,4 @@
+<!-- Copyright (c) 2021 Graphcore Ltd. All rights reserved. -->
 # Inspecting tensors using custom outfeed layers and a custom optimizer
 
 This example trains a choice of simple fully connected models on the MNIST

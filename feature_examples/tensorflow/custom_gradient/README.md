@@ -1,3 +1,4 @@
+<!-- Copyright (c) 2020 Graphcore Ltd. All rights reserved. -->
 # Creating a TensorFlow Custom Operator with Gradient
 
 Creates a custom operator (a batched dot product) defining both the

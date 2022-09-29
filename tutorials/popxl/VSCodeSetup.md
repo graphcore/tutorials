@@ -1,7 +1,10 @@
+<!-- Copyright (c) 2022 Graphcore Ltd. All rights reserved. -->
 # VSCode setup
 
 In this page we explain how to configure your workspace in VSCode to use
-IntelliSense and the visual debugger.
+IntelliSense and the visual debugger with a PopXL application.
+For a more general and comprehensive guide see
+[Using VS Code with the Poplar SDK and IPUs](../standard_tools/using_vscode/README.md).
 
 We assume you have downloaded the Poplar SDK and have sourced the `enable.sh`
 scripts for both PopART and Poplar as described in the [Getting Started
@@ -19,25 +22,26 @@ pip3 install --upgrade pip
 pip3 install -r requirements.txt
 ```
 
-## Intellisense
+## IntelliSense
 
-- Add the folder you are working on to your VSCode workspace, either using the
-  `Workspace: Add folder to workspace` or directly editing your
-  `.code-workspace` file.
+- Add the folder you are working on to your VSCode workspace. You can do this
+  by opening the Command Palette with Cmd+Shift+P (or Ctrl+Shift+P on Windows),
+  and then typing `Workspaces: Add Folder to Workspace...`; alternatively, you
+  can directly edit your `.code-workspace` file.
 - To work with popxl.addons, you need to specify the interpreter path for the
   folder using the `Python: Select Interpreter` command and selecting the
   interpreter of the virtual environment where you installed popxl.addons,
   located at `<virtual_env_path>/bin/python3`
 - Create a `settings.json` file for your folder. If you type `Preferences: Open
-  folder settings (JSON)`, the file will be created for you inside a `.vscode`
-  folder. Otherwise you can create the folder and the file directly. This file
+  Workspace Settings (JSON)`, the file will be created for you inside a `.vscode`
+  folder. Otherwise you can create the folder and the file manually. This file
   allows you to specify general settings of the folder. Note: you might be
   tempted to specify the `python.defaultInterpreterPath` here, but you may still
   run into problems since the default interpreter path is not used once an
   interpreter has been selected. More information
   [here](https://github.com/microsoft/vscode-python/wiki/AB-Experiments#tldr).
-- To work with `popxl` you need to include PopART relevant paths in your
-  `settings.json`  file, adding them to  `"python.autoComplete.extraPaths"` and
+- To work with PopXL you need to include PopART relevant paths in your
+  `settings.json` file, adding them to `"python.autoComplete.extraPaths"` and
   `"python.analysis.extraPaths"` options.
 
 Below is a template for `settings.json`:
@@ -47,7 +51,7 @@ Below is a template for `settings.json`:
     "python.autoComplete.extraPaths": [
         "<path_to_sdk>/poplar_sdk-<platform>-<version>/popart-<platform>-<version>/python",
     ],
-    "python.analysis.extraPath":  [
+    "python.analysis.extraPaths":  [
         "<path_to_sdk>/poplar_sdk-<platform>-<version>/popart-<platform>-<version>/python",
     ],
 }

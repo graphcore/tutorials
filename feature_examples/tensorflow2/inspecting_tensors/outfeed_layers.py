@@ -8,7 +8,7 @@ import tensorflow as tf
 
 
 class Outfeed(keras.layers.Layer):
-    """ Keras layer that puts the inputs into a dictionary and enqueues it on an
+    """Keras layer that puts the inputs into a dictionary and enqueues it on an
     IPUOutfeedQueue.
 
     The outfeed will contain a dictionary that has one entry, where the key is
@@ -17,13 +17,13 @@ class Outfeed(keras.layers.Layer):
     Args:
         outfeed_queue: An IPUOutfeedQueue that is only used by this layer.
     """
+
     def __init__(self, outfeed_queue, **kwargs):
         super(Outfeed, self).__init__(**kwargs)
         self._outfeed_queue = outfeed_queue
 
-
     def call(self, inputs):
-        """ Enqueue a dictionary with a single entry on the outfeed queue.
+        """Enqueue a dictionary with a single entry on the outfeed queue.
 
         The key is the name of the layer and the values are the inputs.
 
@@ -39,7 +39,7 @@ class Outfeed(keras.layers.Layer):
 
 
 class MaybeOutfeed(keras.layers.Layer):
-    """ Keras layer that uses a MaybeOutfeedQueue to selectively
+    """Keras layer that uses a MaybeOutfeedQueue to selectively
     add the inputs to a dict and optionally enqueue this dict.
 
     The outfeed queue will contain a dictionary where the keys are the names of
@@ -60,13 +60,14 @@ class MaybeOutfeed(keras.layers.Layer):
             layers that share the maybe_outfeed_queue.
 
     """
+
     def __init__(self, maybe_outfeed_queue, final_outfeed=True, **kwargs):
         super(MaybeOutfeed, self).__init__(**kwargs)
         self._outfeed_queue = maybe_outfeed_queue
         self._final_outfeed = final_outfeed
 
     def call(self, inputs):
-        """ Potentially adds the inputs to the outfeed queue and enqueues the
+        """Potentially adds the inputs to the outfeed queue and enqueues the
         contents of the queue (depending on other parameters).
 
         Args:

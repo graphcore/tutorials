@@ -21,21 +21,36 @@ LEARNING_RATE = 0.01
 def parse_args():
     # Handle command line arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument("--repeat-count", type=int, default=100,
-                        help="The number of times the model will be executed for each step."
-                        "This must be a multiple of the gradient accumulation count."
-                        "Set to a small value (such as 1) when profiling.")
-    parser.add_argument("--epochs", type=float, default=3,
-                        help="Total number of epochs to train for.")
-    parser.add_argument('--gradient-accumulation-count', type=int, default=1,
-                        help="The number of mini-batches for which gradients will be"
-                        " accumulated before a weight update.")
-    parser.add_argument('--outfeed-pre-accumulated-gradients', action='store_true',
-                        help="Outfeed the pre-accumulated rather than accumulated gradients."
-                        " This only makes a difference if the gradient accumulation count is"
-                        " greater than one.")
-    parser.add_argument('--run-single-step', action="store_true",
-                        help="Shorten the run for profiling: runs for a single step.")
+    parser.add_argument(
+        "--repeat-count",
+        type=int,
+        default=100,
+        help="The number of times the model will be executed for each step."
+        "This must be a multiple of the gradient accumulation count."
+        "Set to a small value (such as 1) when profiling.",
+    )
+    parser.add_argument(
+        "--epochs", type=float, default=3, help="Total number of epochs to train for."
+    )
+    parser.add_argument(
+        "--gradient-accumulation-count",
+        type=int,
+        default=1,
+        help="The number of mini-batches for which gradients will be"
+        " accumulated before a weight update.",
+    )
+    parser.add_argument(
+        "--outfeed-pre-accumulated-gradients",
+        action="store_true",
+        help="Outfeed the pre-accumulated rather than accumulated gradients."
+        " This only makes a difference if the gradient accumulation count is"
+        " greater than one.",
+    )
+    parser.add_argument(
+        "--run-single-step",
+        action="store_true",
+        help="Shorten the run for profiling: runs for a single step.",
+    )
     args = parser.parse_args()
     return args
 
@@ -64,9 +79,16 @@ def create_dataset():
     return n_examples, dataset
 
 
-def model(lr, gradient_accumulation_count, outfeed_queue,
-          activations_outfeed_queue, optimizer_outfeed_queue,
-          outfeed_optimizer_mode, images, labels,):
+def model(
+    lr,
+    gradient_accumulation_count,
+    outfeed_queue,
+    activations_outfeed_queue,
+    optimizer_outfeed_queue,
+    outfeed_optimizer_mode,
+    images,
+    labels,
+):
     with tf.variable_scope("FCModel", use_resource=True):
         x = layers.Flatten()(images)
         x = layers.Dense(256, activation=tf.nn.relu, name="dense1")(x)
@@ -79,7 +101,8 @@ def model(lr, gradient_accumulation_count, outfeed_queue,
         enqueue = activations_outfeed_queue.maybe_enqueue()
         with tf.control_dependencies([enqueue or tf.no_op()]):
             cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(
-                    labels=labels, logits=logits)
+                labels=labels, logits=logits
+            )
         loss = tf.reduce_mean(cross_entropy)
 
         optimizer = tf.train.GradientDescentOptimizer(lr)
@@ -87,12 +110,16 @@ def model(lr, gradient_accumulation_count, outfeed_queue,
         # Wrap the optimizer to outfeed the gradients for selected layers.
         # OutfeedOptimizerMode.BEFORE_APPLY will enqueue the accumulated gradients.
         # OutfeedOptimizerMode.AFTER_COMPUTE will enqueue the individual gradients.
-        optimizer = OutfeedOptimizer(optimizer, optimizer_outfeed_queue,
-                                     outfeed_optimizer_mode=outfeed_optimizer_mode)
+        optimizer = OutfeedOptimizer(
+            optimizer,
+            optimizer_outfeed_queue,
+            outfeed_optimizer_mode=outfeed_optimizer_mode,
+        )
 
         if gradient_accumulation_count > 1:
             optimizer = ipu.optimizers.GradientAccumulationOptimizerV2(
-                    optimizer, gradient_accumulation_count)
+                optimizer, gradient_accumulation_count
+            )
 
         train_op = optimizer.minimize(loss)
 
@@ -107,29 +134,35 @@ def print_vals(vals, step):
         data_item = [index]
         index += 1
         data_item.append(val_name)
-        data_item.append(f'{np.mean(val):<4.6f}')  # means
-        data_item.append(f'{np.std(val.astype(np.float64)):<4.6f}')  # stds
-        data_item.append(f'{np.min(val):<4.6f}')  # min extreme
-        data_item.append(f'{np.max(val):<4.6f}')  # max extreme
-        data_item.append(f'{np.isnan(val).any()}')  # nans?
-        data_item.append(f'{np.isinf(val).any()}')  # infs?
+        data_item.append(f"{np.mean(val):<4.6f}")  # means
+        data_item.append(f"{np.std(val.astype(np.float64)):<4.6f}")  # stds
+        data_item.append(f"{np.min(val):<4.6f}")  # min extreme
+        data_item.append(f"{np.max(val):<4.6f}")  # max extreme
+        data_item.append(f"{np.isnan(val).any()}")  # nans?
+        data_item.append(f"{np.isinf(val).any()}")  # infs?
         data.append(data_item)
 
     print(f"\nStep {step} - Summary Stats")
-    print(f'{"Index":<5} {"Name":<{name_length}} {"Mean":<12} {"Std":<12}'
-          ' {"Minimum":<12} {"Maximum":<12} {"NaNs":<7} {"infs":<7}')
+    print(
+        f'{"Index":<5} {"Name":<{name_length}} {"Mean":<12} {"Std":<12}'
+        ' {"Minimum":<12} {"Maximum":<12} {"NaNs":<7} {"infs":<7}'
+    )
     for index, name, avg, std, dmin, dmax, nans, infs in data:
-        print(f"{index:<5} {name:<{name_length}} {avg:<12} {std:<12} \
-              {dmin:<12} {dmax:<12} {nans:<7} {infs:<7}")
+        print(
+            f"{index:<5} {name:<{name_length}} {avg:<12} {std:<12} \
+              {dmin:<12} {dmax:<12} {nans:<7} {infs:<7}"
+        )
     print()
+
 
 if __name__ == "__main__":
     args = parse_args()
 
     if args.repeat_count % args.gradient_accumulation_count != 0:
-        raise ValueError("--repeat-count (%d) must be a multiple of"
-                         " --gradient-accumulation-count (%d)" %
-                         (args.repeat_count, args.gradient_accumulation_count))
+        raise ValueError(
+            f"--repeat-count ({args.repeat_count}) must be a multiple of"
+            f" --gradient-accumulation-count ({args.gradient_accumulation_count})"
+        )
 
     print(args)
 
@@ -161,16 +194,26 @@ if __name__ == "__main__":
     if args.run_single_step:
         steps = 1
 
-    with tf.device('cpu'):
+    with tf.device("cpu"):
         lr = tf.placeholder(np.float32, [])
 
     with ipu.scopes.ipu_scope("/device:IPU:0"):
+
         def training_loop():
-            return ipu.loops.repeat(args.repeat_count,
-                                    partial(model, lr, args.gradient_accumulation_count,
-                                            outfeed_queue, activations_outfeed_queue,
-                                            optimizer_outfeed_queue, outfeed_optimizer_mode),
-                                    infeed_queue=infeed_queue)
+            return ipu.loops.repeat(
+                args.repeat_count,
+                partial(
+                    model,
+                    lr,
+                    args.gradient_accumulation_count,
+                    outfeed_queue,
+                    activations_outfeed_queue,
+                    optimizer_outfeed_queue,
+                    outfeed_optimizer_mode,
+                ),
+                infeed_queue=infeed_queue,
+            )
+
         compiled_model = ipu.ipu_compiler.compile(training_loop)
 
     outfeed_op = outfeed_queue.dequeue()
@@ -227,5 +270,4 @@ if __name__ == "__main__":
                 print_vals(gradients, step)
 
             epoch = float(examples_per_step * step / n_examples)
-            print("Epoch {:.1f}, Mean loss: {:.3f}\n".format(
-                epoch, np.mean(losses)))
+            print(f"Epoch {epoch:.1f}, Mean loss: {np.mean(losses):.3f}\n")

@@ -1,3 +1,4 @@
+<!-- Copyright (c) 2022 Graphcore Ltd. All rights reserved. -->
 # `tut1_basic_concepts` tests
 
 To run the tests:

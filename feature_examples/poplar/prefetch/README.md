@@ -1,3 +1,4 @@
+<!-- Copyright (c) 2019 Graphcore Ltd. All rights reserved. -->
 # Poplar prefetching callbacks
 
 The example program `prefetch.cpp` defines a poplar program that runs multiple times.

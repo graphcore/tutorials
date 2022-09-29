@@ -9,7 +9,7 @@ from tensorflow.keras.datasets import imdb
 from tensorflow.keras.preprocessing import sequence
 from tensorflow.keras.optimizers import Adam
 
-if tf.__version__[0] != '2':
+if tf.__version__[0] != "2":
     raise ImportError("TensorFlow 2 is required for this example")
 
 
@@ -33,9 +33,12 @@ def get_dataset():
 # Define the model.
 def get_model():
     return tf.keras.Sequential(
-        [Embedding(max_features, 128),
-         LSTM(128, dropout=0.2),
-         Dense(1, activation='sigmoid')])
+        [
+            Embedding(max_features, 128),
+            LSTM(128, dropout=0.2),
+            Dense(1, activation="sigmoid"),
+        ]
+    )
 
 
 def main():
@@ -50,9 +53,11 @@ def main():
 
         model = get_model()
 
-        model.compile(steps_per_execution=384, loss='binary_crossentropy', optimizer=Adam(0.005))
+        model.compile(
+            steps_per_execution=384, loss="binary_crossentropy", optimizer=Adam(0.005)
+        )
         model.fit(get_dataset(), steps_per_epoch=768, epochs=3)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

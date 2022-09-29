@@ -8,8 +8,14 @@ import numpy as np
 import tensorflow.compat.v1 as tf
 from tensorflow.keras import Sequential
 from tensorflow.keras.datasets import cifar10
-from tensorflow.keras.layers import (Activation, Conv2D, Dense, Dropout,
-                                     Flatten, MaxPooling2D)
+from tensorflow.keras.layers import (
+    Activation,
+    Conv2D,
+    Dense,
+    Dropout,
+    Flatten,
+    MaxPooling2D,
+)
 
 from tensorflow.python import ipu
 
@@ -139,14 +145,11 @@ def training_step(opts, outfeed, X, y):
     # CrossReplicaOptimizer, which averages the gradients of all IPUs together
     # If we also want to accumulate gradients, we can use the
     # CrossReplicaGradientAccumulationOptimizerV2
-    optimizer = tf.train.GradientDescentOptimizer(
-        learning_rate=opts.learning_rate
-    )
+    optimizer = tf.train.GradientDescentOptimizer(learning_rate=opts.learning_rate)
     if opts.batches_to_accumulate > 1:
-        optimizer = ipu.optimizers. \
-            CrossReplicaGradientAccumulationOptimizerV2(
-                optimizer,
-                num_mini_batches=opts.batches_to_accumulate)
+        optimizer = ipu.optimizers.CrossReplicaGradientAccumulationOptimizerV2(
+            optimizer, num_mini_batches=opts.batches_to_accumulate
+        )
     else:
         optimizer = ipu.optimizers.CrossReplicaOptimizer(optimizer)
 
@@ -168,9 +171,12 @@ def build_IPU_graph(opts, dataset):
             # The infeed unpacks its values into the training_step's remaining
             # arguments as X and y. Each replica consumes an element from the
             # infeed asynchronously every iteration.
-            return ipu.loops.repeat(opts.iterations_per_step,
-                                    partial(training_step, opts, outfeed),
-                                    infeed_queue=infeed)
+            return ipu.loops.repeat(
+                opts.iterations_per_step,
+                partial(training_step, opts, outfeed),
+                infeed_queue=infeed,
+            )
+
         compile_and_run = ipu.ipu_compiler.compile(training_loop)
 
     # Create a graph op to dequeue the contents of the outfeed
@@ -192,53 +198,74 @@ def build_IPU_graph(opts, dataset):
     # model requires 1 IPU, and we replicate it N times, we need N IPUs.
     config.auto_select_ipus = opts.replicas
     # Set the max_cross_replica_sum_buffer_size
-    config.optimizations.maximum_cross_replica_sum_buffer_size = opts.max_cross_replica_sum_buffer_size
+    config.optimizations.maximum_cross_replica_sum_buffer_size = (
+        opts.max_cross_replica_sum_buffer_size
+    )
     config.configure_ipu_system()
 
     return init, compile_and_run, dequeue_outfeed
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Get command line options
     parser = argparse.ArgumentParser()
-    parser.add_argument('--replicas', type=int, default=2,
-                        help="Number of times to replicate the graph")
-    parser.add_argument('--max-cross-replica-sum-buffer-size', type=int,
-                        default=10*1024**2,
-                        help="Set the amount of gradients to all-reduce at a"
-                             " time.")
-    parser.add_argument('--batch-size', type=int, default=32,
-                        help="Batch size")
-    parser.add_argument('--iterations-per-step', type=int, default=250,
-                        help="Number of iterations to perform on the IPU"
-                             " before returning control to the host.")
-    parser.add_argument('--batches-to-accumulate', type=int, default=1,
-                        help="Number of batches to accumulate (per replica)"
-                             " before performing a weight update. 1 = no"
-                             " accumulation. Note: this is gradient"
-                             " accumulation, a concept separate from"
-                             " replication, but here we show they can easily"
-                             " be used together. The number of batches to"
-                             " accumulate must evenly divide, and be smaller"
-                             " than, the number of iterations per step.")
-    parser.add_argument('--learning-rate', type=float, default=0.001,
-                        help="Learning rate")
-    parser.add_argument('--steps', type=int, default=500,
-                        help="Number of steps to train.")
-    parser.add_argument('--use-synthetic-data', action='store_true',
-                        help="Whether to use synthetic data - data generated"
-                             " on the IPU as needed with no host I/O.")
-    parser.add_argument('--on-demand', action='store_true', default=False,
-                        help="Configure TensorFlow to attach to IPU only after graph has been compiled.")
+    parser.add_argument(
+        "--replicas", type=int, default=2, help="Number of times to replicate the graph"
+    )
+    parser.add_argument(
+        "--max-cross-replica-sum-buffer-size",
+        type=int,
+        default=10 * 1024**2,
+        help="Set the amount of gradients to all-reduce at a" " time.",
+    )
+    parser.add_argument("--batch-size", type=int, default=32, help="Batch size")
+    parser.add_argument(
+        "--iterations-per-step",
+        type=int,
+        default=250,
+        help="Number of iterations to perform on the IPU"
+        " before returning control to the host.",
+    )
+    parser.add_argument(
+        "--batches-to-accumulate",
+        type=int,
+        default=1,
+        help="Number of batches to accumulate (per replica)"
+        " before performing a weight update. 1 = no"
+        " accumulation. Note: this is gradient"
+        " accumulation, a concept separate from"
+        " replication, but here we show they can easily"
+        " be used together. The number of batches to"
+        " accumulate must evenly divide, and be smaller"
+        " than, the number of iterations per step.",
+    )
+    parser.add_argument(
+        "--learning-rate", type=float, default=0.001, help="Learning rate"
+    )
+    parser.add_argument(
+        "--steps", type=int, default=500, help="Number of steps to train."
+    )
+    parser.add_argument(
+        "--use-synthetic-data",
+        action="store_true",
+        help="Whether to use synthetic data - data generated"
+        " on the IPU as needed with no host I/O.",
+    )
+    parser.add_argument(
+        "--on-demand",
+        action="store_true",
+        default=False,
+        help="Configure TensorFlow to attach to IPU only after graph has been compiled.",
+    )
     opts = parser.parse_args()
     if opts.batches_to_accumulate > opts.iterations_per_step:
-        raise ValueError(
-            "Cannot accumulate more batches than there are iterations.")
+        raise ValueError("Cannot accumulate more batches than there are iterations.")
     if opts.iterations_per_step % opts.batches_to_accumulate != 0:
         raise ValueError(
             "Undefined behaviour when number of batches to accumulate doesn't"
             " evenly divide the number of iterations - an accumulation could be"
-            " interrupted by program termination.")
+            " interrupted by program termination."
+        )
 
     # Create the data pipeline
     data = get_dataset(opts)
@@ -246,8 +273,9 @@ if __name__ == '__main__':
     if opts.use_synthetic_data:
         # Ignore data in the data pipeline, do no host I/O and generate data
         # on the device as needed
-        os.environ["TF_POPLAR_FLAGS"] = (os.environ.get("TF_POPLAR_FLAGS", '') +
-                                         " --use_synthetic_data ")
+        os.environ["TF_POPLAR_FLAGS"] = (
+            os.environ.get("TF_POPLAR_FLAGS", "") + " --use_synthetic_data "
+        )
 
     # Create the graph
     init, compile_and_run, dequeue_outfeed = build_IPU_graph(opts, data)

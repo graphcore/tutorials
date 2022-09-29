@@ -15,7 +15,7 @@ from time import time
 import numpy as np
 import popart
 
-Session = namedtuple('Session', ['session', 'anchors'])
+Session = namedtuple("Session", ["session", "anchors"])
 
 ROWS = 28
 COLS = 28
@@ -24,9 +24,9 @@ COLS = 28
 def load_mnist():
     def _readfile(path):
         with open(path, "rb") as f:
-            magic_number, num_items = struct.unpack('>II', f.read(8))
+            magic_number, num_items = struct.unpack(">II", f.read(8))
             if magic_number == 2051:
-                rows, cols = struct.unpack('>II', f.read(8))
+                rows, cols = struct.unpack(">II", f.read(8))
                 data = np.fromstring(f.read(), dtype=np.uint8)
                 data = data.reshape([num_items, rows * cols])
                 data = data.astype(dtype=np.float32)
@@ -47,12 +47,18 @@ def load_mnist():
 def load_dummy(cl_opts: argparse.Namespace):
     def _generate_data(cls_opts):
         input_shape = [cl_opts.batches_per_step * cl_opts.batch_size, 1, ROWS, COLS]
-        data = np.zeros(input_shape, np.float32) if cl_opts.syn_data_type == "zeros" \
+        data = (
+            np.zeros(input_shape, np.float32)
+            if cl_opts.syn_data_type == "zeros"
             else np.random.normal(0, 1, input_shape).astype(np.float32)
+        )
 
         label_shape = [cl_opts.batches_per_step * cl_opts.batch_size]
-        label_data = np.zeros(label_shape, np.int32) if cl_opts.syn_data_type == "zeros" \
+        label_data = (
+            np.zeros(label_shape, np.int32)
+            if cl_opts.syn_data_type == "zeros"
             else np.random.uniform(0, 10, label_shape).astype(np.int32)
+        )
 
         return data, label_data
 
@@ -63,10 +69,10 @@ def load_dummy(cl_opts: argparse.Namespace):
 
 
 def create_model(batch_size):
-    """ Create an ONNX protobuf description of a simple linear model.
-        This function uses the popart library builder functions to create the
-        ONNX description directly. An alternative would be to load an
-        exported ONNX protobuf from a file.
+    """Create an ONNX protobuf description of a simple linear model.
+    This function uses the popart library builder functions to create the
+    ONNX description directly. An alternative would be to load an
+    exported ONNX protobuf from a file.
     """
     builder = popart.Builder()
 
@@ -90,7 +96,9 @@ def create_model(batch_size):
     label_shape = popart.TensorInfo("INT32", [batch_size])
     label = builder.addInputTensor(label_shape)
 
-    loss = builder.aiGraphcore.nllloss([probs, label], popart.ReductionType.Sum, debugContext="nllLossVal")
+    loss = builder.aiGraphcore.nllloss(
+        [probs, label], popart.ReductionType.Sum, debugContext="nllLossVal"
+    )
 
     proto = builder.getModelProto()
 
@@ -103,7 +111,9 @@ class DataSet:
         self.labels = labels
         self.num_examples = len(data)
         self.batch_size = batch_size
-        self.batches_per_step = min(batches_per_step, self.num_examples // self.batch_size)
+        self.batches_per_step = min(
+            batches_per_step, self.num_examples // self.batch_size
+        )
         self.inputs_per_step = self.batch_size * self.batches_per_step
         self.steps_per_epoch = self.num_examples // self.inputs_per_step
 
@@ -127,11 +137,7 @@ def get_device(num_ipus, sim=True):
     # Select a device
     deviceManager = popart.DeviceManager()
     if sim:
-        options = {
-            "compileIPUCode": True,
-            "numIPUs": num_ipus,
-            "tilesPerIPU": 1216
-        }
+        options = {"compileIPUCode": True, "numIPUs": num_ipus, "tilesPerIPU": 1216}
         device = deviceManager.createIpuModelDevice(options)
     else:
         device = deviceManager.acquireAvailableDevice(num_ipus)
@@ -147,19 +153,20 @@ def init_session(proto, loss, dataFlow, userOpts, device, training=True):
 
     # Create a session to compile and execute the graph
     if training:
-        session = popart.TrainingSession(fnModel=proto,
-                                         loss=loss,
-                                         deviceInfo=device,
-                                         optimizer=popart.ConstSGD(0.01),
-                                         dataFlow=dataFlow,
-                                         userOptions=userOpts)
+        session = popart.TrainingSession(
+            fnModel=proto,
+            loss=loss,
+            deviceInfo=device,
+            optimizer=popart.ConstSGD(0.01),
+            dataFlow=dataFlow,
+            userOptions=userOpts,
+        )
     else:
-        session = popart.InferenceSession(fnModel=proto,
-                                          deviceInfo=device,
-                                          dataFlow=dataFlow,
-                                          userOptions=userOpts)
+        session = popart.InferenceSession(
+            fnModel=proto, deviceInfo=device, dataFlow=dataFlow, userOptions=userOpts
+        )
 
-    print("Compiling the {} graph.".format("training" if training else "validation"))
+    print(f"Compiling the {'training' if training else 'validation'} graph.")
 
     session.prepareDevice()
     session.setRandomSeed(1)
@@ -172,39 +179,42 @@ def init_session(proto, loss, dataFlow, userOpts, device, training=True):
 
 def log_run_info(session, start_time, cl_opts):
     duration = time() - start_time
-    report_string = "{0:<8.3} sec/itr. {1:5f} images/sec.".format(
-        duration,
-        cl_opts.batch_size * cl_opts.batches_per_step / duration
-    )
+    image_rate = cl_opts.batch_size * cl_opts.batches_per_step / duration
+    report_string = f"{duration:<8.3} sec/itr. {image_rate:5f} images/sec."
     print(report_string)
-    print(
-        "Hardware cycle count per 'run':",
-        session.session.getCycleCount()
-    )
-    print("Total time: {}".format(duration))
+    print("Hardware cycle count per 'run':", session.session.getCycleCount())
+    print(f"Total time: {duration}")
 
 
 def train(opts):
     # Do not require the mnist data to be present if running with synthetic data
-    train_data, train_labels, test_data, test_labels = load_dummy(opts) \
-        if opts.syn_data_type in ["random_normal", "zeros"] else load_mnist()
+    train_data, train_labels, test_data, test_labels = (
+        load_dummy(opts)
+        if opts.syn_data_type in ["random_normal", "zeros"]
+        else load_mnist()
+    )
 
     if not opts.test_mode:
         max_value = len(test_data) // opts.batch_size
         if max_value < opts.batches_per_step:
-            print("(batches-per-step * batch-size) is larger than test set!\n"
-                  " Reduced batches-per-step to: {}\n".format(max_value))
+            print(
+                "(batches-per-step * batch-size) is larger than test set!\n"
+                f" Reduced batches-per-step to: {max_value}\n"
+            )
             opts.batches_per_step = max_value
-    training_set = DataSet(opts.batch_size, opts.batches_per_step, train_data, train_labels)
+    training_set = DataSet(
+        opts.batch_size, opts.batches_per_step, train_data, train_labels
+    )
     test_set = DataSet(opts.batch_size, opts.batches_per_step, test_data, test_labels)
-
 
     print("Creating ONNX model.")
     proto, data_in, labels_in, output, loss = create_model(opts.samples_per_device)
 
     # Describe how to run the model
-    anchor_desc = {output: popart.AnchorReturnType("ALL"),
-                   loss: popart.AnchorReturnType("ALL")}
+    anchor_desc = {
+        output: popart.AnchorReturnType("ALL"),
+        loss: popart.AnchorReturnType("ALL"),
+    }
     dataFlow = popart.DataFlow(opts.batches_per_step, anchor_desc)
 
     # Options
@@ -216,9 +226,7 @@ def train(opts):
 
     # If requested, setup synthetic data
     if opts.syn_data_type in ["random_normal", "zeros"]:
-        print(
-            "Running with Synthetic Data Type '{}'".format(opts.syn_data_type)
-        )
+        print(f"Running with Synthetic Data Type '{opts.syn_data_type}'")
         if opts.syn_data_type == "random_normal":
             userOpts.syntheticDataMode = popart.SyntheticDataMode.RandomNormal
         elif opts.syn_data_type == "zeros":
@@ -253,10 +261,14 @@ def train(opts):
             training.session.resetHostWeights(onnx_file_name)
         training.session.weightsFromHost()
         for step, (data, labels) in enumerate(training_set):
-            stepio = popart.PyStepIO({data_in: data, labels_in: labels}, training.anchors)
+            stepio = popart.PyStepIO(
+                {data_in: data, labels_in: labels}, training.anchors
+            )
 
             start = time()
-            training.session.run(stepio, 'Epoch ' + str(i) + ' training step' + str(step))
+            training.session.run(
+                stepio, "Epoch " + str(i) + " training step" + str(step)
+            )
             if opts.test_mode == "training":
                 log_run_info(training, start, opts)
 
@@ -270,114 +282,131 @@ def train(opts):
 
             # Evaluation
             for step, (data, labels) in enumerate(test_set):
-                stepio = popart.PyStepIO({data_in: data, labels_in: labels}, validation.anchors)
+                stepio = popart.PyStepIO(
+                    {data_in: data, labels_in: labels}, validation.anchors
+                )
                 start = time()
-                validation.session.run(stepio, 'Epoch ' + str(i) + ' evaluation step ' + str(step))
+                validation.session.run(
+                    stepio, "Epoch " + str(i) + " evaluation step " + str(step)
+                )
                 if opts.test_mode == "inference":
                     log_run_info(validation, start, opts)
 
                 # Loss
                 aggregated_loss += np.mean(validation.anchors[loss])
                 # Accuracy
-                results = np.argmax(validation.anchors[output].reshape([test_set.inputs_per_step, 10]), 1)
-                num_correct = np.sum(results == labels.reshape([test_set.inputs_per_step]))
+                results = np.argmax(
+                    validation.anchors[output].reshape([test_set.inputs_per_step, 10]),
+                    1,
+                )
+                num_correct = np.sum(
+                    results == labels.reshape([test_set.inputs_per_step])
+                )
                 aggregated_accuracy += num_correct / test_set.inputs_per_step
 
             # Log statistics
             aggregated_loss /= len(test_set)
             aggregated_accuracy /= len(test_set)
-            print("Epoch #{}".format(i + 1))
-            print("   Loss={0:.4f}".format(aggregated_loss))
-            print("   Accuracy={0:.2f}%".format(aggregated_accuracy * 100))
+            print(f"Epoch #{i + 1}")
+            print(f"   Loss={aggregated_loss:.4f}")
+            print(f"   Accuracy={aggregated_accuracy * 100:.2f}%")
 
     # Remove weight transfer file
     os.remove(onnx_file_name)
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='MNIST training in Popart',
-                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(
+        description="MNIST training in PopART",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
     parser.add_argument(
-        '--batch-size',
+        "--batch-size",
         type=int,
         default=32,
         help="Set the Batch size."
-             " This must be a multiple of the replication factor.")
+        " This must be a multiple of the replication factor.",
+    )
     parser.add_argument(
-        '--batches-per-step',
+        "--batches-per-step",
         type=int,
         default=100,
         help="Number of minibatches to perform on the Device before returning to the Host."
-             " This will be capped so the Device returns each epoch.")
+        " This will be capped so the Device returns each epoch.",
+    )
     parser.add_argument(
-        '--epochs',
-        type=int,
-        default=10,
-        help="Number of epochs to train for.")
+        "--epochs", type=int, default=10, help="Number of epochs to train for."
+    )
+    parser.add_argument("--num-ipus", type=int, default=1, help="Number of IPUs")
     parser.add_argument(
-        '--num-ipus',
-        type=int,
-        default=1,
-        help="Number of IPUs")
-    parser.add_argument(
-        '--pipeline',
+        "--pipeline",
         action="store_true",
         default=False,
         help="Pipeline the model over IPUs."
-             " Only valid for this model if the number of IPUs is twice the replication factor.")
-    parser.add_argument('--replication-factor', type=int, default=1,
-                        help="Number of times to replicate the graph to perform data parallel"
-                             " training. Must be a factor of the number of IPUs.")
+        " Only valid for this model if the number of IPUs is twice the replication factor.",
+    )
     parser.add_argument(
-        '--simulation',
-        action='store_true',
-        help="Run the example with an IPU_MODEL device.")
+        "--replication-factor",
+        type=int,
+        default=1,
+        help="Number of times to replicate the graph to perform data parallel"
+        " training. Must be a factor of the number of IPUs.",
+    )
     parser.add_argument(
-        '--log-graph-trace',
-        action='store_true',
-        help="Turn on ir logging to display the graph\'s ops.")
+        "--simulation",
+        action="store_true",
+        help="Run the example with an IPU_MODEL device.",
+    )
+    parser.add_argument(
+        "--log-graph-trace",
+        action="store_true",
+        help="Turn on ir logging to display the graph's ops.",
+    )
     parser.add_argument(
         "--test-mode",
-        choices=['training', 'inference'],
+        choices=["training", "inference"],
         help="Output extra performance information, specify with"
         " either 'training' or 'inference'",
     )
     parser.add_argument(
         "--syn-data-type",
-        choices=['random_normal', 'zeros'],
+        choices=["random_normal", "zeros"],
         default="off",
         help="Specify to use synthetic data with either 'random"
-             "_normal' or 'zeros' (no host to IPU IO is done in this mode)",
+        "_normal' or 'zeros' (no host to IPU IO is done in this mode)",
     )
     parser.add_argument(
         "--validation-final-epoch",
-        action='store_true',
+        action="store_true",
         help="Only run validation after the final epoch.",
     )
     opts = parser.parse_args()
 
-    if((opts.batch_size % opts.replication_factor) != 0):
-        raise Exception("Invalid Argument : Batch size ({}) must be a "
-                        "multiple of replication factor ({})"
-                        .format(opts.batch_size, opts.replication_factor))
-
-    if((opts.num_ipus % opts.replication_factor) != 0):
-        raise Exception("Invalid Argument : Number of IPUs ({}) must be a "
-                        "multiple of replication factor ({})"
-                        .format(opts.num_ipus, opts.replication_factor))
+    if (opts.batch_size % opts.replication_factor) != 0:
+        raise Exception(
+            f"Invalid Argument : Batch size ({opts.batch_size}) must be a "
+            f"multiple of replication factor ({opts.replication_factor})"
+        )
+    if (opts.num_ipus % opts.replication_factor) != 0:
+        raise Exception(
+            f"Invalid Argument : Number of IPUs ({opts.num_ipus}) must be a "
+            f"multiple of replication factor ({opts.replication_factor})"
+        )
     if opts.pipeline and opts.num_ipus <= opts.replication_factor:
-        raise Exception("Invalid Argument: Pipelining is only valid if "
-                        "number of IPUs ({}) > replication factor ({})"
-                        .format(opts.num_ipus, opts.replication_factor))
+        raise Exception(
+            "Invalid Argument: Pipelining is only valid if "
+            f"number of IPUs ({opts.num_ipus}) > replication factor ({opts.replication_factor})"
+        )
     if opts.pipeline and opts.num_ipus != 2 * opts.replication_factor:
-        raise Exception("Invalid Argument: For this model, pipelining is only "
-                        "valid if each replica contains two IPUs.")
+        raise Exception(
+            "Invalid Argument: For this model, pipelining is only "
+            "valid if each replica contains two IPUs."
+        )
     # The number of samples that the device will process currently
     opts.samples_per_device = (int)(opts.batch_size / opts.replication_factor)
 
-
     # Set logging
-    popart.getLogger('ir').setLevel('TRACE' if opts.log_graph_trace else 'CRITICAL')
-    popart.getLogger('devicex').setLevel('CRITICAL')
+    popart.getLogger("ir").setLevel("TRACE" if opts.log_graph_trace else "CRITICAL")
+    popart.getLogger("devicex").setLevel("CRITICAL")
 
     train(opts)

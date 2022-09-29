@@ -9,7 +9,6 @@ from tempfile import TemporaryDirectory
 # the repository
 from tutorials_tests.testing_util import run_python_script_helper
 from tutorials_tests.assert_util import assert_result_equals_tensor_value
-from tutorials_tests.assert_util import assert_result_equals_string
 
 
 # Strings used to identify lines from trace that
@@ -45,7 +44,7 @@ def run_connection_type(connection_type):
         os.path.dirname(__file__), "connection_type.py", want_std_err=True, **kwargs
     )
     result = parse_output(out)
-    print("result {}".format(result))
+    print(f"result {result}")
     return result
 
 
@@ -88,8 +87,9 @@ def test_connection_type_on_demand():
 def test_connection_type_never():
     """Connection type NEVER"""
     result = run_connection_type("NEVER")
-    # Assert correct result.
-    assert_result_equals_string(result["result"], "Compiled")
+
+    assert result["result"] == "Compiled"
+
     # Assert single occurrence of compile without attach.
     assert len(result["attach"]) == 0, "Unexpected attach"
     assert len(result["compile"]) == 1, "Missing compile"

@@ -2,16 +2,14 @@
 
 from pathlib import Path
 import pytest
-from tutorials_tests.testing_util import SubProcessChecker
-
+import tutorials_tests.testing_util as testing_util
 
 working_path = Path(__file__).parent.parent
 
 
-class TestComplete(SubProcessChecker):
-
-    @pytest.mark.category1
-    @pytest.mark.ipus(1)
-    def test_run_demo_fits(self):
-        self.run_command("python full_resnext.py",
-                         working_path, ['Throughput', 'Latency'])
+@pytest.mark.category1
+@pytest.mark.ipus(1)
+def test_run_demo_fits():
+    testing_util.run_command(
+        "python full_resnext.py", working_path, ["Throughput", "Latency"]
+    )

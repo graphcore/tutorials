@@ -12,9 +12,11 @@ import tensorflow as tf
 
 # default data_format is 'channels_last'
 dataset = Dataset.from_tensor_slices(
-    (tf.random.uniform([2, 128, 128, 3], dtype=tf.float32),
-     tf.random.uniform([2], maxval=10, dtype=tf.int32))
+    (
+        tf.random.uniform([2, 128, 128, 3], dtype=tf.float32),
+        tf.random.uniform([2], maxval=10, dtype=tf.int32),
     )
+)
 dataset = dataset.batch(batch_size=2, drop_remainder=True)
 dataset = dataset.shuffle(1000)
 dataset = dataset.cache()
@@ -22,13 +24,17 @@ dataset = dataset.repeat()
 dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)
 
 
-# Create a pipelined model which is split accross four stages.
+# Create a pipelined model which is split across four stages.
 def my_model():
-    return tf.keras.Sequential([layers.Conv2D(3, 1),
-                                layers.Conv2D(3, 1),
-                                layers.Conv2D(3, 1),
-                                layers.Flatten(),
-                                layers.Dense(10)])
+    return tf.keras.Sequential(
+        [
+            layers.Conv2D(3, 1),
+            layers.Conv2D(3, 1),
+            layers.Conv2D(3, 1),
+            layers.Flatten(),
+            layers.Dense(10),
+        ]
+    )
 
 
 cfg = config.IPUConfig()
@@ -47,8 +53,10 @@ with strategy.scope():
     model.set_pipelining_options(gradient_accumulation_steps_per_replica=8)
     model.set_pipeline_stage_assignment([0, 1, 2, 3, 3])
 
-    model.compile(steps_per_execution=128,
-                  loss='sparse_categorical_crossentropy',
-                  optimizer=optimizers.SGD(0.01))
+    model.compile(
+        steps_per_execution=128,
+        loss="sparse_categorical_crossentropy",
+        optimizer=optimizers.SGD(0.01),
+    )
 
     model.fit(dataset, steps_per_epoch=128)

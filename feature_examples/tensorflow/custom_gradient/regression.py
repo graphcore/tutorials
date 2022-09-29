@@ -5,6 +5,7 @@ from functools import partial as bind
 
 import tensorflow.compat.v1 as tf
 from tensorflow.python import ipu
+
 tf.disable_eager_execution()
 tf.disable_v2_behavior()
 
@@ -18,17 +19,20 @@ def custom_product(a, b):
     base_path = os.path.realpath(os.path.dirname(__file__))
     lib_path = os.path.join(base_path, "libproduct.so")
 
-    return ipu.custom_ops.precompiled_user_op([a, b],
-                                              lib_path,
-                                              outs=outputs)
+    return ipu.custom_ops.precompiled_user_op([a, b], lib_path, outs=outputs)
 
 
 def model(use_custom_op, inputs, targets):
     with tf.variable_scope(f"model_vars_{use_custom_op}", reuse=tf.AUTO_REUSE) as scope:
-        weights = tf.get_variable("weights", shape=[3, 1],
-                                  initializer=tf.zeros_initializer())
+        weights = tf.get_variable(
+            "weights", shape=[3, 1], initializer=tf.zeros_initializer()
+        )
         # Forward function:
-        preds = custom_product(inputs, weights) if use_custom_op else tf.matmul(inputs, weights)
+        preds = (
+            custom_product(inputs, weights)
+            if use_custom_op
+            else tf.matmul(inputs, weights)
+        )
 
         # Loss function calculation is not numerically stable but works for this example:
         sigmoid = 0.5 * (tf.math.tanh(preds) + 1)
@@ -50,10 +54,9 @@ def model(use_custom_op, inputs, targets):
 
 
 # Values:
-input_values = np.array([[0.52, 1.12,  0.77],
-                         [0.88, -1.08, 0.15],
-                         [0.52, 0.06, -1.30],
-                         [0.74, -2.49, 1.39]])
+input_values = np.array(
+    [[0.52, 1.12, 0.77], [0.88, -1.08, 0.15], [0.52, 0.06, -1.30], [0.74, -2.49, 1.39]]
+)
 target_values = np.array([[1, 1, 0, 1]]).transpose()
 
 # Variables
@@ -83,13 +86,15 @@ with tf.Session() as sess:
 
     for i in range(100):
         loss, current_weights, dLdI = sess.run(
-            fetches, feed_dict={inputs: input_values, targets: target_values})
+            fetches, feed_dict={inputs: input_values, targets: target_values}
+        )
         losses.append(loss)
         grads.append(dLdI)
 
     for i in range(100):
         loss, current_weights_custom, dLdI = sess.run(
-            fetches_custom, feed_dict={inputs: input_values, targets: target_values})
+            fetches_custom, feed_dict={inputs: input_values, targets: target_values}
+        )
         custom_losses.append(loss)
         custom_grads.append(dLdI)
 
