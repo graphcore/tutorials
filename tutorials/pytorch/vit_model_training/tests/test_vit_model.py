@@ -28,8 +28,9 @@ def test_vit_model(data_folder):
         if line.find("eval_roc_auc") != -1:
             roc_auc = float(line.split("=")[-1].strip()[:-1])
             break
-    assert roc_auc > 0.4
-    assert roc_auc < 0.6
+    # Since we are feeding random data heavily biased to No Finding
+    # we expect a score around
+    assert (roc_auc > 0.35) and (roc_auc < 0.65)
 
 
 @pytest.fixture

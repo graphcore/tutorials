@@ -120,6 +120,9 @@ from sys import exit
 import poptorch
 import torch
 import torch.nn as nn
+import os
+
+executable_cache_dir = os.getenv("POPLAR_EXECUTABLE_CACHE_DIR", "/tmp/exe_cache/")
 
 # sst_hide_output
 
@@ -418,7 +421,8 @@ opts = poptorch.Options()
 opts.deviceIterations(device_iterations)
 opts.replicationFactor(replicas)
 opts.enableSyntheticData(True)
-opts.enableExecutableCaching(".graphcore")
+opts.enableExecutableCaching(executable_cache_dir)
+
 # sst_hide_output
 """
 
@@ -591,14 +595,14 @@ def validate_model_performance(
     dataset,
     device_iterations=50,
     batch_size=16,
-    replicas=4,
+    replicas=2,
     num_workers=4,
     synthetic_data=False,
 ):
     opts = poptorch.Options()
     opts.deviceIterations(device_iterations)
     opts.replicationFactor(replicas)
-    opts.enableExecutableCaching(".graphcore")
+    opts.enableExecutableCaching(executable_cache_dir)
 
     if synthetic_data:
         opts.enableSyntheticData(True)
@@ -644,6 +648,7 @@ def validate_model_performance(
         with catchtime() as t:
             for data, labels in training_data:
                 training_model(data, labels)
+            training_model.detachFromDevice()
 
     items_per_second = (steps * device_iterations * batch_size * replicas) / t.seconds
     print(f"IPU throughput: {items_per_second:.2f} items/s")
@@ -663,17 +668,6 @@ Now we are ready to conduct experiments:
 - device iterations: 50
 - workers: 4
 
-=> Global batch size 16 with synthetic data
-"""
-validate_model_performance(
-    dataset,
-    batch_size=16,
-    replicas=1,
-    device_iterations=50,
-    num_workers=4,
-    synthetic_data=True,
-)
-"""
 => Global batch size 16 with real data
 """
 validate_model_performance(
@@ -683,6 +677,17 @@ validate_model_performance(
     device_iterations=50,
     num_workers=4,
     synthetic_data=False,
+)
+"""
+=> Global batch size 16 with synthetic data
+"""
+validate_model_performance(
+    dataset,
+    batch_size=16,
+    replicas=1,
+    device_iterations=50,
+    num_workers=4,
+    synthetic_data=True,
 )
 
 """
@@ -705,30 +710,30 @@ size. We can choose to increase the replication factor so it avoids loading
 more data at a time on a single IPU.
 
 - mini-batch size: 16
-- replica: 4
+- replica: 2
 - device iterations: 50
 - workers: 4
 
-=> Global batch size 64 with synthetic data
+=> Global batch size 32 with real data
 """
 validate_model_performance(
     dataset,
     batch_size=16,
-    replicas=4,
-    device_iterations=50,
-    num_workers=4,
-    synthetic_data=True,
-)
-"""
-=> Global batch size 64 with real data
-"""
-validate_model_performance(
-    dataset,
-    batch_size=16,
-    replicas=4,
+    replicas=2,
     device_iterations=50,
     num_workers=4,
     synthetic_data=False,
+)
+"""
+=> Global batch size 32 with synthetic data
+"""
+validate_model_performance(
+    dataset,
+    batch_size=16,
+    replicas=2,
+    device_iterations=50,
+    num_workers=4,
+    synthetic_data=True,
 )
 """
 Throughput of dataloader for synthetic and real data should be roughly the

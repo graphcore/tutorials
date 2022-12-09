@@ -90,6 +90,9 @@ from sys import exit
 import poptorch
 import torch
 import torch.nn as nn
+import os
+
+executable_cache_dir = os.getenv("POPLAR_EXECUTABLE_CACHE_DIR", "/tmp/exe_cache/")
 ```
 
 Now we will define some global variables that are used later. If you change
@@ -348,8 +351,8 @@ training_data.terminate()
 ```
 
 ```output
-Total execution time: 0.15 s
-DataLoader throughput: 63391.98 items/s
+Total execution time: 0.14 s
+DataLoader throughput: 68227.22 items/s
 ```
 
    > ***Note about releasing resources***:
@@ -373,6 +376,7 @@ opts = poptorch.Options()
 opts.deviceIterations(device_iterations)
 opts.replicationFactor(replicas)
 opts.enableSyntheticData(True)
+opts.enableExecutableCaching(executable_cache_dir)
 ```
 
 When using synthetic data, no data is copied onto the device. Hence, the
@@ -442,8 +446,8 @@ training_data.terminate()
 
 ```output
 Evaluating: 12 steps of 800 items
-Total execution time: 0.30 s
-IPU throughput: 32534.74 items/s
+Total execution time: 0.20 s
+IPU throughput: 47323.53 items/s
 ```
 
 ### What if the DataLoader throughput is too low?
@@ -537,14 +541,14 @@ def validate_model_performance(
     dataset,
     device_iterations=50,
     batch_size=16,
-    replicas=4,
+    replicas=2,
     num_workers=4,
     synthetic_data=False,
 ):
     opts = poptorch.Options()
     opts.deviceIterations(device_iterations)
     opts.replicationFactor(replicas)
-    opts.enableExecutableCaching(".graphcore")
+    opts.enableExecutableCaching(executable_cache_dir)
 
     if synthetic_data:
         opts.enableSyntheticData(True)
@@ -590,6 +594,7 @@ def validate_model_performance(
         with catchtime() as t:
             for data, labels in training_data:
                 training_model(data, labels)
+            training_model.detachFromDevice()
 
     items_per_second = (steps * device_iterations * batch_size * replicas) / t.seconds
     print(f"IPU throughput: {items_per_second:.2f} items/s")
@@ -607,27 +612,6 @@ Now we are ready to conduct experiments:
 - device iterations: 50
 - workers: 4
 
-=> Global batch size 16 with synthetic data
-
-```python
-validate_model_performance(
-    dataset,
-    batch_size=16,
-    replicas=1,
-    device_iterations=50,
-    num_workers=4,
-    synthetic_data=True,
-)
-```
-
-```output
-Graph compilation: 100%|██████████| 100/100 [01:43<00:00]
-DataLoader: 33502.61 items/s
-Dataloader execution time: 0.29 s
-IPU throughput: 31971.34 items/s
-Dataloader with IPU training execution time: 0.30 s
-```
-
 => Global batch size 16 with real data
 
 ```python
@@ -642,11 +626,32 @@ validate_model_performance(
 ```
 
 ```output
-Graph compilation: 100%|██████████| 100/100 [01:45<00:00]
-DataLoader: 33365.80 items/s
-Dataloader execution time: 0.29 s
-IPU throughput: 19779.20 items/s
-Dataloader with IPU training execution time: 0.49 s
+Graph compilation: 100%|██████████| 100/100 [01:25<00:00]
+DataLoader: 37710.01 items/s
+Dataloader execution time: 0.25 s
+IPU throughput: 17956.52 items/s
+Dataloader with IPU training execution time: 0.53 s
+```
+
+=> Global batch size 16 with synthetic data
+
+```python
+validate_model_performance(
+    dataset,
+    batch_size=16,
+    replicas=1,
+    device_iterations=50,
+    num_workers=4,
+    synthetic_data=True,
+)
+```
+
+```output
+Graph compilation: 100%|██████████| 100/100 [01:20<00:00]
+DataLoader: 40820.89 items/s
+Dataloader execution time: 0.24 s
+IPU throughput: 46739.05 items/s
+Dataloader with IPU training execution time: 0.21 s
 ```
 
 From the tests you should be able to see that the throughput with processing
@@ -666,38 +671,17 @@ size. We can choose to increase the replication factor so it avoids loading
 more data at a time on a single IPU.
 
 - mini-batch size: 16
-- replica: 4
+- replica: 2
 - device iterations: 50
 - workers: 4
 
-=> Global batch size 64 with synthetic data
+=> Global batch size 32 with real data
 
 ```python
 validate_model_performance(
     dataset,
     batch_size=16,
-    replicas=4,
-    device_iterations=50,
-    num_workers=4,
-    synthetic_data=True,
-)
-```
-
-```output
-Graph compilation: 100%|██████████| 100/100 [01:54<00:00]
-DataLoader: 26996.94 items/s
-Dataloader execution time: 0.36 s
-IPU throughput: 54288.97 items/s
-Dataloader with IPU training execution time: 0.18 s
-```
-
-=> Global batch size 64 with real data
-
-```python
-validate_model_performance(
-    dataset,
-    batch_size=16,
-    replicas=4,
+    replicas=2,
     device_iterations=50,
     num_workers=4,
     synthetic_data=False,
@@ -705,11 +689,32 @@ validate_model_performance(
 ```
 
 ```output
-Graph compilation: 100%|██████████| 100/100 [01:55<00:00]
-DataLoader: 27742.28 items/s
-Dataloader execution time: 0.35 s
-IPU throughput: 20688.70 items/s
-Dataloader with IPU training execution time: 0.46 s
+Graph compilation: 100%|██████████| 100/100 [01:28<00:00]
+DataLoader: 42604.88 items/s
+Dataloader execution time: 0.23 s
+IPU throughput: 14974.44 items/s
+Dataloader with IPU training execution time: 0.64 s
+```
+
+=> Global batch size 32 with synthetic data
+
+```python
+validate_model_performance(
+    dataset,
+    batch_size=16,
+    replicas=2,
+    device_iterations=50,
+    num_workers=4,
+    synthetic_data=True,
+)
+```
+
+```output
+Graph compilation: 100%|██████████| 100/100 [01:26<00:00]
+DataLoader: 36126.00 items/s
+Dataloader execution time: 0.27 s
+IPU throughput: 46384.23 items/s
+Dataloader with IPU training execution time: 0.21 s
 ```
 
 Throughput of dataloader for synthetic and real data should be roughly the
@@ -742,4 +747,4 @@ Further information on Host-IPU IO optimisation can be found in our [memory and
 performance optimisation
 guide](https://docs.graphcore.ai/projects/memory-performance-optimisation/en/3.0.0/optimising-performance.html#host-ipu-io-optimisation).
 
-Generated:2022-09-28T10:40 Source:walkthrough.py SDK:3.0.0+1145 SST:0.0.8
+Generated:2022-11-14T16:55 Source:walkthrough.py SDK:3.1.0-EA.1+1180 SST:0.0.7

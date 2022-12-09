@@ -4,7 +4,7 @@
 
 # # BERT Fine-tuning on IPU
 #
-# This notebook will demonstrate how to fine-tune a pre-trained BERT model with PyTorch on the Graphcore IPU-POD16 system. We will use a BERT-Large model and fine-tune on the SQuADv1 Question/Answering task.
+# This notebook will demonstrate how to fine-tune a pre-trained BERT model with PyTorch on the Graphcore IPU-POD16 and IPU-POD4 system. We will use a BERT-Large model and fine-tune on the SQuADv1 Question/Answering task.
 #
 # We will show how to take a BERT model written in PyTorch from the 🤗`transformers` library from HuggingFace and parallelize and run it on IPU using PopTorch.
 #
@@ -28,7 +28,7 @@
 #
 # ## Background
 #
-# BERT fine-tuning is when you train a BERT model on a supervised learning task on a relatively small amount of data, by using starting weights obtained from pre-training on a large, generic text corpus. Pre-training of BERT requires a lot of unlabelled data (for instance all of Wikipedia + thousands of books) and a lot of compute. It is expensive and time-consuming, but after pre-training BERT will have learned an extremely good language model that can be fine-tuned on downstream tasks with small amount of labeled data, achieving great results.
+# BERT fine-tuning is when you train a BERT model on a supervised learning task on a relatively small amount of data, by using starting weights obtained from pre-training on a large, generic text corpus. Pre-training of BERT requires a lot of unlabelled data (for instance all of Wikipedia + thousands of books) and a lot of compute. It is expensive and time-consuming, but after pre-training BERT will have learned an extremely good language model that can be fine-tuned on downstream tasks with small amount of labelled data, achieving great results.
 #
 # ![image.png](attachment:image.png)
 #
@@ -187,13 +187,13 @@ validation_features = datasets["validation"].map(
 )
 
 
-# ## 2. Get the Model and Parallelize on IPU-POD16
+# ## 2. Get the Model and Parallelize on IPU-POD4
 
-# We run the model on IPU using both **pipelining** and **data parallelism** in order to maximise hardware use.
+# We run the model on IPU using **pipelining** and learn about **data parallelism** in order to maximise hardware use.
 #
 # ### Parallelism through pipelining
 #
-# The model layers are split over 8 IPUs. We then use [*pipeline parallelism*](https://docs.graphcore.ai/projects/tf-model-parallelism/en/3.0.0/pipelining.html) over the IPUs with gradient accumulation. We subdivide the compute batch into micro-batches that pass through the pipeline in the forward pass and then come back again in the backwards pass, accumulating gradients for the parameters as they go.
+# The model layers are split over 4 IPUs. We then use [*pipeline parallelism*](https://docs.graphcore.ai/projects/tf-model-parallelism/en/3.0.0/pipelining.html) over the IPUs with gradient accumulation. We subdivide the compute batch into micro-batches that pass through the pipeline in the forward pass and then come back again in the backwards pass, accumulating gradients for the parameters as they go.
 #
 # A complete pipeline step has a ramp-up phase the start and a ramp-down phase at the end. Increasing the gradient accumulation factor, increases the total batch size and also increases the pipeline efficiency, and therefore throughput, because the proportion of time in ramp-up/down phases will be reduced.
 #
@@ -201,15 +201,16 @@ validation_features = datasets["validation"].map(
 #
 # ### Partitioning the Model
 #
-# BERT Large has 24 transformer layers, which we will split over our 8 IPUs. The embeddings, MLM projection layers, and the first 2 transformer layers sit on IPU0, the following 6 IPUs have 3 transformer layers each, and the last IPU has 4.
+# BERT Large has 24 transformer layers, which we will split over our 4 IPUs. The position and word embeddings, and the first 3 encoder layers will sit on IPU0, the following 3 IPUs have 7 transformer layers each.
 #
-# ![image-4.png](attachment:image-4.png)
+# <img src="https://docs.graphcore.ai/projects/bert-training/en/latest/_images/bert-pipelining.png" width="500" />
 #
 #
 # ### Data Parallelism
-#
-# Ann IPU-POD16 contains 16 IPUs and our pipeline is 8 IPUs long. We can therefore replicate the pipeline, feeding two different micro-batches to the device, which doubles the effective mini-batch size. We call this configuration a "2x8 pipeline".
-#
+# If running on an IPU-POD4 we cannot use replication to do data parallelism because this system contains 4 IPUs and our pipeline is 4 IPUs long.
+# Therefore, we will have a "1x4 pipeline" configuration. For replication of this model, we must acquire a larger IPU-POD system.
+# Using an IPU-POD16 we can move the optimiser on-chip to speed up the model (see below for notes on Replicated Tensor Sharding) and rearrange our model to fit across 8 IPU's.
+# This will allow us to create 2 replicas, and feed 2 different micro batches in parallel to create a "2x8 pipeline" configuration.
 #
 # ### Recomputation Checkpoints
 #
@@ -221,7 +222,7 @@ validation_features = datasets["validation"].map(
 #
 # ### Replicated Tensor Sharding of Optimizer State
 #
-# As we are using multiple replicas (2 here), we can also distribute our optimizer state to reduce local memory usage, a method called [On-chip Replicated Tensor Sharding (RTS)](https://docs.graphcore.ai/projects/graphcore-glossary/en/latest/index.html#term-Replicated-tensor-sharding).
+# If we are using multiple replicas, we can also distribute our optimizer state to reduce local memory usage, a method called [On-chip Replicated Tensor Sharding (RTS)](https://docs.graphcore.ai/projects/graphcore-glossary/en/latest/index.html#term-Replicated-tensor-sharding).
 #
 # > To further improve memory availability we also have the option to store tensors in the POD-IPU16 Streaming Memory at the cost of increased communications.
 #
@@ -323,18 +324,27 @@ model = PipelinedBertForQuestionAnswering.from_pretrained(
     "Graphcore/bert-large-uncased", config=config
 )
 
+# This notebook can be configured to run on 4 or 16 IPUs. On certain environments the number of available IPUs will be communicated through an environment variable.
+# Feel free to experiment with different configurations to see how the we can produce different behaviours from different system configurations.
+
+number_of_ipus = int(os.getenv("NUM_AVAILABLE_IPU", 16))
+
+assert number_of_ipus in {4, 16}, "Only 4 or 16 IPUs are supported in this notebook"
 
 # We can now set up our pipelined execution by specifying which layers to put on each IPU, and passing it to the `parallelize` method that we defined above.
 #
 # We also call the `.half()` method to cast all the model weights to half-precision (FP16). The `.train()` sets the PyTorch model to training mode.
 #
 # If you unfamiliar with training in half precision on IPU, then we have a tutorial on [Half and Mixed Precision in PopTorch](../mixed_precision).
-
+#
+# By default, we will run on an IPU-POD16, if using a IPU-POD4, the `number_of_ipus` environment variable will change to 4.
 # In[17]:
 
 
 ipu_config = {
-    "layers_per_ipu": [2, 3, 3, 3, 3, 3, 3, 4],
+    "layers_per_ipu": [2, 3, 3, 3, 3, 3, 3, 4]
+    if number_of_ipus == 16
+    else [3, 7, 7, 7],
     "recompute_checkpoint_every_layer": True,
 }
 
@@ -344,16 +354,21 @@ model.parallelize(ipu_config).half().train()
 # ## 3. Runtime Configuration
 #
 # We will use a global batch size of 256 divided as such:
-# - Micro batch size of 2 (the size of the batch passed to each replica)
-# - Replication factor of 2 (the number of data parallel replicas, see the [Data Parallelism](#Data-Parallelism) section)
-# - Gradient accumulation of 64 (the number of forward/backward passes performed per weight update)
+# - Micro batch size of 1 (the size of the batch passed to each replica)
+# - Replication factor of 1 (the number of data parallel replicas, see the [Data Parallelism](#Data-Parallelism) section)
+# - Gradient accumulation of 256 (the number of forward/backward passes performed per weight update)
 
 # In[18]:
 
 
+if number_of_ipus == 16:
+    micro_batch_size = 2
+    replication_factor = 2
+else:
+    micro_batch_size = 1
+    replication_factor = 1
+
 global_batch_size = 256
-micro_batch_size = 2
-replication_factor = 2
 gradient_accumulation = int(global_batch_size / micro_batch_size / replication_factor)
 
 
@@ -372,14 +387,16 @@ samples_per_iteration = global_batch_size * device_iterations
 num_epochs = 3
 
 
-# We will now set the IPU configuration options.
+# We will now set the IPU configuration options, the default options will be configured for an IPU-POD16.
 
 # In[21]:
 
 CACHE_DIR = os.environ.get("CACHE_DIR", "exe_cache")
 
 
-def ipu_training_options(gradient_accumulation, replication_factor, device_iterations):
+def ipu_training_options(
+    gradient_accumulation, replication_factor, device_iterations, number_of_ipus
+):
     opts = poptorch.Options()
     opts.randomSeed(12345)
     opts.deviceIterations(device_iterations)
@@ -399,30 +416,31 @@ def ipu_training_options(gradient_accumulation, replication_factor, device_itera
 
     opts.Training.gradientAccumulation(gradient_accumulation)
 
-    # Return all results from IPU to host
-    opts.outputMode(poptorch.OutputMode.All)
+    # Return the final result from IPU to host
+    opts.outputMode(poptorch.OutputMode.Final)
 
     # Cache compiled executable to disk
     opts.enableExecutableCaching(CACHE_DIR)
 
+    # Setting system spesific options
     # On-chip Replicated Tensor Sharding of Optimizer State
     opts.TensorLocations.setOptimizerLocation(
         poptorch.TensorLocationSettings()
-        # Optimizer state lives on IPU
-        .useOnChipStorage(True)
+        # Optimizer state lives on IPU if running on a POD16
+        .useOnChipStorage(number_of_ipus == 16)
         # Optimizer state sharded between replicas with zero-redundancy
-        .useReplicatedTensorSharding(True)
+        .useReplicatedTensorSharding(number_of_ipus == 16)
     )
 
-    # Available Transient Memory For matmuls and convolutions operations
-    opts.setAvailableMemoryProportion(
-        {
-            f"IPU{i}": mp
-            for i, mp in enumerate([0.08, 0.28, 0.32, 0.32, 0.36, 0.38, 0.4, 0.1])
-        }
-    )
+    # Available Transient Memory For matmuls and convolutions operations dependent on system type
+    if number_of_ipus == 16:
+        amps = [0.08, 0.28, 0.32, 0.32, 0.36, 0.38, 0.4, 0.1]
+    else:
+        amps = [0.15, 0.18, 0.2, 0.25]
 
-    # Advanced performance options #
+    opts.setAvailableMemoryProportion({f"IPU{i}": mp for i, mp in enumerate(amps)})
+
+    ## Advanced performance options ##
 
     # Only stream needed tensors back to host
     opts._Popart.set("disableGradAccumulationTensorStreams", True)
@@ -449,9 +467,8 @@ def ipu_training_options(gradient_accumulation, replication_factor, device_itera
 
 # In[22]:
 
-
 train_opts = ipu_training_options(
-    gradient_accumulation, replication_factor, device_iterations
+    gradient_accumulation, replication_factor, device_iterations, number_of_ipus
 )
 
 
@@ -601,14 +618,14 @@ trainer(model, train_opts, optimizer, train_dl, num_epochs)
 # After training, we save the model weights to disk.
 
 # In[30]:
-
-
-model.save_pretrained("checkpoints/squad_large_2x8")
+pipeline_length = len(ipu_config["layers_per_ipu"])
+checkpoint_name = f"checkpoints/squad_large_{replication_factor}x{pipeline_length}"
+model.save_pretrained(checkpoint_name)
 
 
 # ## 5. Validation
 #
-# We will now take the model we just trained on the training data and run validation on the SQuAD validation dataset. The model will run on a 2-IPU pipeline that we will replicate 8 times.
+# We will now take the model we just trained on the training data and run validation on the SQuAD validation dataset. The model will run on a 2-IPU pipeline that we will replicate 4 times if running on an IPU-POD16, or 2 times for an IPU-POD4.
 
 # In[31]:
 
@@ -617,7 +634,7 @@ model.save_pretrained("checkpoints/squad_large_2x8")
 
 
 micro_batch_size = 4
-replication_factor = 8
+replication_factor = 4 if number_of_ipus == 16 else 2
 global_batch_size = micro_batch_size * replication_factor
 device_iterations = 2
 samples_per_iteration = global_batch_size * device_iterations
@@ -672,7 +689,7 @@ ipu_config = {"layers_per_ipu": [11, 13], "recompute_checkpoint_every_layer": Fa
 # In[36]:
 
 
-model = PipelinedBertForQuestionAnswering.from_pretrained("checkpoints/squad_large_2x8")
+model = PipelinedBertForQuestionAnswering.from_pretrained(checkpoint_name)
 
 
 # We cast the model weights to half precision (FP16) and set the model to evaluation mode:
@@ -800,9 +817,7 @@ attention_tensor = torch.tensor(input_encoding["attention_mask"]).unsqueeze(0)
 token_types = torch.tensor(input_encoding["token_type_ids"]).unsqueeze(0)
 
 # Get model and load the fine-tuned weights
-model = transformers.BertForQuestionAnswering.from_pretrained(
-    "checkpoints/squad_large_2x8"
-)
+model = transformers.BertForQuestionAnswering.from_pretrained(checkpoint_name)
 
 
 # Optionally, instead of using the fine-tuned weights we saved in the previous section, you can download fine-tuned weights from the [Graphcore organisation on the HuggingFace Model Hub](https://huggingface.co/Graphcore).
