@@ -242,13 +242,13 @@ def model_fn():
     input_layer = keras.Input(shape=input_shape)
 
     # Add graph nodes for the first pipeline stage.
-    with ipu.keras.PipelineStage(0):
+    with keras.ipu.PipelineStage(0):
         x = keras.layers.Conv2D(32, kernel_size=(3, 3), activation="relu")(input_layer)
         x = keras.layers.MaxPooling2D(pool_size=(2, 2))(x)
         x = keras.layers.Conv2D(64, kernel_size=(3, 3), activation="relu")(x)
 
     # Add graph nodes for the second pipeline stage.
-    with ipu.keras.PipelineStage(1):
+    with keras.ipu.PipelineStage(1):
         x = keras.layers.MaxPooling2D(pool_size=(2, 2))(x)
         x = keras.layers.Flatten()(x)
         x = keras.layers.Dropout(0.5)(x)
@@ -289,4 +289,4 @@ with strategy.scope():
     )
     model.evaluate(x_test, y_test, batch_size=batch_size)
 
-# Generated:2022-09-28T12:49 Source:demo.py SST:0.0.8
+# Generated:2022-11-09T16:38 Source:demo.py SST:0.0.9

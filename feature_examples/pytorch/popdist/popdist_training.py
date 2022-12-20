@@ -11,7 +11,6 @@ import torchvision
 import poptorch
 import popdist
 import popdist.poptorch
-import horovod.torch as hvd
 
 
 class ModelWithLoss(torch.nn.Module):
@@ -35,8 +34,8 @@ def train(args):
     else:
         instance = 0
 
-    opts_train = create_options(args, train=True)
-    data_train = load_data(args, opts_train, train=True)
+    opts = create_options(args)
+    data_train = load_data(args, opts, train=True)
     model = ModelWithLoss()
 
     # Training the model.
@@ -49,7 +48,7 @@ def train(args):
     )
     poptorch_model = poptorch.trainingModel(
         model,
-        opts_train,
+        opts,
         optimizer=optimizer,
     )
 
@@ -67,14 +66,10 @@ def train(args):
     # this is useful for testing purposes.
     torch.save(model.state_dict(), f"checkpoint-instance-{instance}.pt")
 
-    # Validation in a single process.
-    if popdist.isPopdistEnvSet() and instance != 0:
-        return
-
-    opts_validation = create_options(args, train=False)
-    data_validation = load_data(args, opts_validation, train=False)
+    # Validation
+    data_validation = load_data(args, opts, train=False)
     model.eval()
-    poptorch_model = poptorch.inferenceModel(model, opts_validation)
+    poptorch_model = poptorch.inferenceModel(model, opts)
 
     logging.info("Validating the model...")
     num_correct_predictions = 0
@@ -86,12 +81,7 @@ def train(args):
     logging.info(f"Validation accuracy: {accuracy}")
 
 
-def create_options(args, train):
-    if not train:
-        # We will validate the model in a single process so no need for
-        # popdist-based options.
-        return poptorch.Options()
-
+def create_options(args):
     if popdist.isPopdistEnvSet():
         opts = popdist.poptorch.Options()
         # When using the dataloader with 'auto_distributed_partitioning=True'
@@ -171,5 +161,5 @@ if __name__ == "__main__":
     parser.add_argument("--dataloader-workers", type=int, default=5)
     parser.add_argument("--seed", type=int, default=0)
     if popdist.isPopdistEnvSet():
-        hvd.init()
+        popdist.init()
     train(parser.parse_args())

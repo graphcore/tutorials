@@ -97,7 +97,7 @@ subprocess.run(["python3", "popart_mnist.py"])
 ## Using the Python API
 
 In this tutorial we use `libpva` to access PVTI profiling information. Refer to
-the [libpva Python API documentation](https://docs.graphcore.ai/projects/libpva/en/3.0.0/api-python.html)
+the [libpva Python API documentation](https://docs.graphcore.ai/projects/libpva/en/3.1.0/api-python.html)
 for more information.
 
 """
@@ -234,6 +234,6 @@ for a feature-rich, navigable graphical view over the trace data.
 
 `libpva` also has a C++ API that is very similar to the Python API. For more
 information about the C++ API, refer to the
-[PopVision Analysis C++ API Documentation](https://docs.graphcore.ai/projects/libpva/en/3.0.0/api-cpp.html).
+[PopVision Analysis C++ API Documentation](https://docs.graphcore.ai/projects/libpva/en/3.1.0/api-cpp.html).
 
 """

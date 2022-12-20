@@ -6,15 +6,15 @@
 This tutorial provides an introduction on how to run Keras models on IPUs, and
 features that allow you to fully utilise the capability of the IPU. Please refer
 to the [TensorFlow 2 documentation - Keras with
-IPUs](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/3.0.0/tensorflow/keras_tf2.html)
+IPUs](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/3.1.0/tensorflow/keras_tf2.html)
 and the TensorFlow 2 Keras API reference sections on [IPU
-extensions](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/3.0.0/tensorflow/api.html#module-tensorflow.python.ipu.keras.extensions),
+extensions](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/3.1.0/tensorflow/api.html#module-tensorflow.python.ipu.keras.extensions),
 and IPU-specific [Keras
-layers](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/3.0.0/tensorflow/api.html#keras-layers),
+layers](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/3.1.0/tensorflow/api.html#keras-layers),
 [Keras
-losses](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/3.0.0/tensorflow/api.html#module-tensorflow.python.ipu.keras.losses)
+losses](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/3.1.0/tensorflow/api.html#module-tensorflow.python.ipu.keras.losses)
 and [Keras
-optimizers](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/3.0.0/tensorflow/api.html#module-tensorflow.python.ipu.keras.optimizers)
+optimizers](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/3.1.0/tensorflow/api.html#module-tensorflow.python.ipu.keras.optimizers)
 for full details of all available features.
 
 Requirements:
@@ -142,18 +142,18 @@ _________________________________________________________________
 
 Training
 Epoch 1/3
-938/938 [==============================] - 10s 10ms/step - loss: 0.9983 - accuracy: 0.6851
+938/938 [==============================] - 13s 13ms/step - loss: 1.0487 - accuracy: 0.6660
 Epoch 2/3
-938/938 [==============================] - 10s 11ms/step - loss: 0.3203 - accuracy: 0.9039
+938/938 [==============================] - 11s 11ms/step - loss: 0.3175 - accuracy: 0.9047
 Epoch 3/3
-938/938 [==============================] - 10s 11ms/step - loss: 0.2317 - accuracy: 0.9306
+938/938 [==============================] - 10s 11ms/step - loss: 0.2272 - accuracy: 0.9321
 
 Evaluation
-157/157 [==============================] - 1s 4ms/step - loss: 0.1391 - accuracy: 0.9596
+157/157 [==============================] - 1s 4ms/step - loss: 0.1376 - accuracy: 0.9609
 ```
 
 ```output
-[0.13906019926071167, 0.9595999717712402]
+[0.13762961328029633, 0.9609000086784363]
 ```
 
 #### Running the example on the IPU
@@ -230,7 +230,7 @@ ipu_config.configure_ipu_system()
 
 This is all we need to get a small model up and running, though a full list of
 configuration options is available in the [API
-documentation](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/3.0.0/tensorflow/api.html#tensorflow.python.ipu.config.IPUConfig).
+documentation](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/3.1.0/tensorflow/api.html#tensorflow.python.ipu.config.IPUConfig).
 
 ##### 4. Specify IPU strategy
 
@@ -243,7 +243,7 @@ strategy = ipu.ipu_strategy.IPUStrategy()
 The `tf.distribute.Strategy` is an API to distribute training and inference
 across multiple devices. `IPUStrategy` is a subclass which targets a system
 with one or more IPUs attached. For a multi-system configuration, the
-[PopDistStrategy](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/3.0.0/tensorflow/api.html#tensorflow.python.ipu.horovod.popdist_strategy.PopDistStrategy)
+[PopDistStrategy](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/3.1.0/tensorflow/api.html#tensorflow.python.ipu.horovod.popdist_strategy.PopDistStrategy)
 should be used, in conjunction with our PopDist library.
 
 > To see an example of how to distribute training and inference over multiple
@@ -305,20 +305,20 @@ Training
 INFO:tensorflow:The provided set of data has an unknown size. This can result in runtime errors if not enough data is provided during execution.
 INFO:tensorflow:The model `model_1` has been configured with only 1 steps per execution. Consider increasing the value for the `steps_per_execution` argument passed to the `compile()` method to improve performance.
 Epoch 1/3
-937/937 [==============================] - 45s 3ms/step - loss: 0.9730 - accuracy: 0.6975
+937/937 [==============================] - 35s 3ms/step - loss: 1.0539 - accuracy: 0.6629
 INFO:tensorflow:The model `model_1` has been configured with only 1 steps per execution. Consider increasing the value for the `steps_per_execution` argument passed to the `compile()` method to improve performance.
 Epoch 2/3
-937/937 [==============================] - 3s 3ms/step - loss: 0.2951 - accuracy: 0.9121
+937/937 [==============================] - 3s 3ms/step - loss: 0.2998 - accuracy: 0.9098
 INFO:tensorflow:The model `model_1` has been configured with only 1 steps per execution. Consider increasing the value for the `steps_per_execution` argument passed to the `compile()` method to improve performance.
 Epoch 3/3
-937/937 [==============================] - 3s 3ms/step - loss: 0.2167 - accuracy: 0.9354
+937/937 [==============================] - 3s 3ms/step - loss: 0.2170 - accuracy: 0.9358
 
 Evaluation
 WARNING:tensorflow:x is of type `np.ndarray`. This will be cast to `tf.Tensor` during every call to: `fit()`, `predict()` and `evaluate()`. If you plan to call any of these functions multiple times in your program, it is recommended to pre-emptively cast to `tf.Tensor` to avoid the repeated computation.
 WARNING:tensorflow:y is of type `np.ndarray`. This will be cast to `tf.Tensor` during every call to: `fit()` and `evaluate()`. If you plan to call any of these functions multiple times in your program, it is recommended to pre-emptively cast to `tf.Tensor` to avoid the repeated computation.
 INFO:tensorflow:The provided set of data has an unknown size. This can result in runtime errors if not enough data is provided during execution.
 INFO:tensorflow:The model `model_1` has been configured with only 1 steps per execution. Consider increasing the value for the `steps_per_execution` argument passed to the `compile()` method to improve performance.
-156/156 [==============================] - 19s 3ms/step - loss: 0.1321 - accuracy: 0.9616
+156/156 [==============================] - 14s 3ms/step - loss: 0.1307 - accuracy: 0.9629
 ```
 
 Note that the function `model_fn()` can be readily reused, and all we really
@@ -344,7 +344,7 @@ compilation should be less significant.
 
 >To avoid recompiling the same code every time a TensorFlow process is started,
 >you can [turn on caching of the
->executable](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/3.0.0/tensorflow/compiling.html#compiling-and-pre-compiling-executables).
+>executable](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/3.1.0/tensorflow/compiling.html#compiling-and-pre-compiling-executables).
 
 When running the above code, you may also notice a warning regarding
 `steps_per_execution`. This will be addressed in the next section.
@@ -452,15 +452,15 @@ _________________________________________________________________
 Training
 INFO:tensorflow:The provided set of data has an unknown size. This can result in runtime errors if not enough data is provided during execution.
 Epoch 1/3
-937/937 [==============================] - 40s 42ms/step - loss: 1.0427 - accuracy: 0.6705
+937/937 [==============================] - 30s 32ms/step - loss: 0.9416 - accuracy: 0.7018
 Epoch 2/3
-937/937 [==============================] - 0s 223us/step - loss: 0.3087 - accuracy: 0.9064
+937/937 [==============================] - 0s 175us/step - loss: 0.3100 - accuracy: 0.9070
 Epoch 3/3
-937/937 [==============================] - 0s 223us/step - loss: 0.2243 - accuracy: 0.9331
+937/937 [==============================] - 0s 166us/step - loss: 0.2238 - accuracy: 0.9333
 
 Evaluation
 INFO:tensorflow:The provided set of data has an unknown size. This can result in runtime errors if not enough data is provided during execution.
-156/156 [==============================] - 18s 118ms/step - loss: 0.1346 - accuracy: 0.9618
+156/156 [==============================] - 14s 92ms/step - loss: 0.1389 - accuracy: 0.9606
 ```
 
 Running this code, the model trains much faster.
@@ -578,15 +578,15 @@ Training
 INFO:tensorflow:The provided set of data has an unknown size. This can result in runtime errors if not enough data is provided during execution.
 INFO:tensorflow:Training is distributed across 2 replicas, your effective batch size is 128.
 Epoch 1/3
-468/468 [==============================] - 40s 85ms/step - loss: 1.0007 - accuracy: 0.6824
+468/468 [==============================] - 31s 66ms/step - loss: 1.0123 - accuracy: 0.6814
 Epoch 2/3
-468/468 [==============================] - 0s 261us/step - loss: 0.3135 - accuracy: 0.9040
+468/468 [==============================] - 0s 226us/step - loss: 0.3014 - accuracy: 0.9072
 Epoch 3/3
-468/468 [==============================] - 0s 257us/step - loss: 0.2223 - accuracy: 0.9333
+468/468 [==============================] - 0s 219us/step - loss: 0.2333 - accuracy: 0.9297
 
 Evaluation
 INFO:tensorflow:The provided set of data has an unknown size. This can result in runtime errors if not enough data is provided during execution.
-78/78 [==============================] - 19s 241ms/step - loss: 0.1335 - accuracy: 0.9613
+78/78 [==============================] - 14s 182ms/step - loss: 0.1419 - accuracy: 0.9581
 ```
 
 With replication, the model trains even faster.
@@ -619,7 +619,7 @@ the amount of time spent in the main execution phase, improving the utilisation
 of the IPUs and speeding up computation.
 
 Another technique to help pipelining efficiency on the IPU is
-[_gradient accumulation_](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/3.0.0/tensorflow/perf_training.html#id3).
+[_gradient accumulation_](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/3.1.0/tensorflow/perf_training.html#id3).
 With gradient accumulation, instead of updating the weights between each
 mini-batch, forward and backward passes are performed on several mini-batches,
 while keeping a cumulative sum of the gradients. A weight update is applied
@@ -638,11 +638,9 @@ models with batch sizes which would not fit directly in the memory of the IPU.
 
 To learn more about about pipelining you may want to read [the relevant section
 of the Technical Note on Model Parallelism in
-TensorFlow](https://docs.graphcore.ai/projects/tf-model-parallelism/en/3.0.0/pipelining.html),
+TensorFlow](https://docs.graphcore.ai/projects/tf-model-parallelism/en/3.1.0/pipelining.html),
 our [pipelining documentation specific to
-TensorFlow](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/3.0.0/tensorflow/perf_training.html#pipelined-training),
-or complete [the TensorFlow 1 pipelining
-tutorial](../../tensorflow1/pipelining/README.md).
+TensorFlow](https://docs.graphcore.ai/projects/tensorflow-user-guide/en/3.1.0/tensorflow/perf_training.html#pipelined-training).
 
 In this final part of the tutorial, we will pipeline our model over two stages.
 We will need to change the value of `num_replicas`, and create a variable for
@@ -664,7 +662,7 @@ be divisible by `(number of pipeline stages) * 2`. When using the interleaved
 schedule, `gradient_accumulation_steps_per_replica` must be divisible by
 `(number of pipeline stages)`. You can read more about the specifics of the
 different pipeline schedules in [the relevant section of the technical note on
-Model parallelism with TensorFlow](https://docs.graphcore.ai/projects/tf-model-parallelism/en/3.0.0/pipelining.html#pipeline-scheduling).
+Model parallelism with TensorFlow](https://docs.graphcore.ai/projects/tf-model-parallelism/en/3.1.0/pipelining.html#pipeline-scheduling).
 
 If we use more than two IPUs, the model will be automatically replicated to fill
 up the requested number of IPUs. For example, if we select 8 IPUs for our 2-IPU
@@ -707,13 +705,13 @@ def model_fn():
     input_layer = keras.Input(shape=input_shape)
 
     # Add graph nodes for the first pipeline stage.
-    with ipu.keras.PipelineStage(0):
+    with keras.ipu.PipelineStage(0):
         x = keras.layers.Conv2D(32, kernel_size=(3, 3), activation="relu")(input_layer)
         x = keras.layers.MaxPooling2D(pool_size=(2, 2))(x)
         x = keras.layers.Conv2D(64, kernel_size=(3, 3), activation="relu")(x)
 
     # Add graph nodes for the second pipeline stage.
-    with ipu.keras.PipelineStage(1):
+    with keras.ipu.PipelineStage(1):
         x = keras.layers.MaxPooling2D(pool_size=(2, 2))(x)
         x = keras.layers.Flatten()(x)
         x = keras.layers.Dropout(0.5)(x)
@@ -768,9 +766,6 @@ with strategy.scope():
 
 ```output
 Keras MNIST example, running on IPU with pipelining
-WARNING:tensorflow:From <ipython-input-1-bfb01e0ac1fe>:6: PipelineStage.__init__ (from tensorflow.python.ipu.keras.extensions.functional_extensions) is deprecated and will be removed in a future version.
-Instructions for updating:
-Use `tf.keras` instead of `tf.python.keras`.
 Model: "model_4"
 _________________________________________________________________
 Layer (type)                 Output Shape              Param #
@@ -800,17 +795,17 @@ Training
 INFO:tensorflow:The provided set of data has an unknown size. This can result in runtime errors if not enough data is provided during execution.
 INFO:tensorflow:Training is and accumulating 8 batches per optimizer step, your effective batch size is 512.
 Epoch 1/3
-936/936 [==============================] - 50s 54ms/step - loss: 1.0178 - accuracy: 0.6744
+936/936 [==============================] - 36s 39ms/step - loss: 1.1307 - accuracy: 0.6377
 Epoch 2/3
-936/936 [==============================] - 0s 252us/step - loss: 0.3096 - accuracy: 0.9050
+936/936 [==============================] - 0s 212us/step - loss: 0.3103 - accuracy: 0.9044
 Epoch 3/3
-936/936 [==============================] - 0s 254us/step - loss: 0.2231 - accuracy: 0.9327
+936/936 [==============================] - 0s 208us/step - loss: 0.2336 - accuracy: 0.9282
 
 Evaluation
 INFO:tensorflow:The provided set of data has an unknown size. This can result in runtime errors if not enough data is provided during execution.
 WARNING:tensorflow:offload_weight_update_variables will have no effect since this pipeline is in inference.
 WARNING:tensorflow:offload_weight_update_variables will have no effect since this pipeline is in inference.
-152/152 [==============================] - 24s 159ms/step - loss: 0.1706 - accuracy: 0.9219
+152/152 [==============================] - 17s 113ms/step - loss: 0.1546 - accuracy: 0.9375
 ```
 
 Within the scope of an `IPUStrategy`, IPU-specific methods such as
@@ -821,4 +816,4 @@ interleaved schedule here by changing `Grouped` to `Interleaved`.
 The file `completed_demos/completed_demo_pipelining.py` shows what the code
 looks like after the above changes are made.
 
-Generated:2022-09-28T12:44 Source:demo.py SDK:3.0.0+1145 SST:0.0.8
+Generated:2022-11-09T16:34 Source:demo.py SDK:3.1.0-EA.1+1177 SST:0.0.9

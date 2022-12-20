@@ -14,7 +14,7 @@ In this tutorial, you will learn how to:
 - Use the Graphcore model cards found on the [Graphcore organisation page on Hugging Face](https://huggingface.co/Graphcore) and reuse checkpoints and config files released by Graphcore.
 - Maximise IPU utilisation for your specific machine by overriding runtime parameters in the `IPUconfig` object made available in the model cards.
 
-If this is your first time using IPUs, read the [IPU Programmer's Guide](https://docs.graphcore.ai/projects/ipu-programmers-guide/en/3.0.0/) to learn the basic concepts.
+If this is your first time using IPUs, read the [IPU Programmer's Guide](https://docs.graphcore.ai/projects/ipu-programmers-guide/en/3.1.0/) to learn the basic concepts.
 To run your own PyTorch model on the IPU see the [PyTorch basics tutorial](../basics), or to see all existing Graphcore models available from Hugging Face go to the [Graphcore organisation page](https://huggingface.co/Graphcore).
 
 ## How to run this tutorial

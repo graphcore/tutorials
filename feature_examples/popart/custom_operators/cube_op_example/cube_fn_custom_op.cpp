@@ -351,7 +351,7 @@ auto main(int argc, char **argv) -> int {
 
   // Get a device, depending on the input arguments
   std::shared_ptr<popart::DeviceInfo> device;
-  auto deviceManager = popart::DeviceManager::createDeviceManager();
+  auto &deviceManager = popart::DeviceManager::createDeviceManager();
   if (deviceIsIpu) {
     device = deviceManager.acquireAvailableDevice(1, IPU_NUM_TILES);
   } else {

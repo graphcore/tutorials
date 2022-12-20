@@ -5,7 +5,6 @@ from tensorflow.python.ipu import utils
 from tensorflow.keras import layers
 from tensorflow.keras import optimizers
 from tensorflow.python.ipu import config
-from tensorflow.python.ipu import keras
 from tensorflow.python.ipu import ipu_strategy
 import numpy as np
 import tensorflow as tf

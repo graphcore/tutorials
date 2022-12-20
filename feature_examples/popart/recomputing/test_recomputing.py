@@ -7,12 +7,15 @@ import argparse
 import pva
 
 
-class TestRecomputingPopART(object):
+class TestRecomputingPopART:
     """Tests for recomputing PopART code example"""
 
     @pytest.mark.ipus(1)
     @pytest.mark.category1
-    def test_manual_recomputing_use_less_memory(self):
+    def test_manual_recomputing_use_less_memory(self, monkeypatch):
+        monkeypatch.setenv(
+            "POPLAR_ENGINE_OPTIONS", '{"debug.retainDebugInformation": true}'
+        )
         args = argparse.Namespace(test=True, export=None, recomputing="ON")
         session = recomputing.main(args)
 
@@ -36,7 +39,10 @@ class TestRecomputingPopART(object):
 
     @pytest.mark.ipus(1)
     @pytest.mark.category1
-    def test_auto_recomputing(self):
+    def test_auto_recomputing(self, monkeypatch):
+        monkeypatch.setenv(
+            "POPLAR_ENGINE_OPTIONS", '{"debug.retainDebugInformation": true}'
+        )
         args = argparse.Namespace(test=True, export=None, recomputing="AUTO")
         session = recomputing.main(args)
 

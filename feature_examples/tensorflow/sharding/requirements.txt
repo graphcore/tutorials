@@ -1,3 +1,0 @@
-numpy~=1.18.0 # Maximum supported by tensorflow1
-pytest~=6.2
-pytest-pythonpath==0.7.3

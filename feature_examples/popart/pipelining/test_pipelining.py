@@ -7,12 +7,15 @@ import argparse
 import pva
 
 
-class TestPipeliningPopART(object):
+class TestPipeliningPopART:
     """Tests for pipelining popART code example"""
 
     @pytest.mark.ipus(2)
     @pytest.mark.category1
-    def test_pipelining_running(self):
+    def test_pipelining_running(self, monkeypatch):
+        monkeypatch.setenv(
+            "POPLAR_ENGINE_OPTIONS", '{"debug.retainDebugInformation": true}'
+        )
         args = argparse.Namespace(test=True, export=None, no_pipelining=False)
         session = pipelining.main(args)
 
@@ -22,8 +25,10 @@ class TestPipeliningPopART(object):
 
     @pytest.mark.ipus(2)
     @pytest.mark.category1
-    def test_without_pipelining_running(self):
-
+    def test_without_pipelining_running(self, monkeypatch):
+        monkeypatch.setenv(
+            "POPLAR_ENGINE_OPTIONS", '{"debug.retainDebugInformation": true}'
+        )
         args = argparse.Namespace(test=True, export=None, no_pipelining=True)
         session = pipelining.main(args)
 

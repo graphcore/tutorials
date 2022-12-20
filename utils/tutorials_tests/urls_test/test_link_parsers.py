@@ -147,16 +147,15 @@ def test_rst_parser_get_all_links():
         "the IPU's architecture by reading the `IPU Programmer's Guide",
         "<https://docs.graphcore.ai/projects/model.html>`_. You can ",
         "A brief `summary`_ and a list of additional resources are included at the end this tutorial.",
-        "Graphcore also provides tutorials using Python deep learning frameworks `PyTorch <../../pytorch/>`_,",
-        "`TensorFlow 1 <../../tensorflow1/>`_, and `TensorFlow 2 <../../tensorflow2/>`_.",
+        "Graphcore also provides tutorials using Python deep learning frameworks `PyTorch <../../pytorch/>`_",
+        " and `TensorFlow 2 <../../tensorflow2/>`_.",
     ]
     parser = RstParser("test.rst")
     links = parser.get_all_links(file)
 
-    assert len(links) == 5
+    assert len(links) == 4
     assert "summary" in links
     assert "../../pytorch/" in links
-    assert "../../tensorflow1/" in links
     assert "../../tensorflow2/" in links
     assert "https://docs.graphcore.ai/projects/model.html" in links
 

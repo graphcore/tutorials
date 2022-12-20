@@ -54,10 +54,10 @@ def get_dataset():
 def get_model():
     input_layer = Input(shape=(80), dtype=tf.int32, batch_size=minibatch_size)
 
-    with ipu.keras.PipelineStage(0):
+    with tf.keras.ipu.PipelineStage(0):
         x = Embedding(max_features, 128)(input_layer)
 
-    with ipu.keras.PipelineStage(1):
+    with tf.keras.ipu.PipelineStage(1):
         x = LSTM(128, dropout=0.2)(x)
         x = Dense(1, activation="sigmoid")(x)
 

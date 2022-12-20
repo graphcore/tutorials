@@ -31,7 +31,7 @@ Note that the examples in this tutorial are targeting Poplar and, therefore, the
 We encourage the reader to execute the programs in the following examples and to analyse their output. Please note that this code is meant to be executed on real IPUs because the instrumentation needs to access IPU registers to measure cycles. For instructions on how to compile Poplar programs and a brief practical introduction to programming in Poplar please refer to [these Poplar tutorials](../../poplar) (when compiling, remember to also link in the _libpva_ library using `-lpva`).
 
 ## Example 1: Usage of the Block program
-The main option to request the lightweight profiler to focus on a certain area of code is to use the `Block` program class. You can find it in [Poplar's public interface](https://docs.graphcore.ai/projects/poplar-api/en/3.0.0/poplar/Program.html).
+The main option to request the lightweight profiler to focus on a certain area of code is to use the `Block` program class. You can find it in [Poplar's public interface](https://docs.graphcore.ai/projects/poplar-api/en/3.1.0/poplar/Program.html).
 ```cpp
 /** A program to scope another program.
  * This can be used together with the Poplar Engine option `profiler.blocks.filter` to

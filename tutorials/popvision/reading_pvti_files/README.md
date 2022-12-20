@@ -73,7 +73,7 @@ e.g. "Tue_Nov_24_11:59:17_2020_GMT_4532.pvti".
 ## Using the Python API
 
 In this tutorial we use `libpva` to access PVTI profiling information. Refer to
-the [libpva Python API documentation](https://docs.graphcore.ai/projects/libpva/en/3.0.0/api-python.html)
+the [libpva Python API documentation](https://docs.graphcore.ai/projects/libpva/en/3.1.0/api-python.html)
 for more information.
 
 ### Loading a PVTI file
@@ -225,6 +225,6 @@ for a feature-rich, navigable graphical view over the trace data.
 
 `libpva` also has a C++ API that is very similar to the Python API. For more
 information about the C++ API, refer to the
-[PopVision Analysis C++ API Documentation](https://docs.graphcore.ai/projects/libpva/en/3.0.0/api-cpp.html).
+[PopVision Analysis C++ API Documentation](https://docs.graphcore.ai/projects/libpva/en/3.1.0/api-cpp.html).
 
 Generated:2022-09-08T11:14 Source:walkthrough.py SDK:3.1.0-EA.1+1118 SST:0.0.8

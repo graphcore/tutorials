@@ -1,8 +1,8 @@
 pandas
+torchvision==0.14.0
 transformers==4.20.1
 tokenizers<0.13
 optimum-graphcore
 datasets
 matplotlib
 scikit-learn
-torchvision==0.11.1

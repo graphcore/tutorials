@@ -2,11 +2,11 @@
 
 from tensorflow.python.data.ops.dataset_ops import Dataset
 from tensorflow.python.ipu import utils
+from tensorflow.keras import ipu
 from tensorflow.keras import layers
 from tensorflow.python.ipu import config
 from tensorflow.python.ipu import ipu_strategy
 import numpy as np
-from tensorflow.python import ipu
 import tensorflow as tf
 
 # default data_format is 'channels_last'
@@ -23,10 +23,10 @@ dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)
 def my_model():
     input_layer = layers.Input(shape=(128, 128, 3), dtype=tf.float32, batch_size=2)
 
-    with ipu.keras.PipelineStage(0):
+    with ipu.PipelineStage(0):
         x = layers.Conv2D(128, 1)(input_layer)
 
-    with ipu.keras.PipelineStage(1):
+    with ipu.PipelineStage(1):
         x = layers.Conv2D(128, 1)(x)
 
     return tf.keras.Model(input_layer, x)

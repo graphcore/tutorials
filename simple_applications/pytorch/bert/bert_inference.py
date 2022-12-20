@@ -3,8 +3,6 @@
 import transformers
 import torch
 import poptorch
-
-
 import argparse
 
 
@@ -89,8 +87,9 @@ if __name__ == "__main__":
         attention_batch = torch.tensor(batched_encoding["attention_mask"])
 
         # Execute on IPU.
-        start_score_pop, end_scores_pop = inference_model(input_batch, attention_batch)
-
+        start_score_pop, end_scores_pop = inference_model(
+            input_batch, attention_batch, return_dict=False
+        )
         # Process outputs.
         for i, (start_score, end_score) in enumerate(
             zip(start_score_pop, end_scores_pop)

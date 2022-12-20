@@ -11,7 +11,7 @@ please raise a Github issue or contact us at
 The latest version of the documentation for the Poplar software stack, and other
 developer resources, is available at <https://www.graphcore.ai/developer>.
 
-> The code presented here requires using Poplar SDK 3.0. Please check other
+> The code presented here requires using Poplar SDK 3.1. Please check other
 > branches of this repository for code compatible with previous releases.
 
 Please install and enable the Poplar SDK following the instructions in the
@@ -32,8 +32,6 @@ using the Poplar SDK and Graphcore tools.
   Poplar graph programming framework and the PopLibs libraries.
 * [tutorials/pytorch](tutorials/pytorch) - A set of tutorials to introduce the
   PyTorch framework support for the IPU.
-* [tutorials/tensorflow1](tutorials/tensorflow1) - A set of tutorials to
-  introduce the TensorFlow 1 framework support for the IPU.
 * [tutorials/tensorflow2](tutorials/tensorflow2) - A set of tutorials to
   introduce the TensorFlow 2 framework support for the IPU.
 * [tutorials/popvision](tutorials/popvision) - A set of tutorials to introduce
@@ -65,7 +63,7 @@ in each folder for details on how to use these applications.
 
 The [kernel_benchmarks/](kernel_benchmarks) folder contains code for
 benchmarking the performance of some selected types of neural network layers on
-the IPU, using TensorFlow or our PopART framework.
+the IPU, using our PopART framework.
 
 ### Code used in tech notes, videos and blogs
 

@@ -44,49 +44,6 @@ Demonstrate advanced features of Poplar:
   executables, moving I/O into separate Poplar programs, and using our PopLibs
   framework.
 
-## TensorFlow 1
-
-Debugging and analysis:
-
-- [Inspecting tensors](tensorflow/inspecting_tensors): an example that shows how
-  outfeed queues can be used to return activation and gradient tensors to the
-  host for inspection.
-
-Efficiently use multiple IPUs and handle large models:
-
-- [Pipelining](tensorflow/pipelining): a simple model made of two dense layers,
-  pipelined over two IPUs.
-- [PopDist](tensorflow/popdist): an example showing how to make an application
-  ready for distributed training and inference by using the PopDist library, and
-  how to launch it with the PopRun distributed launcher.
-- [Replication](tensorflow/replication): an example showing how to use
-  replication in TensorFlow to train a simple CIFAR-10 convolution model.
-- [Sharding](tensorflow/sharding): a simple model sharded on two IPUs.
-- [Concurrent Pipeline](tensorflow/concurrent_pipeline): a simple model that
-  uses a concurrent pipeline (where single pipeline stages use more than a
-  single IPU to allow tensor parallel (sharded) computations to be defined in
-  that stage).
-
-Use estimators:
-
-- [IPU Estimator](tensorflow/ipuestimator): an example showing how to use the
-  IPUEstimator to train and evaluate a simple CNN.
-
-Control IPU use:
-
-- [Connection Type](tensorflow/connection_type): a demonstration of controlling
-  if and when an IPU device is acquired using the `device_connection.type`
-  configuration option.
-
-Define custom operators:
-
-- [Custom operator](tensorflow/custom_op): a simple custom operator that adds
-  two vectors of arbitrary size, created in Poplar and used in a TensorFlow
-  model.
-- [Custom gradient](tensorflow/custom_gradient): a custom operator for the
-  batched dot product, defining both the forward operator and its gradient in
-  Poplar, then used in a TensorFlow model.
-
 ## TensorFlow 2
 
 Debugging and analysis:
@@ -94,12 +51,6 @@ Debugging and analysis:
 - [Inspecting tensors](tensorflow2/inspecting_tensors): an example that shows
   how outfeed queues can be used to return activation and gradient tensors to
   the host for inspection.
-
-Efficiently use multiple IPUs and handle large models:
-
-- [PopDist](tensorflow/popdist): an example showing how to make an application
-  ready for distributed training and inference by using the PopDist library, and
-  how to launch it with the PopRun distributed launcher.
 
 Use estimators:
 

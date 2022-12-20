@@ -1,8 +1,0 @@
-numpy~=1.18.0 # Maximum supported by tensorflow1
-pybind11
-pytest==6.2.5
-pytest-pythonpath==0.7.3
-jax
-jaxlib
-dm-haiku
-filelock

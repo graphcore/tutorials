@@ -34,14 +34,14 @@ def make_split_layer_model(args):
     input_layer = tf.keras.layers.Input(shape=(args.seq_len, 512))
 
     # We need to use a pipeline even if only a single IPU is being used.
-    with ipu.keras.PipelineStage(0):
+    with tf.keras.ipu.PipelineStage(0):
         x = split_lstm(
             seq_len=args.seq_len,
             checkpoints=args.checkpoints,
             inputs=input_layer,
             num_units=256,
         )
-    with ipu.keras.PipelineStage(1):
+    with tf.keras.ipu.PipelineStage(1):
         x = tf.keras.layers.Dense(1)(x)
 
     model = tf.keras.Model(inputs=input_layer, outputs=x)

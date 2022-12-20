@@ -102,11 +102,11 @@ def create_pipeline_model(
     """
     input_layer = keras.layers.Input(shape=(28, 28, 1), dtype=tf.float32, batch_size=32)
 
-    with ipu.keras.PipelineStage(0):
+    with keras.ipu.PipelineStage(0):
         x = keras.layers.Flatten()(input_layer)
         x = keras.layers.Dense(256, activation="relu", name="Dense_256")(x)
 
-    with ipu.keras.PipelineStage(1):
+    with keras.ipu.PipelineStage(1):
         x = keras.layers.Dense(128, activation="relu", name="Dense_128")(x)
         x = outfeed_layers.MaybeOutfeed(
             multi_activations_outfeed_queue, final_outfeed=False, name="Dense_128_acts"

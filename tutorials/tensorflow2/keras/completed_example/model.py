@@ -41,13 +41,13 @@ def pipeline_model_fn(input_shape, num_classes):
     input_layer = keras.Input(shape=input_shape)
 
     # Add graph nodes to the first pipeline stage.
-    with ipu.keras.PipelineStage(0):
+    with keras.ipu.PipelineStage(0):
         x = keras.layers.Conv2D(32, kernel_size=(3, 3), activation="relu")(input_layer)
         x = keras.layers.MaxPooling2D(pool_size=(2, 2))(x)
         x = keras.layers.Conv2D(64, kernel_size=(3, 3), activation="relu")(x)
 
     # Add graph nodes to the second pipeline stage.
-    with ipu.keras.PipelineStage(1):
+    with keras.ipu.PipelineStage(1):
         x = keras.layers.MaxPooling2D(pool_size=(2, 2))(x)
         x = keras.layers.Flatten()(x)
         x = keras.layers.Dropout(0.5)(x)
