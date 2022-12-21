@@ -20,7 +20,7 @@ It provides a generic interface on which the other frameworks are built.
 - [Tutorial 5: Matrix-vector multiplication](poplar/tut5_matrix_vector)
 - [Tutorial 6: Matrix-vector multiplication optimisation](poplar/tut6_matrix_vector_opt)
 
-## TensorFlow 2 [![Gradient](https://assets.paperspace.io/img/gradient-badge.svg)](https://console.paperspace.com/github/graphcore/tutorials?machine=Free-IPU-POD16&container=graphcore%2Ftensorflow-jupyter%3A2-amd-2.6.0-ubuntu-20.04-20220804)
+## TensorFlow 2 [![Gradient](https://assets.paperspace.io/img/gradient-badge.svg)](https://ipu.dev/3FCtttw)
 
 Getting started with the IPU:
 
@@ -35,7 +35,7 @@ Debugging and analysis:
 
 - [TensorFlow 2: How to use TensorBoard](tensorflow2/tensorboard)
 
-## PyTorch [![Gradient](https://assets.paperspace.io/img/gradient-badge.svg)](https://console.paperspace.com/github/graphcore/tutorials?machine=Free-IPU-POD16&container=graphcore%2Fpytorch-jupyter%3A2.6.0-ubuntu-20.04-20220804)
+## PyTorch [![Gradient](https://assets.paperspace.io/img/gradient-badge.svg)](https://ipu.dev/3uZ91yl)
 
 Getting started with the IPU:
 

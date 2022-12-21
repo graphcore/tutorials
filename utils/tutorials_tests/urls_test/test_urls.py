@@ -28,6 +28,7 @@ EXCEPTIONS_PEGGING = [
     "https://docs.pytest.org/en/latest/cache.html",
 ]
 
+
 def check_url_works(url: str, file_path: Path) -> Optional[Tuple[str, Path, str, int]]:
     """Check given `url` is responsive. If an error occurs return the error
     response string and code. Return `None` if good.
@@ -101,8 +102,7 @@ def test_links_are_pegged() -> None:
     failed_urls: List[str] = []
 
     for file_path in file_list:
-        with open(file_path, "r") as file:
-            lines = file.read().splitlines()
+        lines = file_path.read_text(encoding="utf-8").splitlines()
 
         parser = get_parser(file_path)
         links = parser.get_all_links(lines)
@@ -131,8 +131,7 @@ def test_all_links(test_urls: bool = True, force_full_build: bool = False) -> No
     failed_urls: List[str] = []
     for file_path in file_list:
         print("Processing ", file_path)
-        with open(file_path, "r") as file:
-            lines = file.read().splitlines()
+        lines = file_path.read_text(encoding="utf-8").splitlines()
 
         parser = get_parser(file_path)
         links = parser.get_all_links(lines)
