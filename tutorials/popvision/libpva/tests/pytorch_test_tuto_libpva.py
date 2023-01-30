@@ -21,7 +21,10 @@ def test_tutorial_code():
         "Version of Poplar used: ",
     ]
     with FileLock(__file__ + ".lock"):
-        testing_util.run_command("python3 walkthrough.py", working_path, expected_strings)
+        testing_util.run_command(
+            "python3 walkthrough.py", working_path, expected_strings
+        )
+
 
 @pytest.mark.ipus(2)
 @pytest.mark.category1

@@ -20,6 +20,16 @@ def test_notebook():
     ep.preprocess(nb, {"metadata": {"path": f"{TUTORIAL_ROOT_DIR}"}})
 
 
+@pytest.mark.ipus(4)
+@pytest.mark.category1
+def test_notebook_rg():
+    notebook_filename = TUTORIAL_ROOT_DIR / "replica_groupings.ipynb"
+    with open(notebook_filename) as f:
+        nb = nbformat.read(f, as_version=4)
+    ep = ExecutePreprocessor(timeout=600, kernel_name="python3")
+    ep.preprocess(nb, {"metadata": {"path": f"{TUTORIAL_ROOT_DIR}"}})
+
+
 @pytest.mark.ipus(2)
 @pytest.mark.category1
 def test_python_file():

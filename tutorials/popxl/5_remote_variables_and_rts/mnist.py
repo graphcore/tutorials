@@ -10,12 +10,15 @@ import numpy as np
 from time import time
 
 import popxl
+from popxl import ReplicaGrouping
 import popxl_addons as addons
 import popxl.ops as ops
 from typing import Union, Dict
 
 from popxl_addons.rts import reduce_replica_sharded_graph
 from popxl_addons.named_tensors import NamedTensors
+from popxl_addons import NamedVariableFactories
+from popxl_addons.named_replica_grouping import NamedReplicaGrouping
 from popxl_addons.rts import replica_sharded_spec
 
 np.random.seed(42)
@@ -67,32 +70,43 @@ def accuracy(predictions: np.ndarray, labels: np.ndarray):
 
 
 class Linear(addons.Module):
-    def __init__(self, out_features: int, bias: bool = True):
+    def __init__(
+        self,
+        out_features: int,
+        bias: bool = True,
+        replica_grouping: Optional[ReplicaGrouping] = None,
+    ):
         super().__init__()
         self.out_features = out_features
         self.bias = bias
+        self.replica_grouping = replica_grouping
 
     def build(self, x: popxl.Tensor) -> popxl.Tensor:
-        # add a state variable to the module
         w = self.add_variable_input(
             "weight",
             partial(np.random.normal, 0, 0.02, (x.shape[-1], self.out_features)),
             x.dtype,
+            replica_grouping=self.replica_grouping,
         )
         y = x @ w
         if self.bias:
-            b = self.add_variable_input("bias", partial(np.zeros, y.shape[-1]), x.dtype)
+            b = self.add_variable_input(
+                "bias",
+                partial(np.zeros, y.shape[-1]),
+                x.dtype,
+                replica_grouping=self.replica_grouping,
+            )
             y = y + b
         return y
 
 
 class Net(addons.Module):
-    def __init__(self, cache: Optional[addons.GraphCache] = None):
+    def __init__(self, rg: ReplicaGrouping, cache: Optional[addons.GraphCache] = None):
         super().__init__(cache=cache)
-        self.fc1 = Linear(512)
-        self.fc2 = Linear(512)
-        self.fc3 = Linear(512)
-        self.fc4 = Linear(10)
+        self.fc1 = Linear(512, replica_grouping=rg)
+        self.fc2 = Linear(512, replica_grouping=rg)
+        self.fc3 = Linear(512, replica_grouping=rg)
+        self.fc4 = Linear(10, replica_grouping=rg)
 
     def build(self, x: popxl.Tensor):
         x = x.reshape((-1, 28 * 28))
@@ -117,6 +131,7 @@ class Adam(addons.Module):
         self,
         var: popxl.TensorByRef,
         grad: popxl.Tensor,
+        replica_grouping: Optional[popxl.ReplicaGrouping] = None,
         *,
         lr: Union[float, popxl.Tensor],
         beta1: Union[float, popxl.Tensor] = 0.9,
@@ -131,16 +146,22 @@ class Adam(addons.Module):
 
         # Sharded inputs must be added with add_replica_sharded_variable_input
         if var.meta_shape:
+            # shard over factor can be automatically computed from the variable
+            shard_over = np.prod(var.meta_shape) // np.prod(var.shape)
             first_order = self.add_replica_sharded_variable_input(
                 "first_order",
                 partial(np.zeros, var.meta_shape),
                 first_order_dtype,
+                replica_grouping=replica_grouping,
+                shard_over=shard_over,
                 by_ref=True,
             )
             second_order = self.add_replica_sharded_variable_input(
                 "second_order",
                 partial(np.zeros, var.meta_shape),
                 popxl.float32,
+                replica_grouping=replica_grouping,
+                shard_over=shard_over,
                 by_ref=True,
             )
 
@@ -150,9 +171,14 @@ class Adam(addons.Module):
                 partial(np.zeros, var.shape),
                 first_order_dtype,
                 by_ref=True,
+                replica_grouping=replica_grouping,
             )
             second_order = self.add_variable_input(
-                "second_order", partial(np.zeros, var.shape), popxl.float32, by_ref=True
+                "second_order",
+                partial(np.zeros, var.shape),
+                popxl.float32,
+                by_ref=True,
+                replica_grouping=replica_grouping,
             )
 
         ops.var_updates.accumulate_moving_average_(first_order, grad, f=beta1)
@@ -190,16 +216,23 @@ A step consists in:
 """
 
 
-def remote_step(var: popxl.Tensor, grad: popxl.Tensor, optimizer: addons.Module, opts):
+def remote_step(
+    var: popxl.Tensor,
+    grad: popxl.Tensor,
+    optimizer: addons.Module,
+    opts,
+    shard_group: ReplicaGrouping,
+):
     facts, opt_graph = optimizer.create_graph(
-        replica_sharded_spec(var, threshold=opts.sharded_threshold),
-        replica_sharded_spec(grad, threshold=opts.sharded_threshold),
+        replica_sharded_spec(var, shard_over=shard_group),
+        replica_sharded_spec(grad, shard_over=shard_group),
         lr=opts.lr,
+        replica_grouping=popxl.gcg().ir.replica_grouping(group_size=opts.data_parallel),
     )
-
     # keep the state of the optimizer in remote buffers
+    shard_over = {n: rg.group_size for n, rg in get_shard_groups(opts, facts).items()}
     buffers = addons.named_variable_buffers(
-        facts, entries=1, sharded_threshold=opts.sharded_threshold
+        facts, entries=1, shard_over_dict=shard_over
     )
     # create graph for loading the state
     opt_load, names = addons.load_remote_graph(buffers, entries=1)
@@ -230,10 +263,11 @@ def optimizer_step(
     optimizer: addons.Module,
     accum_counter: popxl.Tensor,
     opts,
+    shard_groups: Dict,
 ):
 
     for name, var in variables.named_tensors.items():
-        remote_step(var, grads[var], optimizer, opts)
+        remote_step(var, grads[var], optimizer, opts, shard_groups[name])
 
     if accum_counter is not None:
         # Reset accumulators.
@@ -311,9 +345,31 @@ def test(test_session, test_data, input_streams, out_stream):
     print(f"Accuracy on test set: {sum_acc / len(test_data):0.2f}%")
 
 
+"""
+Build the replica groupings to be used for replicated tensor sharding.
+If the tensor has less elements than the threshold, the group_size will be 1
+so that no sharding happens. Otherwise, tensors will be sharded across the data
+parallel replicas.
+"""
+
+
+def get_shard_groups(opts, facts: NamedVariableFactories) -> NamedReplicaGrouping:
+    ir = popxl.gcg().ir
+
+    rts_groups = {}
+    for k, f in facts.to_dict().items():
+        size = np.prod(f.shape)
+        rg = f.replica_grouping
+        if size >= opts.sharded_threshold and size % rg.group_size == 0:
+            rts_groups[k] = rg
+        else:
+            rts_groups[k] = ir.replica_grouping(group_size=1)
+    # it is important to sort the tensor names.
+    return dict(sorted(rts_groups.items()))
+
+
 def train_program(opts):
-    ir = popxl.Ir()
-    ir.replication_factor = opts.data_parallel
+    ir = popxl.Ir(replication=opts.data_parallel)
 
     with ir.main_graph:
         # ----- Streams  -----
@@ -329,17 +385,18 @@ def train_program(opts):
         loss_stream = popxl.d2h_stream((), popxl.float32, "loss")
 
         # ----- Create graphs  -----
-
-        facts, fwd_graph = Net().create_graph(img_spec)
+        rg = ir.replica_grouping(group_size=opts.data_parallel)
+        facts, fwd_graph = Net(rg).create_graph(img_spec)
         variables = facts.init()
         bound_fwd = fwd_graph.bind(variables)
+        shard_groups = get_shard_groups(opts, facts)
 
         counter = None
         required_grads = fwd_graph.args.tensors
 
         if opts.gradient_accumulation > 1:
             bwd_facts, bwd_graph = addons.autodiff_with_accumulation(
-                fwd_graph, required_grads
+                fwd_graph, required_grads, replica_groupings=facts.replica_groupings
             )
             accumulated_grads = bwd_facts.init()
             counter = accumulated_grads.mean_accum_counter
@@ -386,8 +443,14 @@ def train_program(opts):
                 ]
                 grads = NamedTensors.pack(keys, grads)
                 # tensors whose elements exceed threshold will be reduce_scattered -> sharded
+                reduce_group = rg
                 grad_reduce, names = reduce_replica_sharded_graph(
-                    grads, "mean", threshold=opts.sharded_threshold
+                    grads,
+                    "mean",
+                    shard_groups=NamedReplicaGrouping.from_dict(
+                        get_shard_groups(opts, bwd_facts)
+                    ),
+                    replica_group=reduce_group,
                 )
                 grads = grad_reduce.bind(grads).call()
 
@@ -396,11 +459,10 @@ def train_program(opts):
                 names = []
                 for name, v in variables.named_tensors.items():
                     ir = popxl.gcg().ir
-                    if (
-                        v.nelms >= opts.sharded_threshold
-                        and v.nelms % ir.replication_factor == 0
-                    ):
-                        shard = ops.collectives.replica_sharded_slice(v)
+                    if shard_groups[name].group_size > 1:
+                        shard = ops.collectives.replica_sharded_slice(
+                            v, group=shard_groups[name]
+                        )
                     else:
                         shard = v
 
@@ -414,19 +476,23 @@ def train_program(opts):
             # ----- Optimizer  -----
 
             grads_dict = dict(zip(sharded_vars.tensors, grads))
-            optimizer = Adam(cache=True)
+            optimizer = Adam(cache=False)
             # the optimizer step will update the shards in place (sharded vars are TensorByRef inputs)
-            optimizer_step(sharded_vars, grads_dict, optimizer, counter, opts)
+            optimizer_step(
+                sharded_vars, grads_dict, optimizer, counter, opts, shard_groups
+            )
 
             # gather shards and copy into full tensor
             if opts.data_parallel > 1:
-                for name, v in enumerate(sharded_vars.tensors):
+                for name, v in sharded_vars.named_tensors.items():
                     if v.meta_shape:
                         # we need to gather the updated shards
-                        v_full = ops.collectives.replicated_all_gather(v)
+                        v_full = ops.collectives.replicated_all_gather(
+                            v, group=shard_groups[name]
+                        )
                         # and copy the updated value in the original full tensor
                         ops.var_updates.copy_var_update_(
-                            variables.tensors[name], v_full
+                            variables.named_tensors[name], v_full
                         )
 
     ir.num_host_transfers = opts.gradient_accumulation
@@ -449,7 +515,8 @@ def test_program(opts):
         in_t = ops.host_load(in_stream)
 
         # Create graphs
-        facts, graph = Net().create_graph(in_t)
+        rg = ir.replica_grouping(group_size=1)
+        facts, graph = Net(rg).create_graph(in_t)
 
         # Initialise variables
         variables = facts.init()
@@ -484,23 +551,22 @@ def main():
         "--lr", type=float, default=1e-3, help="learning rate (default: 1e-3)"
     )
     parser.add_argument(
-        "--data-parallel", type=int, default=4, help="data parallelism (default: 2)"
+        "--data-parallel", type=int, default=4, help="data parallelism (default: 4)"
     )
     parser.add_argument(
         "--gradient-accumulation",
         type=int,
         default=8,
-        help="gradient accumulation (default: 4)",
+        help="gradient accumulation (default: 8)",
     )
     parser.add_argument(
         "--sharded-threshold",
         type=int,
         default=512,
-        help="if the size of a tensor exceeds sharded-threshold the tensor will be sharded",
+        help="if the size of a tensor exceeds sharded-threshold the tensor will be sharded (default: 512)",
     )
 
     opts = parser.parse_args()
-
     train_global_batch_size = (
         opts.train_micro_batch_size * opts.gradient_accumulation * opts.data_parallel
     )

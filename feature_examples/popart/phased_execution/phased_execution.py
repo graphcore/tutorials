@@ -75,8 +75,8 @@ def create_model(phased_execution, batch_size, dsize, num_layers, dtype):
     print(f"Building {'phased' if phased_execution else 'sharded'} execution model.")
     # Compute the FLOPs/byte loaded from Streaming Memory
     if phased_execution:
-        FLOPs = 2 * batch_size * dsize**3
-        n_bytes = np.dtype(dtype).itemsize * dsize**2
+        FLOPs = 2 * batch_size * dsize ** 3
+        n_bytes = np.dtype(dtype).itemsize * dsize ** 2
         print(
             f"FLOPs / byte loaded for each phase from Streaming Memory: {int(FLOPs / n_bytes)}"
         )

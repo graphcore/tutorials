@@ -10,10 +10,12 @@ import numpy as np
 from time import time
 
 import popxl
+from popxl import ReplicaGrouping
 import popxl_addons as addons
 import popxl.ops as ops
 from typing import Union
 from popxl_addons.named_tensors import NamedTensors
+from popxl_addons.named_replica_grouping import NamedReplicaGrouping
 from popxl_addons.variable_factory import NamedVariableFactories
 from popxl_addons import (
     batch_serialise,
@@ -27,6 +29,7 @@ from popxl_addons.rts import (
 from popxl_addons.rts import reduce_replica_sharded_graph
 
 from popxl_addons.remote import (
+    NamedRemoteBuffers,
     named_variable_buffers,
     load_remote_graph,
     store_remote_graph,
@@ -82,11 +85,18 @@ def accuracy(predictions: np.ndarray, labels: np.ndarray):
 
 # includes gelu
 class Linear(addons.Module):
-    def __init__(self, out_features: int, bias: bool = True, gelu: bool = True):
+    def __init__(
+        self,
+        out_features: int,
+        bias: bool = True,
+        gelu: bool = True,
+        replica_grouping: Optional[ReplicaGrouping] = None,
+    ):
         super().__init__()
         self.out_features = out_features
         self.bias = bias
         self.gelu = gelu
+        self.rg = replica_grouping
 
     def build(self, x: popxl.Tensor) -> popxl.Tensor:
         # add a state variable to the module
@@ -94,11 +104,17 @@ class Linear(addons.Module):
             "weight",
             partial(np.random.normal, 0, 0.02, (x.shape[-1], self.out_features)),
             x.dtype,
+            replica_grouping=self.rg,
         )
         y = x @ w
         if self.bias:
             # add a state variable to the module
-            b = self.add_variable_input("bias", partial(np.zeros, y.shape[-1]), x.dtype)
+            b = self.add_variable_input(
+                "bias",
+                partial(np.zeros, y.shape[-1]),
+                x.dtype,
+                replica_grouping=self.rg,
+            )
             y = y + b
         if self.gelu:
             y = ops.gelu(y)
@@ -106,9 +122,20 @@ class Linear(addons.Module):
 
 
 class OutputLayerWithBwd(addons.Module):
-    def __init__(self, out_features: int, bias: bool = True, gelu: bool = True):
+    def __init__(
+        self,
+        out_features: int,
+        bias: bool = True,
+        gelu: bool = True,
+        replica_grouping: Optional[ReplicaGrouping] = None,
+    ):
         super().__init__()
-        self.linear = Linear(out_features=out_features, bias=bias, gelu=gelu)
+        self.linear = Linear(
+            out_features=out_features,
+            bias=bias,
+            gelu=gelu,
+            replica_grouping=replica_grouping,
+        )
 
     def build(self, x: popxl.Tensor, labels=popxl.Tensor) -> popxl.Tensor:
 
@@ -117,6 +144,7 @@ class OutputLayerWithBwd(addons.Module):
             fwd_graph,
             tensors_to_accumulate_grads=fwd_graph.args.tensors,
             grads_required=[fwd_graph.graph.inputs[0]],
+            replica_groupings=fwd_facts.replica_groupings,
         )
 
         # outline forward
@@ -137,11 +165,11 @@ class OutputLayerWithBwd(addons.Module):
 
 # gelu included in the linear layer
 class Net(addons.Module):
-    def __init__(self, cache: Optional[addons.GraphCache] = None):
+    def __init__(self, rg: ReplicaGrouping, cache: Optional[addons.GraphCache] = None):
         super().__init__(cache=cache)
-        self.fc1 = Linear(512)
-        self.fc2 = Linear(512)
-        self.fc3 = Linear(512)
+        self.fc1 = Linear(512, rg)
+        self.fc2 = Linear(512, rg)
+        self.fc3 = Linear(512, rg)
         self.fc4 = Linear(10, gelu=False)
 
     def build(self, x: popxl.Tensor):
@@ -167,6 +195,7 @@ class Adam(addons.Module):
         self,
         var: popxl.TensorByRef,
         grad: popxl.Tensor,
+        replica_grouping: Optional[popxl.ReplicaGrouping] = None,
         *,
         lr: Union[float, popxl.Tensor],
         beta1: Union[float, popxl.Tensor] = 0.9,
@@ -181,16 +210,22 @@ class Adam(addons.Module):
 
         # Sharded inputs must be added with add_replica_sharded_variable_input
         if var.meta_shape:
+            # shard over factor can be automatically computed from the variable
+            shard_over = np.prod(var.meta_shape) // np.prod(var.shape)
             first_order = self.add_replica_sharded_variable_input(
                 "first_order",
                 partial(np.zeros, var.meta_shape),
                 first_order_dtype,
+                replica_grouping=replica_grouping,
+                shard_over=shard_over,
                 by_ref=True,
             )
             second_order = self.add_replica_sharded_variable_input(
                 "second_order",
                 partial(np.zeros, var.meta_shape),
                 popxl.float32,
+                replica_grouping=replica_grouping,
+                shard_over=shard_over,
                 by_ref=True,
             )
 
@@ -200,9 +235,14 @@ class Adam(addons.Module):
                 partial(np.zeros, var.shape),
                 first_order_dtype,
                 by_ref=True,
+                replica_grouping=replica_grouping,
             )
             second_order = self.add_variable_input(
-                "second_order", partial(np.zeros, var.shape), popxl.float32, by_ref=True
+                "second_order",
+                partial(np.zeros, var.shape),
+                popxl.float32,
+                by_ref=True,
+                replica_grouping=replica_grouping,
             )
 
         ops.var_updates.accumulate_moving_average_(first_order, grad, f=beta1)
@@ -232,6 +272,29 @@ class Adam(addons.Module):
 
 
 """
+Build the replica groupings to be used for replicated tensor sharding.
+If the tensor has less elements than the threshold, the group_size will be 1
+so that no sharding happens. Otherwise, tensors will be sharded across the data
+parallel replicas.
+"""
+
+
+def get_shard_groups(opts, facts: NamedVariableFactories) -> NamedReplicaGrouping:
+    ir = popxl.gcg().ir
+
+    rts_groups = {}
+    for k, f in facts.to_dict().items():
+        size = np.prod(f.shape)
+        rg = f.replica_grouping
+        if size >= opts.sharded_threshold and size % rg.group_size == 0:
+            rts_groups[k] = rg
+        else:
+            rts_groups[k] = ir.replica_grouping(group_size=1)
+    # it is important to sort the tensor names.
+    return dict(sorted(rts_groups.items()))
+
+
+"""
 Groups together the forward, backward and optimizers graphs of a layer for easy access and handling.
 """
 
@@ -244,11 +307,16 @@ class Graphs:
         optimizer: addons.Module,
         entries: int,
         require_dx_0: bool,
+        rg: ReplicaGrouping,
         *args,
         **kwargs,
     ):
+        self.rg = rg
         # Create Graphs for computing forward, gradient and optimizer
         fwd_facts, self.fwd = layer.create_graph(*args, **kwargs)
+        # variables and accumulators will be sharded according to the selected threshold
+        self.shard_groups = get_shard_groups(opts, fwd_facts)
+
         required_grads = (self.fwd.graph.inputs[0],) if require_dx_0 else ()
         grad_facts, self.bwd = addons.autodiff_with_accumulation(
             self.fwd,
@@ -269,12 +337,15 @@ class Graphs:
         fwd_and_bwd: addons.Module,
         optimizer: addons.Module,
         entries: int,
+        rg: ReplicaGrouping,
         *args,
         **kwargs,
     ):
         graphs = Graphs.empty()
         graphs.bwd = None
+        graphs.rg = rg
         facts, graphs.fwd = fwd_and_bwd.create_graph(*args, **kwargs)
+        graphs.shard_groups = get_shard_groups(opts, facts.fwd)
         optim_facts = graphs._setup_optim(optimizer, graphs.fwd.args.fwd, opts)
         graphs._set_factories(facts.fwd, optim_facts, facts.pop("bwd"))
         graphs._setup_graphs(opts, entries)
@@ -283,12 +354,16 @@ class Graphs:
     def _setup_optim(self, optimizer: addons.Module, fwd_vars: NamedTensors, opts):
         optim_facts = {}
         self.optim = {}
+
         for name, var in fwd_vars.to_dict().items():
             optim_facts[name], self.optim[name] = optimizer.create_graph(
-                replica_sharded_spec(var, threshold=opts.sharded_threshold),
-                replica_sharded_spec(var, threshold=opts.sharded_threshold),
+                replica_sharded_spec(var, shard_over=self.shard_groups[name]),
+                replica_sharded_spec(var, shard_over=self.shard_groups[name]),
                 lr=opts.lr,
                 bias_correction=False,
+                replica_grouping=popxl.gcg().ir.replica_grouping(
+                    group_size=opts.data_parallel
+                ),
             )
         return optim_facts
 
@@ -300,8 +375,19 @@ class Graphs:
 
     def _setup_graphs(self, opts, entries: int):
         # Create remote buffers for fwd vars and optimiser state.
-        self.buffers = named_variable_buffers(
-            self.facts, entries, sharded_threshold=opts.sharded_threshold
+
+        # only require the group size
+        shard_dict = {n: g.group_size for n, g in self.shard_groups.items()}
+        optim_shard_dict = {
+            n: g.group_size for n, g in get_shard_groups(opts, self.facts.optim).items()
+        }
+        self.buffers = NamedRemoteBuffers(
+            fwd=named_variable_buffers(
+                self.facts.fwd, entries, shard_over_dict=shard_dict
+            ),
+            optim=named_variable_buffers(
+                self.facts.optim, entries, shard_over_dict=optim_shard_dict
+            ),
         )
         # Create Graphs for loading/gathering/storing/reducing
         self._fwd_load, self._fwd_load_names = load_remote_graph(
@@ -311,17 +397,24 @@ class Graphs:
             self.buffers, entries
         )
         self._optim_fwd_store = store_remote_graph(self.buffers, entries)
-
         (
             self._fwd_all_gather,
             self._fwd_all_gather_names,
         ) = all_gather_replica_sharded_graph(
-            NamedTensors.pack(self._fwd_load_names, self._fwd_load.graph.outputs)
+            NamedTensors.pack(self._fwd_load_names, self._fwd_load.graph.outputs),
+            replica_groups=NamedReplicaGrouping.from_dict(
+                dict(zip(self._fwd_load_names, self.shard_groups.values()))
+            ),
         )
         grad_accums = self.bwd.args.copy() if self.bwd else self.fwd.args.bwd.copy()
         grad_accums.pop("mean_accum_counter")
         self._grad_reduce, self._grad_reduce_names = reduce_replica_sharded_graph(
-            grad_accums, "mean", threshold=opts.sharded_threshold
+            grad_accums,
+            "mean",
+            shard_groups=NamedReplicaGrouping.from_dict(
+                get_shard_groups(opts, self.grad_facts)
+            ),
+            replica_group=self.rg,
         )
 
     # load forward variables
@@ -538,6 +631,7 @@ def train_program(opts):
     ir = popxl.Ir()
     ir.replication_factor = opts.data_parallel
     num_inner_layers = 2
+    rg = ir.replica_grouping(group_size=opts.data_parallel)
     if opts.io_mode != "compute":
         session_opts = ir._pb_ir.getSessionOptions()
         session_opts.numIOTiles = 32
@@ -554,18 +648,29 @@ def train_program(opts):
             (opts.train_micro_batch_size,), popxl.int32, "labels"
         )
         loss_stream = popxl.d2h_stream((), popxl.float32, "loss")
-        optimizer = Adam(cache=True)
+        optimizer = Adam(cache=False)
 
         # ----- Create graphs -----
-        fc1 = Graphs(opts, Linear(512), optimizer, 1, False, img_spec)
-        inner_layer = Graphs(
-            opts, Linear(512), optimizer, num_inner_layers, True, inner_spec
+        fc1 = Graphs(
+            opts, Linear(512, replica_grouping=rg), optimizer, 1, False, rg, img_spec
         )
+
+        inner_layer = Graphs(
+            opts,
+            Linear(512, replica_grouping=rg),
+            optimizer,
+            num_inner_layers,
+            True,
+            rg,
+            inner_spec,
+        )
+
         fc4_fwd_bwd = Graphs.from_fwd_and_bwd(
             opts,
-            OutputLayerWithBwd(10, gelu=False),
+            OutputLayerWithBwd(10, gelu=False, replica_grouping=rg),
             optimizer,
             1,
+            rg,
             inner_spec,
             label_stream.spec,
         )
@@ -731,7 +836,8 @@ def test_program(opts):
         in_t = ops.host_load(in_stream)
 
         # Create graphs
-        facts, graph = Net().create_graph(in_t)
+        rg = ir.replica_grouping(group_size=1)
+        facts, graph = Net(rg).create_graph(in_t)
 
         # Initialise variables
         variables = facts.init()

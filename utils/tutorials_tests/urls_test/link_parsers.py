@@ -28,7 +28,9 @@ class Parser(metaclass=ABCMeta):
         self._filename = Path(file_path)
 
     @abstractmethod
-    def get_all_links(self, file_contents_lines: List[str], warn_on_raw_links=False) -> Set[str]:
+    def get_all_links(
+        self, file_contents_lines: List[str], warn_on_raw_links=False
+    ) -> Set[str]:
         """Return all hyper-links found in the file."""
 
     @abstractmethod
@@ -55,7 +57,9 @@ class MdParser(Parser):
     def file_suffix() -> str:
         return ".md"
 
-    def get_all_links(self, file_contents_lines: List[str], warn_on_raw_links=False) -> Set[str]:
+    def get_all_links(
+        self, file_contents_lines: List[str], warn_on_raw_links=False
+    ) -> Set[str]:
 
         file_contents = " ".join([line.strip() for line in file_contents_lines])
 
@@ -131,7 +135,9 @@ class RstParser(Parser):
     def file_suffix() -> str:
         return ".rst"
 
-    def get_all_links(self, file_contents_lines: List[str], warn_on_raw_links=False) -> Set[str]:
+    def get_all_links(
+        self, file_contents_lines: List[str], warn_on_raw_links=False
+    ) -> Set[str]:
 
         file_contents = "".join([line.strip() for line in file_contents_lines])
 

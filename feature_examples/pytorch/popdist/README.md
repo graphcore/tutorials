@@ -19,7 +19,7 @@ You can learn more about PopDist and PopRun in the [PopDist and PopRun User Guid
 2. Install additional Python packages specified in requirements.txt
 ```:bash
 python -m pip install -U pip
-python3 -m pip install -r requirements
+python3 -m pip install -r requirements.txt
 ```
 3. Launch the script using PopRun. The number of instances and replicas are provided as command-line arguments
 Example:
