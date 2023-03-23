@@ -1,6 +1,2 @@
-<!-- Copyright (c) 2021 Graphcore Ltd. All rights reserved. -->
-# Code used in videos
-
-This directory contains code used in Graphcore videos.
-
-## Contents
+Graphcore Tutorials have moved, find this file at:
+https://github.com/graphcore/examples/tree/v3.2.0/tutorials/videos_code/README.md

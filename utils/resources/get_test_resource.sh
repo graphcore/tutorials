@@ -1,3 +1,2 @@
-#!/bin/bash
-# Copyright (c) 2018 Graphcore Ltd. All rights reserved.
-python ./get.py test.txt
+Graphcore Tutorials have moved, find this file at:
+https://github.com/graphcore/examples/tree/v3.2.0/tutorials/utils/resources/get_test_resource.sh

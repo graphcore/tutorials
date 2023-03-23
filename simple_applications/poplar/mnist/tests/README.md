@@ -1,17 +1,2 @@
-<!-- Copyright (c) 2021 Graphcore Ltd. All rights reserved. -->
-### Tests
-
-This directory contains tests for the Poplar MNIST demo.
-
-To run the tests, create a python3 virtual environment and install the
-requirements:
-
-```
-    pip install -r requirements.txt
-```
-
-Use this command to run the tests:
-
-```
-    python -m pytest
-```
+Graphcore Tutorials have moved, find this file at:
+https://github.com/graphcore/examples/tree/v3.2.0/tutorials/simple_applications/poplar/mnist/tests/README.md

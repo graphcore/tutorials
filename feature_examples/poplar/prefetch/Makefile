@@ -1,7 +1,2 @@
-all: prefetch
-
-%: %.cpp
-	g++ -std=c++11 $^ -lpoplar -o $@
-
-clean:
-	rm -f prefetch
+Graphcore Tutorials have moved, find this file at:
+https://github.com/graphcore/examples/tree/v3.2.0/tutorials/feature_examples/poplar/prefetch/Makefile

@@ -1,4 +1,2 @@
-<?php
-// Copyright (c) 2021 Graphcore Ltd. All rights reserved.
-
-phutil_register_library('precommit', __FILE__);
+Graphcore Tutorials have moved, find this file at:
+https://github.com/graphcore/examples/tree/v3.2.0/tutorials/utils/lint/__phutil_library_init__.php

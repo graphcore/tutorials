@@ -1,5 +1,2 @@
-numpy>=1.19.0
-tqdm
-torch
-torchvision
-popxl-addons @ git+https://github.com/graphcore/popxl-addons.git@sdk-release-3.1_a
+Graphcore Tutorials have moved, find this file at:
+https://github.com/graphcore/examples/tree/v3.2.0/tutorials/tutorials/popxl/6_phased_execution/requirements.txt

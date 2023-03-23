@@ -1,2 +1,2 @@
-pytest~=6.2
-pytest-pythonpath==0.7.3
+Graphcore Tutorials have moved, find this file at:
+https://github.com/graphcore/examples/tree/v3.2.0/tutorials/simple_applications/pytorch/mnist/tests/requirements.txt

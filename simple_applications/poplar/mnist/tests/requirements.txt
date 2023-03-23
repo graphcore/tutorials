@@ -1,5 +1,2 @@
-pytest~=6.2
-pytest-pythonpath==0.7.3
-pytest-forked~=1.4
-pytest-xdist~=2.5
-filelock~=3.4
+Graphcore Tutorials have moved, find this file at:
+https://github.com/graphcore/examples/tree/v3.2.0/tutorials/simple_applications/poplar/mnist/tests/requirements.txt

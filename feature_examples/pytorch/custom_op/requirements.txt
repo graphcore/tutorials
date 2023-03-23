@@ -1,3 +1,2 @@
-torchvision==0.14.0
-pathlib==1.0.1
-numpy>=1.19.0
+Graphcore Tutorials have moved, find this file at:
+https://github.com/graphcore/examples/tree/v3.2.0/tutorials/feature_examples/pytorch/custom_op/requirements.txt

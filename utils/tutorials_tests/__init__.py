@@ -1,1 +1,2 @@
-# Copyright (c) 2018 Graphcore Ltd. All rights reserved.
+Graphcore Tutorials have moved, find this file at:
+https://github.com/graphcore/examples/tree/v3.2.0/tutorials/utils/tutorials_tests/__init__.py

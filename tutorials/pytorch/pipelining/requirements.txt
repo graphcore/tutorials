@@ -1,5 +1,2 @@
-torchvision==0.14.0
-tqdm==4.64.0
-pytest==5.4.3
-torch==1.13.0
-ipywidgets==7.7.2
+Graphcore Tutorials have moved, find this file at:
+https://github.com/graphcore/examples/tree/v3.2.0/tutorials/tutorials/pytorch/pipelining/requirements.txt

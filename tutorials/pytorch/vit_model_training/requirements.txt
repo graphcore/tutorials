@@ -1,8 +1,2 @@
-pandas
-torchvision==0.14.0
-transformers==4.20.1
-tokenizers<0.13
-optimum-graphcore
-datasets
-matplotlib
-scikit-learn
+Graphcore Tutorials have moved, find this file at:
+https://github.com/graphcore/examples/tree/v3.2.0/tutorials/tutorials/pytorch/vit_model_training/requirements.txt

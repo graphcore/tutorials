@@ -1,4 +1,2 @@
-numpy>=1.19.0
-filelock==3.0.12
-pytest-forked~=1.4
-pytest-xdist~=2.5
+Graphcore Tutorials have moved, find this file at:
+https://github.com/graphcore/examples/tree/v3.2.0/tutorials/feature_examples/popart/custom_operators/leaky_relu_example/requirements.txt

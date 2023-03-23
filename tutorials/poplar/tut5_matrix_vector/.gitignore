@@ -1,3 +1,2 @@
-complete/tut5
-complete/tut5_ipu
-start_here/tut5_start_here
+Graphcore Tutorials have moved, find this file at:
+https://github.com/graphcore/examples/tree/v3.2.0/tutorials/tutorials/poplar/tut5_matrix_vector/.gitignore

@@ -1,2 +1,2 @@
-transformers==4.20
-torch==1.13.0
+Graphcore Tutorials have moved, find this file at:
+https://github.com/graphcore/examples/tree/v3.2.0/tutorials/simple_applications/pytorch/bert/requirements.txt

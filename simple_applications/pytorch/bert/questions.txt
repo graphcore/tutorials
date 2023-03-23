@@ -1,4 +1,2 @@
-How many islands are there in Scotland?
-What sea is to the south of Scotland?
-How long is Scotland's border in km?
-Where is England in relation to scotland?
+Graphcore Tutorials have moved, find this file at:
+https://github.com/graphcore/examples/tree/v3.2.0/tutorials/simple_applications/pytorch/bert/questions.txt

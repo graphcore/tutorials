@@ -1,16 +1,2 @@
-<!-- Copyright (c) 2022 Graphcore Ltd. All rights reserved. -->
-# `lightweight_profiling` tests
-
-This directory contains tests for `lightweight` profiling.
-
-To run the tests, create a Python 3 virtual environment and install the
-requirements:
-
-    pip install -r requirements.txt
-
-Source the `enable.sh` script for Poplar as described in the Getting Started
-Guide for your IPU system.
-
-Then run the tests using pytest:
-
-    pytest
+Graphcore Tutorials have moved, find this file at:
+https://github.com/graphcore/examples/tree/v3.2.0/tutorials/tutorials/popvision/lightweight_profiling/tests/README.md

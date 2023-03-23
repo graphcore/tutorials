@@ -1,5 +1,2 @@
-jupyter
-jedi==0.17.2
-tqdm
-transformers==4.10.2
-datasets
+Graphcore Tutorials have moved, find this file at:
+https://github.com/graphcore/examples/tree/v3.2.0/tutorials/tutorials/pytorch/finetuning_bert/requirements.txt

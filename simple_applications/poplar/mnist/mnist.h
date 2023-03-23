@@ -1,11 +1,2 @@
-// Copyright (c) 2018 Graphcore Ltd. All rights reserved.
-#ifndef _MNIST_H_
-#define _MNIST_H_
-#include <vector>
-
-std::vector<unsigned> readMNISTLabels(const char *fname);
-
-std::vector<float> readMNISTData(unsigned &numberOfImages, unsigned &imageSize,
-                                 const char *fname);
-
-#endif //_MNIST_H_
+Graphcore Tutorials have moved, find this file at:
+https://github.com/graphcore/examples/tree/v3.2.0/tutorials/simple_applications/poplar/mnist/mnist.h

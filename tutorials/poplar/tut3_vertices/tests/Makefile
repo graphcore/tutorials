@@ -1,9 +1,2 @@
-CC = g++
-
-all:  ../complete/tut3_complete
-
- ../complete/tut3_complete: ../complete/tut3_complete.cpp
-	$(CC) --std=c++11 ../complete/tut3_complete.cpp -lpoplar -o ../complete/tut3_complete
-
-clean:
-	rm -f ../complete/tut3_complete
+Graphcore Tutorials have moved, find this file at:
+https://github.com/graphcore/examples/tree/v3.2.0/tutorials/tutorials/poplar/tut3_vertices/tests/Makefile

@@ -1,4 +1,2 @@
-torchvision==0.14.0
-tqdm==4.48.2
-pytest~=6.2
-pytest-pythonpath==0.7.3
+Graphcore Tutorials have moved, find this file at:
+https://github.com/graphcore/examples/tree/v3.2.0/tutorials/tech_notes_code/available_memory/requirements.txt

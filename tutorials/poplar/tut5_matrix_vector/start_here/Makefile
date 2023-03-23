@@ -1,6 +1,2 @@
-CXX ?= g++
-all:
-	$(CXX) -std=c++11 tut5.cpp -lpoplar -lpoputil -o tut5_start_here
-
-clean:
-	rm -f tut5_start_here
+Graphcore Tutorials have moved, find this file at:
+https://github.com/graphcore/examples/tree/v3.2.0/tutorials/tutorials/poplar/tut5_matrix_vector/start_here/Makefile
